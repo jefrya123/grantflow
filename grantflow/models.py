@@ -1,7 +1,21 @@
 from sqlalchemy import Column, Text, Float, Integer, Boolean, Index
-from sqlalchemy.dialects.postgresql import TSVECTOR
+from sqlalchemy.engine.interfaces import Dialect
+from sqlalchemy.types import TypeDecorator, UserDefinedType
 from sqlalchemy.orm import DeclarativeBase
 from datetime import datetime, timezone
+
+
+class TSVECTORType(TypeDecorator):
+    """PostgreSQL TSVECTOR that falls back to TEXT for other dialects (e.g. SQLite)."""
+
+    impl = Text
+    cache_ok = True
+
+    def load_dialect_impl(self, dialect: Dialect):
+        if dialect.name == "postgresql":
+            from sqlalchemy.dialects.postgresql import TSVECTOR
+            return dialect.type_descriptor(TSVECTOR())
+        return dialect.type_descriptor(Text())
 
 
 class Base(DeclarativeBase):
@@ -40,8 +54,8 @@ class Opportunity(Base):
     created_at = Column(Text, default=lambda: datetime.now(timezone.utc).isoformat())
     updated_at = Column(Text, default=lambda: datetime.now(timezone.utc).isoformat())
 
-    # Full-text search vector (PostgreSQL only; NULL on SQLite)
-    search_vector = Column(TSVECTOR, nullable=True)
+    # Full-text search vector (PostgreSQL TSVECTOR; falls back to TEXT for SQLite)
+    search_vector = Column(TSVECTORType, nullable=True)
 
 
 class Award(Base):

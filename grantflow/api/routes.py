@@ -193,14 +193,14 @@ def health_check(db: Session = Depends(get_db)):
     stale_threshold = now - timedelta(hours=48)
 
     # Most recent IngestionLog per source (highest id = most recent row)
-    latest_ids = (
-        db.query(func.max(IngestionLog.id).label("max_id"))
+    from sqlalchemy import select
+    latest_ids_stmt = (
+        select(func.max(IngestionLog.id).label("max_id"))
         .group_by(IngestionLog.source)
-        .subquery()
     )
     latest_logs = (
         db.query(IngestionLog)
-        .filter(IngestionLog.id.in_(latest_ids))
+        .filter(IngestionLog.id.in_(latest_ids_stmt))
         .all()
     )
 
