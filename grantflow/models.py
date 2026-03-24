@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Text, Float, Integer, Boolean, Index
+from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import DeclarativeBase
 from datetime import datetime, timezone
 
@@ -38,6 +39,9 @@ class Opportunity(Base):
     raw_data = Column(Text)
     created_at = Column(Text, default=lambda: datetime.now(timezone.utc).isoformat())
     updated_at = Column(Text, default=lambda: datetime.now(timezone.utc).isoformat())
+
+    # Full-text search vector (PostgreSQL only; NULL on SQLite)
+    search_vector = Column(TSVECTOR, nullable=True)
 
 
 class Award(Base):
