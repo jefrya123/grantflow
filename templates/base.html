@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}GrantFlow{% endblock %}</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div>
+                    <h1 class="site-title"><a href="/">GrantFlow</a></h1>
+                    <p class="tagline">Unified Government Grants &amp; Contracts Data</p>
+                </div>
+                <nav>
+                    <a href="/search">Search</a>
+                    <a href="/docs">API Docs</a>
+                    <a href="/api/v1/stats">Stats</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>Data sourced from Grants.gov, USAspending.gov, SBIR.gov</p>
+        </div>
+    </footer>
+</body>
+</html>

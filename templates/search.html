@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Search - GrantFlow{% endblock %}
+
+{% block content %}
+<div class="search-section">
+    <form method="get" action="/search" class="search-form">
+        <div class="search-row">
+            <input type="text" name="q" placeholder="Search grants..." value="{{ filters.q }}" class="search-input">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+        <div class="filter-row">
+            <select name="status">
+                <option value="">All Statuses</option>
+                <option value="posted" {% if filters.status == 'posted' %}selected{% endif %}>Posted</option>
+                <option value="closed" {% if filters.status == 'closed' %}selected{% endif %}>Closed</option>
+                <option value="archived" {% if filters.status == 'archived' %}selected{% endif %}>Archived</option>
+                <option value="forecasted" {% if filters.status == 'forecasted' %}selected{% endif %}>Forecasted</option>
+            </select>
+            <select name="source">
+                <option value="">All Sources</option>
+                <option value="grants_gov" {% if filters.source == 'grants_gov' %}selected{% endif %}>Grants.gov</option>
+                <option value="sbir" {% if filters.source == 'sbir' %}selected{% endif %}>SBIR</option>
+            </select>
+            <input type="number" name="min_award" placeholder="Min award $" value="{{ filters.min_award }}" step="any">
+            <input type="number" name="max_award" placeholder="Max award $" value="{{ filters.max_award }}" step="any">
+        </div>
+    </form>
+</div>
+
+{% if total > 0 %}
+<div class="results-meta">
+    Showing {{ (page - 1) * per_page + 1 }}-{{ [page * per_page, total] | min }} of {{ total }} opportunities
+</div>
+{% endif %}
+
+<div class="results-list">
+    {% if results %}
+        {% for opp in results %}
+        <div class="result-card">
+            <div class="result-header">
+                <h3><a href="/opportunity/{{ opp.id }}">{{ opp.title }}</a></h3>
+                <div class="badges">
+                    {% if opp.opportunity_status %}
+                    <span class="badge badge-{{ opp.opportunity_status }}">{{ opp.opportunity_status }}</span>
+                    {% endif %}
+                    {% if opp.source %}
+                    <span class="badge badge-source">{{ opp.source }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="result-meta">
+                {% if opp.agency_name %}
+                <span class="meta-item">{{ opp.agency_name }}</span>
+                {% endif %}
+                {% if opp.award_floor or opp.award_ceiling %}
+                <span class="meta-item">
+                    Award:
+                    {% if opp.award_floor %}${{ "{:,.0f}".format(opp.award_floor) }}{% endif %}
+                    {% if opp.award_floor and opp.award_ceiling %} - {% endif %}
+                    {% if opp.award_ceiling %}${{ "{:,.0f}".format(opp.award_ceiling) }}{% endif %}
+                </span>
+                {% endif %}
+                {% if opp.close_date %}
+                <span class="meta-item">
+                    Closes: {{ opp.close_date }}
+                    {% set today = None %}
+                    {% if opp.close_date and opp.close_date >= now_date|default('') %}
+                    {% endif %}
+                </span>
+                {% endif %}
+            </div>
+            {% if opp.description %}
+            <p class="result-desc">{{ opp.description[:200] }}{% if opp.description|length > 200 %}...{% endif %}</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="no-results">
+            <p>No opportunities found. Try a different search.</p>
+        </div>
+    {% endif %}
+</div>
+
+{% if pages > 1 %}
+<div class="pagination">
+    {% if page > 1 %}
+    <a href="/search?q={{ filters.q }}&status={{ filters.status }}&source={{ filters.source }}&min_award={{ filters.min_award }}&max_award={{ filters.max_award }}&page={{ page - 1 }}&per_page={{ per_page }}" class="page-link">Previous</a>
+    {% endif %}
+
+    {% for p in range(1, pages + 1) %}
+        {% if p == page %}
+        <span class="page-link current">{{ p }}</span>
+        {% elif p <= 3 or p > pages - 2 or (p >= page - 1 and p <= page + 1) %}
+        <a href="/search?q={{ filters.q }}&status={{ filters.status }}&source={{ filters.source }}&min_award={{ filters.min_award }}&max_award={{ filters.max_award }}&page={{ p }}&per_page={{ per_page }}" class="page-link">{{ p }}</a>
+        {% elif p == 4 or p == pages - 2 %}
+        <span class="page-link">...</span>
+        {% endif %}
+    {% endfor %}
+
+    {% if page < pages %}
+    <a href="/search?q={{ filters.q }}&status={{ filters.status }}&source={{ filters.source }}&min_award={{ filters.min_award }}&max_award={{ filters.max_award }}&page={{ page + 1 }}&per_page={{ per_page }}" class="page-link">Next</a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

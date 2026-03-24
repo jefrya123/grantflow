@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}{{ opp.title }} - GrantFlow{% endblock %}
+
+{% block content %}
+<div class="detail-page">
+    <a href="/search" class="back-link">&larr; Back to search</a>
+
+    <div class="detail-header">
+        <h2>{{ opp.title }}</h2>
+        <div class="badges">
+            {% if opp.opportunity_status %}
+            <span class="badge badge-{{ opp.opportunity_status }}">{{ opp.opportunity_status }}</span>
+            {% endif %}
+            {% if opp.source %}
+            <span class="badge badge-source">{{ opp.source }}</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="detail-grid">
+        <div class="detail-card">
+            <h3>Key Facts</h3>
+            <table class="facts-table">
+                {% if opp.agency_name %}
+                <tr><th>Agency</th><td>{{ opp.agency_name }}{% if opp.agency_code %} ({{ opp.agency_code }}){% endif %}</td></tr>
+                {% endif %}
+                {% if opp.category %}
+                <tr><th>Category</th><td>{{ opp.category }}</td></tr>
+                {% endif %}
+                {% if opp.funding_instrument %}
+                <tr><th>Funding Instrument</th><td>{{ opp.funding_instrument }}</td></tr>
+                {% endif %}
+                {% if opp.cfda_numbers %}
+                <tr><th>CFDA Numbers</th><td>{{ opp.cfda_numbers }}</td></tr>
+                {% endif %}
+                {% if opp.opportunity_number %}
+                <tr><th>Opportunity Number</th><td>{{ opp.opportunity_number }}</td></tr>
+                {% endif %}
+            </table>
+        </div>
+
+        <div class="detail-card">
+            <h3>Award Information</h3>
+            <table class="facts-table">
+                {% if opp.award_floor is not none %}
+                <tr><th>Award Floor</th><td>${{ "{:,.0f}".format(opp.award_floor) }}</td></tr>
+                {% endif %}
+                {% if opp.award_ceiling is not none %}
+                <tr><th>Award Ceiling</th><td>${{ "{:,.0f}".format(opp.award_ceiling) }}</td></tr>
+                {% endif %}
+                {% if opp.estimated_total_funding is not none %}
+                <tr><th>Estimated Total Funding</th><td>${{ "{:,.0f}".format(opp.estimated_total_funding) }}</td></tr>
+                {% endif %}
+                {% if opp.expected_number_of_awards is not none %}
+                <tr><th>Expected Awards</th><td>{{ opp.expected_number_of_awards }}</td></tr>
+                {% endif %}
+                {% if opp.cost_sharing_required is not none %}
+                <tr><th>Cost Sharing Required</th><td>{{ "Yes" if opp.cost_sharing_required else "No" }}</td></tr>
+                {% endif %}
+            </table>
+        </div>
+
+        <div class="detail-card">
+            <h3>Dates</h3>
+            <table class="facts-table">
+                {% if opp.post_date %}
+                <tr><th>Posted</th><td>{{ opp.post_date }}</td></tr>
+                {% endif %}
+                {% if opp.close_date %}
+                <tr><th>Closes</th><td>{{ opp.close_date }}</td></tr>
+                {% endif %}
+                {% if opp.last_updated %}
+                <tr><th>Last Updated</th><td>{{ opp.last_updated }}</td></tr>
+                {% endif %}
+            </table>
+        </div>
+    </div>
+
+    {% if opp.eligible_applicants %}
+    <div class="detail-card">
+        <h3>Eligibility</h3>
+        <p>{{ opp.eligible_applicants }}</p>
+    </div>
+    {% endif %}
+
+    {% if opp.description %}
+    <div class="detail-card">
+        <h3>Description</h3>
+        <div class="description-text">{{ opp.description }}</div>
+    </div>
+    {% endif %}
+
+    {% if opp.contact_email or opp.contact_text %}
+    <div class="detail-card">
+        <h3>Contact Information</h3>
+        {% if opp.contact_email %}
+        <p>Email: <a href="mailto:{{ opp.contact_email }}">{{ opp.contact_email }}</a></p>
+        {% endif %}
+        {% if opp.contact_text %}
+        <p>{{ opp.contact_text }}</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if opp.source_url or opp.additional_info_url %}
+    <div class="detail-card">
+        <h3>Links</h3>
+        {% if opp.source_url %}
+        <p><a href="{{ opp.source_url }}" target="_blank" rel="noopener">View Original Source</a></p>
+        {% endif %}
+        {% if opp.additional_info_url %}
+        <p><a href="{{ opp.additional_info_url }}" target="_blank" rel="noopener">Additional Information</a></p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if awards %}
+    <div class="detail-card">
+        <h3>Historical Awards</h3>
+        <div class="table-wrap">
+            <table class="awards-table">
+                <thead>
+                    <tr>
+                        <th>Recipient</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                        <th>Location</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for award in awards %}
+                    <tr>
+                        <td>{{ award.recipient_name or "N/A" }}</td>
+                        <td>{% if award.award_amount is not none %}${{ "{:,.0f}".format(award.award_amount) }}{% else %}N/A{% endif %}</td>
+                        <td>{{ award.award_date or "N/A" }}</td>
+                        <td>{{ award.place_city or "" }}{% if award.place_city and award.place_state %}, {% endif %}{{ award.place_state or "" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
