@@ -185,7 +185,11 @@ Plans:
   2. Bulk export endpoint supports ?topic= filter matching the search endpoint
   3. canonical_id is included in OpportunityResponse API schema
   4. LLM enrichment runs on a daily APScheduler job (gated on OPENAI_API_KEY)
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 09-01-PLAN.md — Tier-aware rate limits on all API endpoints + export topic filter
+- [ ] 09-02-PLAN.md — canonical_id in OpportunityResponse + enrichment APScheduler job
 
 ## Progress
 
@@ -213,4 +217,4 @@ Wave 5:  Phase 8 ║ Phase 9   (gap closure — parallel)
 | 6. Advanced API + Web UI | 2/2 | Complete   | 2026-03-24 | Complete | 2026-03-24 |
 | 7. GTM + Enrichment | 2/2 | Complete   | 2026-03-24 | Complete | 2026-03-24 |
 | 8. Pipeline & Data Cleanup | 2/2 | Complete   | 2026-03-24 | Not started | - |
-| 9. API & Feature Polish | 5 | Phase 8 | 0/TBD | Not started | - |
+| 9. API & Feature Polish | 5 | Phase 8 | 0/2 | Not started | - |
