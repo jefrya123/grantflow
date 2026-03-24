@@ -7,11 +7,18 @@ from grantflow.models import Opportunity, Award, Agency, IngestionLog
 from grantflow.database import get_db
 from grantflow.config import DATABASE_URL as _DB_URL
 from grantflow.pipeline.monitor import get_freshness_report
+from grantflow.api.schemas import (
+    OpportunityResponse,
+    OpportunityDetailResponse,
+    AwardResponse,
+    SearchResponse,
+    StatsResponse,
+)
 
 router = APIRouter(prefix="/api/v1")
 
 
-@router.get("/opportunities/search")
+@router.get("/opportunities/search", response_model=SearchResponse, tags=["opportunities"])
 def search_opportunities(
     q: str | None = None,
     status: str | None = None,
@@ -28,7 +35,7 @@ def search_opportunities(
     page: int = Query(default=1, ge=1),
     per_page: int = Query(default=20, ge=1, le=100),
     db: Session = Depends(get_db),
-):
+) -> SearchResponse:
     if q:
         if _DB_URL.startswith("postgresql") or _DB_URL.startswith("postgres"):
             # PostgreSQL: use tsvector GIN index
@@ -90,22 +97,22 @@ def search_opportunities(
     offset = (page - 1) * per_page
     results = query.offset(offset).limit(per_page).all()
 
-    return {
-        "results": [_opportunity_to_dict(o) for o in results],
-        "total": total,
-        "page": page,
-        "per_page": per_page,
-        "pages": pages,
-    }
+    return SearchResponse(
+        results=[OpportunityResponse.model_validate(o) for o in results],
+        total=total,
+        page=page,
+        per_page=per_page,
+        pages=pages,
+    )
 
 
-@router.get("/opportunities/{opportunity_id}")
-def get_opportunity(opportunity_id: str, db: Session = Depends(get_db)):
+@router.get("/opportunities/{opportunity_id}", response_model=OpportunityDetailResponse, tags=["opportunities"])
+def get_opportunity(opportunity_id: str, db: Session = Depends(get_db)) -> OpportunityDetailResponse:
     opp = db.query(Opportunity).filter(Opportunity.id == opportunity_id).first()
     if not opp:
         raise HTTPException(status_code=404, detail="Opportunity not found")
 
-    result = _opportunity_to_dict(opp)
+    result = OpportunityDetailResponse.model_validate(opp)
 
     # Find linked awards by opportunity_number or cfda_numbers
     awards = []
@@ -118,12 +125,12 @@ def get_opportunity(opportunity_id: str, db: Session = Depends(get_db)):
             Award.cfda_numbers.ilike(f"%{opp.cfda_numbers}%")
         ).all()
 
-    result["awards"] = [_award_to_dict(a) for a in awards]
+    result.awards = [AwardResponse.model_validate(a) for a in awards]
     return result
 
 
-@router.get("/stats")
-def get_stats(db: Session = Depends(get_db)):
+@router.get("/stats", response_model=StatsResponse, tags=["opportunities"])
+def get_stats(db: Session = Depends(get_db)) -> StatsResponse:
     total_opportunities = db.query(func.count(Opportunity.id)).scalar() or 0
 
     # By source
@@ -140,7 +147,7 @@ def get_stats(db: Session = Depends(get_db)):
 
     # Awards
     total_awards = db.query(func.count(Award.id)).scalar() or 0
-    total_award_dollars = db.query(func.sum(Award.award_amount)).scalar() or 0
+    total_award_dollars = db.query(func.sum(Award.award_amount)).scalar() or 0.0
 
     # Closing soon (next 30 days)
     today = datetime.utcnow().strftime("%Y-%m-%d")
@@ -158,18 +165,18 @@ def get_stats(db: Session = Depends(get_db)):
     ).limit(10).all()
     top_agencies = [{"agency": row[0], "count": row[1]} for row in top_agencies_rows]
 
-    return {
-        "total_opportunities": total_opportunities,
-        "by_source": by_source,
-        "by_status": by_status,
-        "total_awards": total_awards,
-        "total_award_dollars": total_award_dollars,
-        "closing_soon": closing_soon,
-        "top_agencies": top_agencies,
-    }
+    return StatsResponse(
+        total_opportunities=total_opportunities,
+        by_source=by_source,
+        by_status=by_status,
+        total_awards=total_awards,
+        total_award_dollars=float(total_award_dollars),
+        closing_soon=closing_soon,
+        top_agencies=top_agencies,
+    )
 
 
-@router.get("/agencies")
+@router.get("/agencies", tags=["opportunities"])
 def get_agencies(db: Session = Depends(get_db)):
     rows = db.query(
         Opportunity.agency_code,
@@ -245,48 +252,4 @@ def health_check(db: Session = Depends(get_db)):
         "sources": sources,
         "source_freshness": freshness,
         "checked_at": now.isoformat(),
-    }
-
-
-def _opportunity_to_dict(o: Opportunity) -> dict:
-    return {
-        "id": o.id,
-        "source": o.source,
-        "source_id": o.source_id,
-        "title": o.title,
-        "description": o.description,
-        "agency_code": o.agency_code,
-        "agency_name": o.agency_name,
-        "opportunity_number": o.opportunity_number,
-        "opportunity_status": o.opportunity_status,
-        "funding_instrument": o.funding_instrument,
-        "category": o.category,
-        "cfda_numbers": o.cfda_numbers,
-        "eligible_applicants": o.eligible_applicants,
-        "post_date": o.post_date,
-        "close_date": o.close_date,
-        "last_updated": o.last_updated,
-        "award_floor": o.award_floor,
-        "award_ceiling": o.award_ceiling,
-        "estimated_total_funding": o.estimated_total_funding,
-        "expected_number_of_awards": o.expected_number_of_awards,
-        "cost_sharing_required": o.cost_sharing_required,
-        "contact_email": o.contact_email,
-        "contact_text": o.contact_text,
-        "additional_info_url": o.additional_info_url,
-        "source_url": o.source_url,
-    }
-
-
-def _award_to_dict(a: Award) -> dict:
-    return {
-        "id": a.id,
-        "award_id": a.award_id,
-        "title": a.title,
-        "recipient_name": a.recipient_name,
-        "award_amount": a.award_amount,
-        "award_date": a.award_date,
-        "agency_name": a.agency_name,
-        "place_state": a.place_state,
-        "place_city": a.place_city,
     }

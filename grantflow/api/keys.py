@@ -8,14 +8,15 @@ from sqlalchemy.orm import Session
 
 from grantflow.database import get_db
 from grantflow.models import ApiKey
+from grantflow.api.schemas import KeyCreateResponse
 
 router = APIRouter(prefix="/api/v1")
 
 VALID_TIERS = {"free", "starter", "growth"}
 
 
-@router.post("/keys")
-def create_api_key(body: dict | None = None, db: Session = Depends(get_db)):
+@router.post("/keys", response_model=KeyCreateResponse)
+def create_api_key(body: dict | None = None, db: Session = Depends(get_db)) -> KeyCreateResponse:
     """Generate a new API key. The plaintext key is returned exactly once and never stored."""
     body = body or {}
     tier = body.get("tier", "free")
@@ -46,9 +47,9 @@ def create_api_key(body: dict | None = None, db: Session = Depends(get_db)):
     db.add(api_key)
     db.commit()
 
-    return {
-        "key": plaintext_key,
-        "key_prefix": key_prefix,
-        "tier": tier,
-        "created_at": created_at,
-    }
+    return KeyCreateResponse(
+        key=plaintext_key,
+        key_prefix=key_prefix,
+        tier=tier,
+        created_at=created_at,
+    )

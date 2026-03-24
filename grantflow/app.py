@@ -39,6 +39,15 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="GrantFlow",
     description="Unified Government Grants API",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_tags=[
+        {
+            "name": "opportunities",
+            "description": "Search and retrieve grant opportunities from Grants.gov, SAM.gov, and state portals.",
+        },
+    ],
     lifespan=lifespan,
 )
 
