@@ -61,10 +61,10 @@
 
 ### Go-to-Market
 
-- [ ] **GTM-01**: Landing page explaining product value proposition
-- [ ] **GTM-02**: Pricing page with coverage-based tiers (not API call volume)
-- [ ] **GTM-03**: Interactive API playground (try-it-now with sample data)
-- [ ] **GTM-04**: Usage analytics tracking (endpoint hits, search queries, API key usage)
+- [x] **GTM-01**: Landing page explaining product value proposition
+- [x] **GTM-02**: Pricing page with coverage-based tiers (not API call volume)
+- [x] **GTM-03**: Interactive API playground (try-it-now with sample data)
+- [x] **GTM-04**: Usage analytics tracking (endpoint hits, search queries, API key usage)
 
 ## v2 Requirements
 
