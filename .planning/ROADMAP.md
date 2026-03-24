@@ -172,5 +172,5 @@ Wave 4:  Phase 7 (needs 5+6)
 | 3. API Key Infrastructure | 3/3 | Complete   | 2026-03-24 | Not started | - |
 | 4. Data Quality | 1/2 | In Progress|  | Not started | - |
 | 5. State Data | 3/3 | Complete   | 2026-03-24 | Not started | - |
-| 6. Advanced API + Web UI | 3 | Phases 3, 4 | 0/2 | Not started | - |
+| 6. Advanced API + Web UI | 1/2 | In Progress|  | Not started | - |
 | 7. GTM + Enrichment | 4 | Phases 5, 6 | 0/TBD | Not started | - |

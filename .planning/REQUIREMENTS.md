@@ -54,10 +54,10 @@
 
 ### Web UI
 
-- [ ] **WEB-01**: Search page with filters (status, agency, category, eligibility, dates, award range)
-- [ ] **WEB-02**: Opportunity detail page with linked awards
-- [ ] **WEB-03**: "Closing soon" badge on opportunities closing within 30 days
-- [ ] **WEB-04**: Stats dashboard (total opps, by source, by agency, closing soon)
+- [x] **WEB-01**: Search page with filters (status, agency, category, eligibility, dates, award range)
+- [x] **WEB-02**: Opportunity detail page with linked awards
+- [x] **WEB-03**: "Closing soon" badge on opportunities closing within 30 days
+- [x] **WEB-04**: Stats dashboard (total opps, by source, by agency, closing soon)
 
 ### Go-to-Market
 

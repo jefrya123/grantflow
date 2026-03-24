@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 05-state-data-03-PLAN.md
-last_updated: "2026-03-24T19:38:15.286Z"
+stopped_at: Completed 06-advanced-api-web-ui-02-PLAN.md
+last_updated: "2026-03-24T19:56:25.827Z"
 last_activity: 2026-03-24 — Roadmap created, ready to begin Phase 1 planning
 progress:
   total_phases: 7
   completed_phases: 5
-  total_plans: 16
-  completed_plans: 16
+  total_plans: 18
+  completed_plans: 17
   percent: 33
 ---
 
@@ -66,6 +66,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 05-state-data P01 | 15 | 2 tasks | 6 files |
 | Phase 05-state-data P02 | 2 | 2 tasks | 7 files |
 | Phase 05-state-data P03 | 3 | 2 tasks | 7 files |
+| Phase 06-advanced-api-web-ui P02 | 3 | 1 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -121,6 +122,7 @@ Recent decisions affecting current work:
 - [Phase 05-state-data]: California DATASET_ID hardcoded as 'california-grants-portal' — stable public dataset
 - [Phase 05-state-data]: Module-level scheduler in app.py: exposed for test introspection without full app startup
 - [Phase 05-state-data]: check_zero_records() called from both run_state_ingestion (weekly) and run_all_ingestion (daily) — dual detection paths for faster alerting
+- [Phase 06-advanced-api-web-ui]: closing-soon badge in badges div; pagination base_qs via Jinja2 set; /stats backed by SQLAlchemy group-by aggregations
 
 ### Pending Todos
 
@@ -135,6 +137,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T19:35:05.817Z
-Stopped at: Completed 05-state-data-03-PLAN.md
+Last session: 2026-03-24T19:56:25.824Z
+Stopped at: Completed 06-advanced-api-web-ui-02-PLAN.md
 Resume file: None
