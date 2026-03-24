@@ -20,6 +20,7 @@ from grantflow.database import init_db
 from grantflow.pipeline.logging import configure_structlog, bind_source_logger
 from grantflow.ingest.run_all import run_all_ingestion
 from grantflow.ingest.run_state import run_state_ingestion
+from grantflow.enrichment.run_enrichment import run_enrichment
 
 logger_app = bind_source_logger("app")
 
@@ -69,9 +70,17 @@ async def lifespan(app: FastAPI):
         replace_existing=True,
         misfire_grace_time=3600,
     )
+    scheduler.add_job(
+        lambda: asyncio.get_event_loop().run_in_executor(None, run_enrichment),
+        CronTrigger(hour=4, minute=0, timezone="UTC"),
+        id="daily_enrichment",
+        replace_existing=True,
+        misfire_grace_time=3600,
+    )
     scheduler.start()
     logger_app.info("APScheduler started — daily ingestion at 02:00 UTC")
     logger_app.info("APScheduler started — weekly state ingestion at Sunday 03:00 UTC")
+    logger_app.info("APScheduler started — daily enrichment at 04:00 UTC")
     yield
     scheduler.shutdown(wait=False)
 

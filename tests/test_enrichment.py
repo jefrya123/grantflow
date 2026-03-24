@@ -167,3 +167,35 @@ def test_enrichment_batch_limit(db_session, monkeypatch):
         run_enrichment()
 
     assert len(processed_ids) <= 2
+
+
+# ---------------------------------------------------------------------------
+# Scheduler registration tests (Plan 09-02)
+# ---------------------------------------------------------------------------
+
+def test_enrichment_scheduler_job_registered(client):
+    """APScheduler registers a job with id='daily_enrichment' during lifespan startup."""
+    from grantflow.app import scheduler
+
+    job_ids = [job.id for job in scheduler.get_jobs()]
+    assert "daily_enrichment" in job_ids, (
+        f"daily_enrichment job not found in scheduler. Registered jobs: {job_ids}"
+    )
+
+
+def test_enrichment_job_runs_at_0400_utc(client):
+    """daily_enrichment scheduler job is configured for hour=4, minute=0, UTC."""
+    from grantflow.app import scheduler
+
+    job = next((j for j in scheduler.get_jobs() if j.id == "daily_enrichment"), None)
+    assert job is not None, "daily_enrichment job must be registered"
+
+    # APScheduler CronTrigger fields
+    trigger = job.trigger
+    field_map = {f.name: f for f in trigger.fields}
+
+    hour_expr = str(field_map["hour"])
+    minute_expr = str(field_map["minute"])
+
+    assert hour_expr == "4", f"Expected hour=4, got {hour_expr!r}"
+    assert minute_expr == "0", f"Expected minute=0, got {minute_expr!r}"
