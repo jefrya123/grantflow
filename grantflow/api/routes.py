@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import text, func, case, and_
+from sqlalchemy import func, case, and_
 from datetime import datetime, timedelta, timezone
 
 from grantflow.models import Opportunity, Award, Agency, IngestionLog
 from grantflow.database import get_db
+from grantflow.config import DATABASE_URL as _DB_URL
 
 router = APIRouter(prefix="/api/v1")
 
@@ -28,17 +29,20 @@ def search_opportunities(
     db: Session = Depends(get_db),
 ):
     if q:
-        # FTS5 search: query the virtual table, join with main table
-        fts_query = text(
-            "SELECT rowid FROM opportunities_fts WHERE opportunities_fts MATCH :q"
-        )
-        fts_rowids = db.execute(fts_query, {"q": q}).fetchall()
-        rowids = [r[0] for r in fts_rowids]
-        if not rowids:
-            return {"results": [], "total": 0, "page": page, "per_page": per_page, "pages": 0}
-        query = db.query(Opportunity).filter(
-            text(f"opportunities.rowid IN ({','.join(str(r) for r in rowids)})")
-        )
+        if _DB_URL.startswith("postgresql") or _DB_URL.startswith("postgres"):
+            # PostgreSQL: use tsvector GIN index
+            query = db.query(Opportunity).filter(
+                Opportunity.search_vector.op("@@")(
+                    func.to_tsquery("english", q)
+                )
+            )
+        else:
+            # SQLite fallback: LIKE search (no GIN index, dev-only)
+            query = db.query(Opportunity).filter(
+                Opportunity.title.ilike(f"%{q}%")
+                | Opportunity.description.ilike(f"%{q}%")
+                | Opportunity.agency_name.ilike(f"%{q}%")
+            )
     else:
         query = db.query(Opportunity)
 

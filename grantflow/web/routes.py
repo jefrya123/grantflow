@@ -1,12 +1,13 @@
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, Query, Request, HTTPException
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from pathlib import Path
 
 from grantflow.models import Opportunity, Award
 from grantflow.database import get_db
-from grantflow.config import BASE_DIR
+from grantflow.config import BASE_DIR, DATABASE_URL as _DB_URL
 
 router = APIRouter()
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
@@ -36,31 +37,23 @@ def search_page(
     per_page: int = Query(default=20, ge=1, le=100),
     db: Session = Depends(get_db),
 ):
-    from sqlalchemy import text
-
-    query = db.query(Opportunity)
-
     if q:
-        fts_query = text(
-            "SELECT rowid FROM opportunities_fts WHERE opportunities_fts MATCH :q"
-        )
-        fts_rowids = db.execute(fts_query, {"q": q}).fetchall()
-        rowids = [r[0] for r in fts_rowids]
-        if not rowids:
-            return templates.TemplateResponse("search.html", {
-                "request": request,
-                "results": [],
-                "total": 0,
-                "page": 1,
-                "per_page": per_page,
-                "pages": 0,
-                "filters": _build_filters(q, status, source, agency, category,
-                                          eligible, min_award, max_award,
-                                          closing_after, closing_before, sort, order),
-            })
-        query = query.filter(
-            text(f"opportunities.rowid IN ({','.join(str(r) for r in rowids)})")
-        )
+        if _DB_URL.startswith("postgresql") or _DB_URL.startswith("postgres"):
+            # PostgreSQL: use tsvector GIN index
+            query = db.query(Opportunity).filter(
+                Opportunity.search_vector.op("@@")(
+                    func.to_tsquery("english", q)
+                )
+            )
+        else:
+            # SQLite fallback: LIKE search (no GIN index, dev-only)
+            query = db.query(Opportunity).filter(
+                Opportunity.title.ilike(f"%{q}%")
+                | Opportunity.description.ilike(f"%{q}%")
+                | Opportunity.agency_name.ilike(f"%{q}%")
+            )
+    else:
+        query = db.query(Opportunity)
 
     if status:
         query = query.filter(Opportunity.opportunity_status == status)
@@ -117,8 +110,6 @@ def detail_page(
     opportunity_id: str,
     db: Session = Depends(get_db),
 ):
-    from fastapi import HTTPException
-
     opp = db.query(Opportunity).filter(Opportunity.id == opportunity_id).first()
     if not opp:
         raise HTTPException(status_code=404, detail="Opportunity not found")
