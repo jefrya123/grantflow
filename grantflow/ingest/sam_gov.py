@@ -9,6 +9,12 @@ import httpx
 
 from grantflow.config import SAM_GOV_API_KEY, SAM_GOV_API_BASE
 from grantflow.database import SessionLocal
+from grantflow.normalizers import (
+    normalize_date,
+    normalize_eligibility_codes,
+    normalize_agency_name,
+    validate_award_amounts,
+)
 from grantflow.models import Opportunity, IngestionLog, PipelineRun
 from grantflow.pipeline.logging import bind_source_logger
 
@@ -18,35 +24,6 @@ SEARCH_ENDPOINT = f"{SAM_GOV_API_BASE}/search"
 PAGE_SIZE = 10           # conservative — 10 records per API call
 MAX_PAGES = 50           # hard cap: 50 pages × 10 records = 500 records max per run
 RATE_LIMIT_PAUSE = 1.0   # seconds between requests
-
-
-def _parse_sam_date(value: str | None) -> str | None:
-    """Parse SAM.gov date formats to YYYY-MM-DD string.
-
-    Handles:
-      - "YYYY-MM-DDTHH:MM:SS-HH:MM"  (ISO 8601 with offset)
-      - "YYYY-MM-DD"
-      - "MM/DD/YYYY"
-    Returns None on failure.
-    """
-    if not value:
-        return None
-    # Strip trailing whitespace
-    value = value.strip()
-    # Try ISO 8601 (with or without timezone offset)
-    try:
-        dt = datetime.fromisoformat(value)
-        return dt.strftime("%Y-%m-%d")
-    except ValueError:
-        pass
-    # Try MM/DD/YYYY
-    try:
-        dt = datetime.strptime(value, "%m/%d/%Y")
-        return dt.strftime("%Y-%m-%d")
-    except ValueError:
-        pass
-    # Return raw if nothing matches (best-effort)
-    return value
 
 
 def ingest_sam_gov() -> dict:
@@ -178,8 +155,8 @@ def ingest_sam_gov() -> dict:
                     "opportunity_number": record.get("solicitationNumber", ""),
                     "agency_name": agency_name,
                     "agency_code": record.get("organizationCode", ""),
-                    "post_date": _parse_sam_date(record.get("postedDate")),
-                    "close_date": _parse_sam_date(record.get("responseDeadLine")),
+                    "post_date": normalize_date(record.get("postedDate")),
+                    "close_date": normalize_date(record.get("responseDeadLine")),
                     "opportunity_status": "posted" if record.get("active") == "Yes" else "closed",
                     "description": record.get("description", ""),
                     "funding_instrument": record.get("type", ""),
@@ -188,6 +165,17 @@ def ingest_sam_gov() -> dict:
                     "raw_data": json.dumps(record),
                     "updated_at": now_iso,
                 }
+
+                # Normalize through shared pipeline (consistent with grants_gov.py, sbir.py, usaspending.py)
+                opp_data["eligible_applicants"] = normalize_eligibility_codes(
+                    opp_data.get("eligible_applicants")
+                )
+                opp_data["agency_name"] = normalize_agency_name(opp_data.get("agency_name"))
+                floor, ceiling = validate_award_amounts(
+                    opp_data.get("award_floor"), opp_data.get("award_ceiling")
+                )
+                opp_data["award_floor"] = floor
+                opp_data["award_ceiling"] = ceiling
 
                 existing = session.get(Opportunity, opp_id)
                 if existing:
