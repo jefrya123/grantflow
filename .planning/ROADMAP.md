@@ -83,7 +83,11 @@ Plans:
   3. Duplicate opportunities detected across sources are merged to a single canonical record
   4. All date fields are ISO 8601 across all sources — no mixed formats
   5. Award amounts with floor > ceiling or negative values are flagged and excluded from clean data set
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — Create normalization layer (dates, eligibility codes, agency names, amount validation) and wire into all ingest modules
+- [ ] 04-02-PLAN.md — Add canonical_id for cross-source deduplication via Alembic migration and dedup module
 
 ### Phase 5: State Data
 **Goal**: At least 5 state grant portals are scraped on a regular schedule, normalized into the unified schema, and monitored so breakage is detected automatically — creating data that does not exist anywhere else
