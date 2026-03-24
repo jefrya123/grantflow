@@ -38,8 +38,8 @@
 - [x] **STATE-01**: Scraping infrastructure for state grant portals using Scrapling
 - [x] **STATE-02**: At least 5 state portals scraped and normalized into unified schema
 - [x] **STATE-03**: Per-state legal review completed (ToS/robots.txt/open-data check)
-- [ ] **STATE-04**: Per-source monitoring alerts when a scraper breaks
-- [ ] **STATE-05**: State data refreshed on regular schedule (weekly minimum)
+- [x] **STATE-04**: Per-source monitoring alerts when a scraper breaks
+- [x] **STATE-05**: State data refreshed on regular schedule (weekly minimum)
 
 ### API
 
