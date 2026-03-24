@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 04-data-quality-01-PLAN.md
-last_updated: "2026-03-24T18:42:20.791Z"
+stopped_at: Completed 04-data-quality-02-PLAN.md
+last_updated: "2026-03-24T18:47:11.566Z"
 last_activity: 2026-03-24 — Roadmap created, ready to begin Phase 1 planning
 progress:
   total_phases: 7
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 13
-  completed_plans: 12
+  completed_plans: 13
   percent: 33
 ---
 
@@ -62,6 +62,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 03-api-key-infrastructure P03 | 2 | 2 tasks | 5 files |
 | Phase 03-api-key-infrastructure P02 | 3 | 2 tasks | 6 files |
 | Phase 04-data-quality P01 | 3 | 2 tasks | 5 files |
+| Phase 04-data-quality P02 | 18 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -106,6 +107,9 @@ Recent decisions affecting current work:
 - [Phase 04-data-quality]: ELIGIBILITY_CODE_MAP and AGENCY_NAME_MAP are module-level constants in normalizers.py — no DB reads, cache-friendly, easy to extend
 - [Phase 04-data-quality]: Unknown eligibility codes kept as-is (not dropped) — preserves data even for codes not in map
 - [Phase 04-data-quality]: USAspending agency code slug fixed: re.sub(r'[^a-z0-9]+', '_', name.lower()).strip('_')[:50] replaces broken uppercase approach per CONCERNS.md
+- [Phase 04-data-quality]: Migration numbered 0005 (not 0003 as planned) — 0003 and 0004 already claimed by pipeline_run_table and add_api_keys
+- [Phase 04-data-quality]: assign_canonical_ids uses raw SQL SELECT (not ORM query) — SQLAlchemy ORM includes search_vector which does not exist in SQLite schema; raw SQL selects only required columns
+- [Phase 04-data-quality]: Canonical ID format: canon_ + sha256(normalized_key)[:16] — opportunity_number primary key, cfda+agency+date fallback
 
 ### Pending Todos
 
@@ -120,6 +124,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T18:42:20.788Z
-Stopped at: Completed 04-data-quality-01-PLAN.md
+Last session: 2026-03-24T18:47:11.563Z
+Stopped at: Completed 04-data-quality-02-PLAN.md
 Resume file: None
