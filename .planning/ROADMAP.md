@@ -27,7 +27,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 6: Advanced API + Web UI** - Full-featured search UI, opportunity detail, bulk export, and developer experience polish [WAVE 3 — parallel]
 - [x] **Phase 7: GTM + Enrichment** - Launch landing page, pricing, API playground, usage analytics, and LLM categorization [WAVE 4] (completed 2026-03-24)
 - [x] **Phase 8: Pipeline & Data Cleanup** - Remove FTS5 remnants, wire SAM.gov normalizers, clean dead code [WAVE 5 — gap closure] (completed 2026-03-24)
-- [ ] **Phase 9: API & Feature Polish** - Tier-aware rate limits, export topic filter, canonical_id exposure, enrichment scheduler [WAVE 5 — gap closure]
+- [x] **Phase 9: API & Feature Polish** - Tier-aware rate limits, export topic filter, canonical_id exposure, enrichment scheduler [WAVE 5 — gap closure] (completed 2026-03-24)
 
 ## Phase Details
 
@@ -217,4 +217,4 @@ Wave 5:  Phase 8 ║ Phase 9   (gap closure — parallel)
 | 6. Advanced API + Web UI | 2/2 | Complete   | 2026-03-24 | Complete | 2026-03-24 |
 | 7. GTM + Enrichment | 2/2 | Complete   | 2026-03-24 | Complete | 2026-03-24 |
 | 8. Pipeline & Data Cleanup | 2/2 | Complete   | 2026-03-24 | Not started | - |
-| 9. API & Feature Polish | 1/2 | In Progress|  | Not started | - |
+| 9. API & Feature Polish | 2/2 | Complete   | 2026-03-24 | Not started | - |

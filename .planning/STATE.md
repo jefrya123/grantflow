@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 09-api-feature-polish-02-PLAN.md
-last_updated: "2026-03-24T21:22:39.382Z"
+stopped_at: Completed 09-api-feature-polish-01-PLAN.md
+last_updated: "2026-03-24T21:23:43.656Z"
 last_activity: 2026-03-24 — Roadmap created, ready to begin Phase 1 planning
 progress:
   total_phases: 9
-  completed_phases: 8
+  completed_phases: 9
   total_plans: 24
-  completed_plans: 23
+  completed_plans: 24
   percent: 33
 ---
 
@@ -73,6 +73,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 08-pipeline-data-cleanup P01 | 8 | 2 tasks | 4 files |
 | Phase 08-pipeline-data-cleanup P02 | 2 | 2 tasks | 2 files |
 | Phase 09-api-feature-polish P02 | 2 | 2 tasks | 4 files |
+| Phase 09-api-feature-polish P01 | 2 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -146,6 +147,8 @@ Recent decisions affecting current work:
 - [Phase 09-api-feature-polish]: canonical_id added to OpportunityResponse — OpportunityDetailResponse inherits automatically
 - [Phase 09-api-feature-polish]: daily_enrichment registered unconditionally — OPENAI_API_KEY gate lives inside run_enrichment()
 - [Phase 09-api-feature-polish]: run_in_executor wrapping on run_enrichment() mirrors existing daily_ingestion pattern
+- [Phase 09-api-feature-polish]: _session_factory module-level var in auth.py allows tests to monkeypatch the session factory used by _tier_limit without changing the callable signature
+- [Phase 09-api-feature-polish]: Export rate limit maintains 10:1 ratio per tier (free=100, starter=1000, growth=10000/day)
 
 ### Pending Todos
 
@@ -160,6 +163,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T21:22:39.379Z
-Stopped at: Completed 09-api-feature-polish-02-PLAN.md
+Last session: 2026-03-24T21:23:43.652Z
+Stopped at: Completed 09-api-feature-polish-01-PLAN.md
 Resume file: None
