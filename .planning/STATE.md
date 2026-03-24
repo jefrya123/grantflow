@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 05-state-data-01-PLAN.md
-last_updated: "2026-03-24T19:30:21.242Z"
+stopped_at: Completed 05-state-data-03-PLAN.md
+last_updated: "2026-03-24T19:35:05.821Z"
 last_activity: 2026-03-24 — Roadmap created, ready to begin Phase 1 planning
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 16
-  completed_plans: 14
+  completed_plans: 16
   percent: 33
 ---
 
@@ -64,6 +64,8 @@ Progress: [███░░░░░░░] 33%
 | Phase 04-data-quality P01 | 3 | 2 tasks | 5 files |
 | Phase 04-data-quality P02 | 18 | 2 tasks | 5 files |
 | Phase 05-state-data P01 | 15 | 2 tasks | 6 files |
+| Phase 05-state-data P02 | 2 | 2 tasks | 7 files |
+| Phase 05-state-data P03 | 3 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -114,6 +116,11 @@ Recent decisions affecting current work:
 - [Phase 05-state-data]: BaseStateScraper.run() accepts optional session for test isolation; creates own SessionLocal() when absent
 - [Phase 05-state-data]: xfail(strict=False) for cross-plan scaffolds: test_normalize_ca_record (Plan 02) and test_scheduler_weekly_job (Plan 03) document future contracts without blocking current CI
 - [Phase 05-state-data]: Colorado marked CONDITIONAL in legal review — no centralized open data mandate; ToS/robots.txt verification required before scraping
+- [Phase 05-state-data]: NY/IL/TX dataset IDs require PoC discovery — env-var gated with graceful empty-list skip
+- [Phase 05-state-data]: scrapling requires curl_cffi, playwright, browserforge as explicit deps — not auto-resolved by uv
+- [Phase 05-state-data]: California DATASET_ID hardcoded as 'california-grants-portal' — stable public dataset
+- [Phase 05-state-data]: Module-level scheduler in app.py: exposed for test introspection without full app startup
+- [Phase 05-state-data]: check_zero_records() called from both run_state_ingestion (weekly) and run_all_ingestion (daily) — dual detection paths for faster alerting
 
 ### Pending Todos
 
@@ -128,6 +135,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T19:30:21.238Z
-Stopped at: Completed 05-state-data-01-PLAN.md
+Last session: 2026-03-24T19:35:05.817Z
+Stopped at: Completed 05-state-data-03-PLAN.md
 Resume file: None
