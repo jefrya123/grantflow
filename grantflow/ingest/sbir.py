@@ -28,26 +28,32 @@ logger = bind_source_logger("sbir")
 # Minimum year for awards (last 3 years)
 MIN_AWARD_YEAR = datetime.now(timezone.utc).year - 3
 
-# CSV field mapping: csv_field -> model_field
+# CSV field mapping: normalized_csv_field -> model_field
+# Note: CSV headers are title-case with spaces (e.g. "Award Year", "Company");
+# _normalize_row() converts them to lowercase-underscore before this map is used.
 CSV_FIELD_MAP = {
-    "firm": "recipient_name",
-    "award_title": "title",
-    "award_amount": "award_amount",
-    "agency": "agency_name",
-    "phase": "award_type",
-    "proposal_award_date": "award_date",
-    "state": "place_state",
-    "city": "place_city",
-    "abstract": "description",
+    "company": "recipient_name",  # CSV: 'Company'
+    "award_title": "title",       # CSV: 'Award Title'
+    "award_amount": "award_amount",  # CSV: 'Award Amount'
+    "agency": "agency_name",      # CSV: 'Agency'
+    "phase": "award_type",        # CSV: 'Phase'
+    "proposal_award_date": "award_date",  # CSV: 'Proposal Award Date'
+    "state": "place_state",       # CSV: 'State'
+    "city": "place_city",         # CSV: 'City'
+    "abstract": "description",    # CSV: 'Abstract'
 }
 
 
 def _make_award_key(row: dict) -> str:
-    """Generate a unique key for an SBIR award row."""
+    """Generate a unique key for an SBIR award row.
+
+    Expects a normalized row (lowercase-underscore field names).
+    The CSV 'Company' column normalizes to 'company'.
+    """
     # Combine multiple fields for uniqueness
     parts = [
         row.get("agency", ""),
-        row.get("firm", ""),
+        row.get("company", "") or row.get("firm", ""),  # CSV: 'Company' -> 'company'
         row.get("proposal_award_date", ""),
         row.get("award_title", "")[:50] if row.get("award_title") else "",
         row.get("contract", "") or row.get("award_number", "") or "",
@@ -78,6 +84,17 @@ def _download_csv() -> Path:
     return filepath
 
 
+def _normalize_row(row: dict) -> dict:
+    """Normalize CSV field names to lowercase-underscore format.
+
+    The SBIR CSV uses title-case-with-spaces headers (e.g. 'Award Year',
+    'Proposal Award Date', 'Company') that do not match the lowercase-underscore
+    keys expected by the ingest logic. Convert once here so all row.get() calls
+    downstream work correctly.
+    """
+    return {k.lower().replace(" ", "_"): v for k, v in row.items()}
+
+
 def _ingest_awards(session, stats: dict) -> None:
     """Parse the CSV and ingest recent awards."""
     csv_path = _download_csv()
@@ -85,10 +102,14 @@ def _ingest_awards(session, stats: dict) -> None:
 
     logger.info("Parsing SBIR awards CSV ...")
     batch_count = 0
+    # Track IDs seen in this run to handle intra-CSV duplicates (same row with
+    # identical key hashes appear more than once in the SBIR dataset).
+    seen_ids: set[str] = set()
 
     with open(csv_path, "r", encoding="utf-8", errors="replace") as f:
         reader = csv.DictReader(f)
-        for row in reader:
+        for raw_row in reader:
+            row = _normalize_row(raw_row)
             # Filter to recent years
             award_year = row.get("award_year") or ""
             proposal_date = row.get("proposal_award_date") or ""
@@ -114,6 +135,11 @@ def _ingest_awards(session, stats: dict) -> None:
             key = _make_award_key(row)
             record_id = f"sbir_{key}"
 
+            # Skip intra-CSV duplicates (same key seen earlier in this file)
+            if record_id in seen_ids:
+                continue
+            seen_ids.add(record_id)
+
             # Parse amount
             amount = row.get("award_amount")
             if amount:
@@ -129,7 +155,7 @@ def _ingest_awards(session, stats: dict) -> None:
                 "title": row.get("award_title", ""),
                 "description": row.get("abstract", ""),
                 "agency_name": normalize_agency_name(row.get("agency", "")),
-                "recipient_name": row.get("firm", ""),
+                "recipient_name": row.get("company", "") or row.get("firm", ""),  # CSV: 'Company' -> 'company'
                 "award_amount": amount,
                 "award_date": normalize_date(proposal_date),
                 "place_state": row.get("state", ""),
