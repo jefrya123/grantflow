@@ -149,7 +149,11 @@ Plans:
   3. Pricing tiers based on data coverage (not call volume) are publicly displayed
   4. Every API endpoint hit, search query, and API key usage is tracked in analytics
   5. Opportunities carry LLM-assigned topic/sector tags that are searchable and filterable
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 07-01-PLAN.md — GTM pages (landing, pricing, playground), usage analytics middleware with api_events table, demo key seed script
+- [ ] 07-02-PLAN.md — LLM topic tagging with instructor + OpenAI, topic_tags column, API/web search filter integration
 
 ## Progress
 
@@ -173,4 +177,4 @@ Wave 4:  Phase 7 (needs 5+6)
 | 4. Data Quality | 1/2 | In Progress|  | Not started | - |
 | 5. State Data | 3/3 | Complete   | 2026-03-24 | Not started | - |
 | 6. Advanced API + Web UI | 1/2 | In Progress|  | Not started | - |
-| 7. GTM + Enrichment | 4 | Phases 5, 6 | 0/TBD | Not started | - |
+| 7. GTM + Enrichment | 4 | Phases 5, 6 | 0/2 | Not started | - |
