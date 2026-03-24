@@ -190,3 +190,81 @@ def test_export_invalid_format(client, db_session):
         headers={"X-API-Key": key},
     )
     assert resp.status_code == 422
+
+
+# ---------------------------------------------------------------------------
+# Topic filter tests (Plan 09-01)
+# ---------------------------------------------------------------------------
+
+def test_export_topic_filter(client, db_session):
+    """GET /export?format=json&topic=health returns only rows with matching topic_tags."""
+    key = make_key(db_session, key_suffix="_topic_match")
+
+    make_opportunity(
+        db_session,
+        id="opp-topic-health",
+        source_id="ET-TOPIC-HEALTH",
+        title="Health Research Grant",
+        topic_tags='["health","research"]',
+    )
+    make_opportunity(
+        db_session,
+        id="opp-topic-edu",
+        source_id="ET-TOPIC-EDU",
+        title="Education Grant",
+        topic_tags='["education"]',
+    )
+
+    resp = client.get(
+        "/api/v1/opportunities/export?format=json&topic=health",
+        headers={"X-API-Key": key},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    ids = [r["id"] for r in data["results"]]
+    assert "opp-topic-health" in ids
+
+
+def test_export_topic_filter_excludes(client, db_session):
+    """GET /export?topic=health excludes rows without that tag."""
+    key = make_key(db_session, key_suffix="_topic_excl")
+
+    make_opportunity(
+        db_session,
+        id="opp-excl-health",
+        source_id="ET-EXCL-HEALTH",
+        title="Health Only Grant",
+        topic_tags='["health"]',
+    )
+    make_opportunity(
+        db_session,
+        id="opp-excl-edu",
+        source_id="ET-EXCL-EDU",
+        title="Education Only Grant",
+        topic_tags='["education"]',
+    )
+
+    resp = client.get(
+        "/api/v1/opportunities/export?format=json&topic=health",
+        headers={"X-API-Key": key},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    ids = [r["id"] for r in data["results"]]
+    assert "opp-excl-edu" not in ids
+
+
+def test_export_csv_includes_topic_tags(client, db_session):
+    """CSV export includes topic_tags column header."""
+    key = make_key(db_session, key_suffix="_topic_csv")
+
+    resp = client.get(
+        "/api/v1/opportunities/export?format=csv",
+        headers={"X-API-Key": key},
+    )
+    assert resp.status_code == 200
+    reader = csv.reader(io.StringIO(resp.text))
+    rows = list(reader)
+    assert len(rows) >= 1
+    header = rows[0]
+    assert "topic_tags" in header

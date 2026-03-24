@@ -98,7 +98,7 @@ def search_opportunities(
 _EXPORT_CSV_COLUMNS = [
     "id", "title", "agency_name", "source", "opportunity_status",
     "opportunity_number", "cfda_numbers", "post_date", "close_date",
-    "award_floor", "award_ceiling", "source_url",
+    "award_floor", "award_ceiling", "source_url", "topic_tags",
 ]
 
 
@@ -117,6 +117,7 @@ def export_opportunities(
     max_award: float | None = None,
     closing_after: str | None = None,
     closing_before: str | None = None,
+    topic: str | None = Query(default=None),
     db: Session = Depends(get_db),
     api_key: ApiKey = Depends(get_api_key),
 ):
@@ -133,6 +134,7 @@ def export_opportunities(
         max_award=max_award,
         closing_after=closing_after,
         closing_before=closing_before,
+        topic=topic,
     )
     results = query.limit(10_000).all()
 
