@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, Query, Request, HTTPException
 from fastapi.responses import RedirectResponse
@@ -15,8 +16,24 @@ templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 
 @router.get("/")
-def index():
-    return RedirectResponse(url="/search", status_code=302)
+def index(request: Request, db: Session = Depends(get_db)):
+    total_opps = db.query(func.count(Opportunity.id)).scalar() or 0
+    return templates.TemplateResponse(request, "landing.html", context={
+        "total_opps": total_opps,
+    })
+
+
+@router.get("/pricing")
+def pricing_page(request: Request):
+    return templates.TemplateResponse(request, "pricing.html", context={})
+
+
+@router.get("/playground")
+def playground_page(request: Request):
+    demo_api_key = os.getenv("GRANTFLOW_DEMO_API_KEY", "")
+    return templates.TemplateResponse(request, "playground.html", context={
+        "demo_api_key": demo_api_key,
+    })
 
 
 @router.get("/search")

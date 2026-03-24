@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}API Playground — GrantFlow{% endblock %}
+
+{% block content %}
+<section class="playground-header">
+    <h2>API Playground</h2>
+    <p class="playground-sub">Try the GrantFlow search API live — no account required.</p>
+</section>
+
+{% if demo_api_key %}
+<section class="playground-ui">
+    <div class="playground-form">
+        <label for="pg-query">Search query</label>
+        <div class="playground-input-row">
+            <input
+                type="text"
+                id="pg-query"
+                placeholder="e.g. climate research, housing, workforce"
+                class="search-input"
+                value="climate"
+            >
+            <button id="pg-run" class="btn btn-primary">Run Query</button>
+        </div>
+        <p class="playground-hint">
+            Querying <code>GET /api/v1/opportunities/search?q=...&amp;per_page=5</code>
+            with a demo API key.
+        </p>
+    </div>
+
+    <div class="playground-output-wrapper">
+        <label>Response</label>
+        <div id="pg-status" class="playground-status"></div>
+        <pre id="pg-output" class="playground-output">Click "Run Query" to see results.</pre>
+    </div>
+</section>
+
+<script>
+(function () {
+    const DEMO_KEY = {{ demo_api_key | tojson }};
+    const runBtn = document.getElementById('pg-run');
+    const queryInput = document.getElementById('pg-query');
+    const output = document.getElementById('pg-output');
+    const status = document.getElementById('pg-status');
+
+    async function runQuery() {
+        const q = queryInput.value.trim();
+        if (!q) { output.textContent = 'Please enter a search query.'; return; }
+
+        runBtn.disabled = true;
+        status.textContent = 'Loading...';
+        output.textContent = '';
+
+        try {
+            const url = '/api/v1/opportunities/search?' + new URLSearchParams({ q, per_page: 5 });
+            const resp = await fetch(url, {
+                headers: { 'X-API-Key': DEMO_KEY }
+            });
+            const data = await resp.json();
+            status.textContent = 'HTTP ' + resp.status;
+            status.className = 'playground-status ' + (resp.ok ? 'status-ok' : 'status-err');
+            output.textContent = JSON.stringify(data, null, 2);
+        } catch (err) {
+            status.textContent = 'Error';
+            status.className = 'playground-status status-err';
+            output.textContent = String(err);
+        } finally {
+            runBtn.disabled = false;
+        }
+    }
+
+    runBtn.addEventListener('click', runQuery);
+    queryInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') runQuery();
+    });
+})();
+</script>
+
+{% else %}
+<section class="playground-ui playground-no-key">
+    <div class="playground-notice">
+        <p><strong>Demo key not configured.</strong></p>
+        <p>
+            Set the <code>GRANTFLOW_DEMO_API_KEY</code> environment variable to enable the live playground,
+            or use the <a href="/docs">API docs</a> with your own key.
+        </p>
+        <a href="/docs" class="btn btn-outline">Open API Docs</a>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

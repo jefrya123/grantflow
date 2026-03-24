@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}GrantFlow — Government Grant Data API{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-inner">
+        <h2 class="hero-headline">Government Grant Data,<br>Instantly Accessible</h2>
+        <p class="hero-sub">
+            GrantFlow is the data infrastructure layer every grant-related product needs.
+            Federal and state grant opportunities, normalized and searchable via a single REST API.
+        </p>
+        <div class="hero-ctas">
+            <a href="/playground" class="btn btn-primary">Try the API</a>
+            <a href="/pricing" class="btn btn-secondary">See Pricing</a>
+            <a href="/search" class="btn btn-outline">Explore Grants</a>
+        </div>
+        {% if total_opps %}
+        <p class="hero-stat">
+            <strong>{{ total_opps|int }}</strong> opportunities indexed and growing
+        </p>
+        {% endif %}
+    </div>
+</section>
+
+<section class="value-props">
+    <div class="value-props-grid">
+        <div class="value-card">
+            <h3>Unified Sources</h3>
+            <p>Federal grants from Grants.gov and SAM.gov, plus state-level portals — one API, one schema.</p>
+        </div>
+        <div class="value-card">
+            <h3>Clean, Normalized Data</h3>
+            <p>Consistent date formats, CFDA normalization, canonical deduplication across sources. No more data wrangling.</p>
+        </div>
+        <div class="value-card">
+            <h3>Simple REST API</h3>
+            <p>Search by keyword, agency, funding range, close date, and topic tags. JSON responses, API key auth, rate limits per tier.</p>
+        </div>
+        <div class="value-card">
+            <h3>Coverage-Based Tiers</h3>
+            <p>Start free with federal-only data. Upgrade to unlock state sources and bulk export for production workloads.</p>
+        </div>
+    </div>
+</section>
+
+<section class="landing-footer-ctas">
+    <p>Ready to build?</p>
+    <a href="/playground" class="btn btn-primary">Try the API free</a>
+    &nbsp;
+    <a href="/pricing" class="btn btn-secondary">View pricing</a>
+</section>
+{% endblock %}
