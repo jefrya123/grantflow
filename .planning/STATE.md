@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 06-advanced-api-web-ui-02-PLAN.md
-last_updated: "2026-03-24T19:56:25.827Z"
+stopped_at: Completed 06-advanced-api-web-ui-01-PLAN.md
+last_updated: "2026-03-24T19:58:15.988Z"
 last_activity: 2026-03-24 — Roadmap created, ready to begin Phase 1 planning
 progress:
   total_phases: 7
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 18
-  completed_plans: 17
+  completed_plans: 18
   percent: 33
 ---
 
@@ -67,6 +67,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 05-state-data P02 | 2 | 2 tasks | 7 files |
 | Phase 05-state-data P03 | 3 | 2 tasks | 7 files |
 | Phase 06-advanced-api-web-ui P02 | 3 | 1 tasks | 5 files |
+| Phase 06-advanced-api-web-ui P01 | 4 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -123,6 +124,10 @@ Recent decisions affecting current work:
 - [Phase 05-state-data]: Module-level scheduler in app.py: exposed for test introspection without full app startup
 - [Phase 05-state-data]: check_zero_records() called from both run_state_ingestion (weekly) and run_all_ingestion (daily) — dual detection paths for faster alerting
 - [Phase 06-advanced-api-web-ui]: closing-soon badge in badges div; pagination base_qs via Jinja2 set; /stats backed by SQLAlchemy group-by aggregations
+- [Phase 06-advanced-api-web-ui]: Export route registered before /{opportunity_id} — FastAPI path resolution requires static segments before path params
+- [Phase 06-advanced-api-web-ui]: StreamingResponse with csv.writer generator for CSV export — avoids buffering 10k rows in memory
+- [Phase 06-advanced-api-web-ui]: Hard cap at 10,000 rows via .limit(10_000) on build_opportunity_query() result — applied before serialization
+- [Phase 06-advanced-api-web-ui]: AgencyResponse: Optional code and name — some DB rows have NULL agency_code
 
 ### Pending Todos
 
@@ -137,6 +142,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T19:56:25.824Z
-Stopped at: Completed 06-advanced-api-web-ui-02-PLAN.md
+Last session: 2026-03-24T19:58:15.985Z
+Stopped at: Completed 06-advanced-api-web-ui-01-PLAN.md
 Resume file: None

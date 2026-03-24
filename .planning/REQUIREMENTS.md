@@ -47,10 +47,10 @@
 - [x] **API-02**: Rate limiting per API key with configurable tiers (free/starter/growth)
 - [x] **API-03**: API versioned at /api/v1/ with stable schema contract
 - [x] **API-04**: Consistent error responses with error codes and messages
-- [ ] **API-05**: Bulk export endpoint (CSV/JSON for search results)
-- [ ] **API-06**: Historical awards linked in opportunity detail responses
+- [x] **API-05**: Bulk export endpoint (CSV/JSON for search results)
+- [x] **API-06**: Historical awards linked in opportunity detail responses
 - [x] **API-07**: OpenAPI docs auto-generated and accurate
-- [ ] **API-08**: Agencies endpoint with opportunity counts
+- [x] **API-08**: Agencies endpoint with opportunity counts
 
 ### Web UI
 
