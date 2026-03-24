@@ -24,3 +24,7 @@ SBIR_AWARDS_CSV_URL = "https://data.www.sbir.gov/awarddatapublic/award_data.csv"
 SBIR_SOLICITATIONS_API = "https://api.www.sbir.gov/public/api/solicitations"
 SAM_GOV_API_KEY = os.getenv("SAM_GOV_API_KEY", "")  # empty = use public (10 req/day)
 SAM_GOV_API_BASE = os.getenv("SAM_GOV_API_BASE", "https://api.sam.gov/opportunities/v2")
+
+# State scraper config
+STATE_SCRAPER_BATCH_SIZE = int(os.getenv("STATE_SCRAPER_BATCH_SIZE", "100"))
+STATE_SCRAPER_REQUEST_DELAY = float(os.getenv("STATE_SCRAPER_REQUEST_DELAY", "1.0"))
