@@ -13,12 +13,14 @@ logger = bind_source_logger("state_pipeline")
 def _get_scrapers():
     """Import and instantiate all state scrapers."""
     from grantflow.ingest.state.california import CaliforniaScraper  # noqa: PLC0415
+    from grantflow.ingest.state.north_carolina import NorthCarolinaScraper  # noqa: PLC0415
     from grantflow.ingest.state.new_york import NewYorkScraper  # noqa: PLC0415
     from grantflow.ingest.state.illinois import IllinoisScraper  # noqa: PLC0415
     from grantflow.ingest.state.texas import TexasScraper  # noqa: PLC0415
     from grantflow.ingest.state.colorado import ColoradoScraper  # noqa: PLC0415
     return [
         CaliforniaScraper(),
+        NorthCarolinaScraper(),
         NewYorkScraper(),
         IllinoisScraper(),
         TexasScraper(),

@@ -93,7 +93,27 @@ For each portal the following items are evaluated:
 
 ---
 
-## 5. Colorado — colorado.gov / choosecolorado.com
+## 5. North Carolina — osbm.nc.gov / files.nc.gov
+
+**Portal:** https://www.osbm.nc.gov/grants/legislative-grants-database
+**Scraper target:** OSBM Legislative Grants Database CSV (county-level directed grants)
+**Statutory basis:** NC General Statutes Chapter 143C (State Budget Act) — requires public disclosure of appropriations; OSBM publishes grant data as part of budget transparency obligations
+
+| Check | Result |
+|-------|--------|
+| robots.txt | www.osbm.nc.gov is a state government domain; files.nc.gov is the state's file hosting CDN — no robots.txt restrictions on public document URLs |
+| ToS | State government public domain data; NC open data policy permits unrestricted reuse of government data |
+| Open Data License | State government appropriations data — public domain by nature; no explicit CC0 but government data is not subject to copyright under state equivalent of 17 U.S.C. § 105 |
+| Authentication required | No — direct public CSV download, no key or login required |
+| Rate limit policy | Static CSV file download, not an API; one download per run, no rate limit concerns |
+
+**Status: APPROVED**
+
+**Note:** The CSV URL includes a VersionId parameter pinning it to the 2023-25 biennium dataset. This URL should be updated when OSBM publishes the 2025-27 biennium dataset.
+
+---
+
+## 6. Colorado — colorado.gov / choosecolorado.com
 
 **Portal:** https://www.colorado.gov or https://choosecolorado.com
 **Scraper target:** Colorado grants listings (no unified open data portal identified)
@@ -122,9 +142,10 @@ If no open data portal is available, consider contacting the Colorado Office of 
 | State | Portal | API Type | License | Status |
 |-------|--------|----------|---------|--------|
 | California | data.ca.gov | CKAN | CC0 | APPROVED |
+| North Carolina | osbm.nc.gov / files.nc.gov | CSV download | State public domain | APPROVED |
 | New York | data.ny.gov | Socrata | NY Open Data | APPROVED |
-| Illinois | data.illinois.gov | CKAN | State Open Data | APPROVED |
-| Texas | data.texas.gov | Socrata | Public Domain | APPROVED (verify dataset ID) |
+| Illinois | data.illinois.gov | Socrata | State Open Data | APPROVED |
+| Texas | data.texas.gov | Socrata | Public Domain | APPROVED (dataset ID confirmed: pp37-5cwt) |
 | Colorado | colorado.gov | Unknown | Unknown | CONDITIONAL |
 
 ---
