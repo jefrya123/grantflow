@@ -105,6 +105,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Analytics middleware — registers after CORS, captures all API requests non-blocking
+from grantflow.analytics.middleware import setup_analytics_middleware
+setup_analytics_middleware(app)
+
 # Static files
 static_dir = BASE_DIR / "static"
 static_dir.mkdir(exist_ok=True)

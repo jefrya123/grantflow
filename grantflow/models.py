@@ -142,3 +142,16 @@ class ApiKey(Base):
     created_at = Column(Text, nullable=False)  # ISO 8601 UTC
     last_used_at = Column(Text, nullable=True)
     request_count = Column(Integer, default=0)
+
+
+class ApiEvent(Base):
+    __tablename__ = "api_events"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    ts = Column(Text, nullable=False, index=True)  # ISO 8601 UTC timestamp
+    path = Column(Text, nullable=False)
+    method = Column(Text, nullable=False)
+    api_key_prefix = Column(Text, nullable=True, index=True)  # first 8 chars of X-API-Key
+    query_string = Column(Text, nullable=True)
+    status_code = Column(Integer, nullable=False)
+    duration_ms = Column(Float, nullable=False)
