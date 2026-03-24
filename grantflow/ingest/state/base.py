@@ -6,10 +6,10 @@ import abc
 from datetime import datetime, timezone
 from typing import Any
 
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from grantflow.database import SessionLocal
-from grantflow.models import Opportunity
 from grantflow.pipeline.logging import bind_source_logger
 
 # Batch size for DB commits — overridable via config
@@ -120,19 +120,42 @@ class BaseStateScraper(abc.ABC):
                 now_utc = datetime.now(timezone.utc).isoformat()
                 normalized["updated_at"] = now_utc
 
-                existing = session.get(Opportunity, opp_id)
-                if existing is None:
-                    # Insert new record
+                # Ensure source_id is populated (NOT NULL in schema).
+                # State scrapers don't set source_id separately; derive from composite id.
+                if not normalized.get("source_id"):
+                    prefix = f"state_{self.state_code}_"
+                    normalized["source_id"] = (
+                        opp_id[len(prefix):] if opp_id.startswith(prefix) else opp_id
+                    )
+
+                # Use raw SQL for upsert — avoids ORM loading search_vector
+                # (TSVECTORType column that doesn't exist in SQLite schema).
+                # Same pattern as assign_canonical_ids() in dedup.py.
+                row = session.execute(
+                    text("SELECT id FROM opportunities WHERE id = :id"),
+                    {"id": opp_id},
+                ).fetchone()
+
+                if row is None:
+                    # INSERT new record
                     if "created_at" not in normalized:
                         normalized["created_at"] = now_utc
-                    opp = Opportunity(**normalized)
-                    session.add(opp)
+                    cols = ", ".join(normalized.keys())
+                    placeholders = ", ".join(f":{k}" for k in normalized.keys())
+                    session.execute(
+                        text(f"INSERT INTO opportunities ({cols}) VALUES ({placeholders})"),
+                        normalized,
+                    )
                     stats["records_added"] += 1
                 else:
-                    # Update existing record
-                    for key, value in normalized.items():
-                        if key != "id":
-                            setattr(existing, key, value)
+                    # UPDATE existing record (skip id)
+                    update_data = {k: v for k, v in normalized.items() if k != "id"}
+                    set_clause = ", ".join(f"{k} = :{k}" for k in update_data.keys())
+                    update_data["_id"] = opp_id
+                    session.execute(
+                        text(f"UPDATE opportunities SET {set_clause} WHERE id = :_id"),
+                        update_data,
+                    )
                     stats["records_updated"] += 1
 
                 batch_count += 1

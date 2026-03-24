@@ -15,6 +15,9 @@ from grantflow.normalizers import normalize_agency_name, normalize_date
 from grantflow.pipeline.logging import bind_source_logger
 
 SOCRATA_BASE = "https://data.texas.gov"
+# Default dataset: pp37-5cwt — "TCA All Approved Grants FY25"
+# Texas Commission on the Arts; 1730 records with applicant, city, region, amount, project_title.
+DEFAULT_DATASET_ID = "pp37-5cwt"
 PAGE_SIZE = 1000
 
 
@@ -26,15 +29,8 @@ class TexasScraper(BaseStateScraper):
 
     def fetch_records(self) -> list[dict]:
         log = bind_source_logger(self.source_name)
-        dataset_id = os.getenv("GRANTFLOW_TX_DATASET_ID", "")
-
-        if not dataset_id:
-            log.warning(
-                "socrata_dataset_id_missing",
-                env_var="GRANTFLOW_TX_DATASET_ID",
-                message="Set GRANTFLOW_TX_DATASET_ID to enable Texas scraping",
-            )
-            return []
+        # Allow override via env var; fall back to well-known TCA grants dataset
+        dataset_id = os.getenv("GRANTFLOW_TX_DATASET_ID", DEFAULT_DATASET_ID)
 
         client = httpx.Client(timeout=60)
         try:
@@ -73,21 +69,36 @@ class TexasScraper(BaseStateScraper):
             client.close()
 
     def normalize_record(self, raw: dict) -> dict | None:
-        title = (
-            raw.get("grant_name")
-            or raw.get("program_name")
-            or raw.get("title")
-            or raw.get("name")
-            or ""
-        ).strip()
+        # Handles TCA dataset (pp37-5cwt) columns:
+        #   application_id, applicant_name, city, region, amount, project_title, summary
+        # Also handles generic grant datasets with common field names.
+        applicant = (raw.get("applicant_name") or "").strip()
+        project_title = (raw.get("project_title") or "").strip()
+
+        # Build a descriptive title
+        if applicant and project_title:
+            title = f"{applicant} — {project_title}"
+        elif applicant:
+            title = applicant
+        else:
+            title = (
+                raw.get("grant_name")
+                or raw.get("program_name")
+                or raw.get("title")
+                or raw.get("name")
+                or ""
+            ).strip()
+
         if not title:
             return None
 
+        # TCA grants are administered by Texas Commission on the Arts
         raw_agency = (
             raw.get("agency")
             or raw.get("agency_name")
             or raw.get("grantor")
             or raw.get("funding_agency")
+            or "Texas Commission on the Arts"
         )
         agency_name = normalize_agency_name(raw_agency)
         agency_slug = ""
@@ -95,18 +106,23 @@ class TexasScraper(BaseStateScraper):
             agency_slug = re.sub(r"[^a-z0-9]+", "_", agency_name.lower()).strip("_")[:50]
 
         source_id = str(
-            raw.get("_id")
+            raw.get("application_id")
+            or raw.get("_id")
             or raw.get("id")
             or raw.get("grant_id")
             or raw.get("program_id")
             or ""
         )
 
+        description = raw.get("summary") or raw.get("description") or raw.get("program_description")
+        if not description and raw.get("city") and raw.get("region"):
+            description = f"City: {raw['city']}. Region: {raw['region']}."
+
         return {
             "id": self.make_opportunity_id(source_id),
             "source": self.source_name,
             "title": title,
-            "description": raw.get("description") or raw.get("program_description"),
+            "description": description,
             "agency_name": agency_name,
             "agency_code": agency_slug or None,
             "close_date": normalize_date(

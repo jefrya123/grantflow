@@ -15,6 +15,9 @@ from grantflow.normalizers import normalize_agency_name, normalize_date
 from grantflow.pipeline.logging import bind_source_logger
 
 SOCRATA_BASE = "https://data.ny.gov"
+# Default dataset: 4e8n-qriw — "Homes and Community Renewal Grant Awards: Beginning 1990"
+# 2700+ records covering housing/community development grants, includes county field.
+DEFAULT_DATASET_ID = "4e8n-qriw"
 PAGE_SIZE = 1000
 
 
@@ -26,15 +29,8 @@ class NewYorkScraper(BaseStateScraper):
 
     def fetch_records(self) -> list[dict]:
         log = bind_source_logger(self.source_name)
-        dataset_id = os.getenv("GRANTFLOW_NY_DATASET_ID", "")
-
-        if not dataset_id:
-            log.warning(
-                "socrata_dataset_id_missing",
-                env_var="GRANTFLOW_NY_DATASET_ID",
-                message="Set GRANTFLOW_NY_DATASET_ID to enable New York scraping",
-            )
-            return []
+        # Allow override via env var; fall back to well-known grants dataset
+        dataset_id = os.getenv("GRANTFLOW_NY_DATASET_ID", DEFAULT_DATASET_ID)
 
         client = httpx.Client(timeout=60)
         try:
@@ -73,21 +69,48 @@ class NewYorkScraper(BaseStateScraper):
             client.close()
 
     def normalize_record(self, raw: dict) -> dict | None:
-        title = (
-            raw.get("grant_name")
-            or raw.get("program_name")
-            or raw.get("title")
-            or raw.get("name")
-            or ""
-        ).strip()
+        # Handles HCR dataset (4e8n-qriw) columns:
+        #   project_number, program_name, project_type, activity, contract_amount,
+        #   organization, county, current_status
+        # Also handles generic grant datasets with common field names.
+        org = (raw.get("organization") or "").strip()
+        county = (raw.get("county") or "").strip()
+        program = (raw.get("program_name") or "").strip()
+
+        # Build a descriptive title
+        if org and program:
+            title = f"{org} — {program}"
+        elif org:
+            title = org
+        else:
+            title = (
+                raw.get("grant_name")
+                or raw.get("title")
+                or raw.get("name")
+                or raw.get("funding_program_name")
+                or ""
+            ).strip()
+
         if not title:
             return None
+
+        # Include county in description if available
+        description_parts = []
+        if county:
+            description_parts.append(f"County: {county}")
+        activity = (raw.get("activity") or raw.get("project_type") or "").strip()
+        if activity:
+            description_parts.append(f"Activity: {activity}")
+        description = ". ".join(description_parts) if description_parts else (
+            raw.get("description") or raw.get("program_description")
+        )
 
         raw_agency = (
             raw.get("agency")
             or raw.get("agency_name")
             or raw.get("grantor")
             or raw.get("funding_agency")
+            or raw.get("administering_agency")
         )
         agency_name = normalize_agency_name(raw_agency)
         agency_slug = ""
@@ -95,7 +118,8 @@ class NewYorkScraper(BaseStateScraper):
             agency_slug = re.sub(r"[^a-z0-9]+", "_", agency_name.lower()).strip("_")[:50]
 
         source_id = str(
-            raw.get("_id")
+            raw.get("project_number")
+            or raw.get("_id")
             or raw.get("id")
             or raw.get("grant_id")
             or raw.get("program_id")
@@ -106,7 +130,7 @@ class NewYorkScraper(BaseStateScraper):
             "id": self.make_opportunity_id(source_id),
             "source": self.source_name,
             "title": title,
-            "description": raw.get("description") or raw.get("program_description"),
+            "description": description,
             "agency_name": agency_name,
             "agency_code": agency_slug or None,
             "close_date": normalize_date(
