@@ -4,18 +4,36 @@ Tests for LLM topic enrichment (Plan 07-02).
 All tests use mocked LLM — no real OpenAI API calls.
 """
 import asyncio
+import datetime
+import hashlib
 import json
 import os
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from grantflow.models import Opportunity
+from grantflow.models import ApiKey, Opportunity
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
+def _make_api_key(db_session, suffix: str = "") -> str:
+    plaintext = f"enrichment_test_key{suffix}"
+    row = ApiKey(
+        key_hash=hashlib.sha256(plaintext.encode()).hexdigest(),
+        key_prefix=plaintext[:8],
+        tier="free",
+        is_active=True,
+        created_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        last_used_at=None,
+        request_count=0,
+    )
+    db_session.add(row)
+    db_session.commit()
+    return plaintext
+
 
 def _make_opportunity(db_session, opp_id: str, topic_tags: str | None = None) -> Opportunity:
     opp = Opportunity(
@@ -63,11 +81,12 @@ def test_tag_opportunity_mock():
 
 def test_topic_filter(client, db_session):
     """Opportunity with topic_tags='["health","research"]' appears when ?topic=health."""
+    key = _make_api_key(db_session, suffix="_filter")
     _make_opportunity(db_session, "health-opp-1", topic_tags='["health", "research"]')
 
     resp = client.get(
         "/api/v1/opportunities/search?topic=health",
-        headers={"X-API-Key": "test-key"},
+        headers={"X-API-Key": key},
     )
     assert resp.status_code == 200
     data = resp.json()
@@ -81,11 +100,12 @@ def test_topic_filter(client, db_session):
 
 def test_topic_filter_excludes(client, db_session):
     """Opportunity with topic_tags='["education"]' does NOT appear when ?topic=health."""
+    key = _make_api_key(db_session, suffix="_excludes")
     _make_opportunity(db_session, "edu-opp-1", topic_tags='["education"]')
 
     resp = client.get(
         "/api/v1/opportunities/search?topic=health",
-        headers={"X-API-Key": "test-key"},
+        headers={"X-API-Key": key},
     )
     assert resp.status_code == 200
     data = resp.json()
@@ -119,9 +139,9 @@ def test_enrichment_batch_limit(db_session, monkeypatch):
     # Insert 5 un-tagged opportunities
     for i in range(5):
         opp = Opportunity(
-            id=f"batch-opp-{i}",
+            id=f"batch-limit-opp-{i}",
             source="test",
-            source_id=f"batch-opp-{i}",
+            source_id=f"batch-limit-opp-{i}",
             title=f"Batch Opportunity {i}",
             description="Testing batch limit.",
             topic_tags=None,
@@ -139,11 +159,10 @@ def test_enrichment_batch_limit(db_session, monkeypatch):
             processed_ids.append(r["id"])
         return [(r["id"], fake_tags) for r in records]
 
+    mock_session_local = MagicMock(return_value=db_session)
+
     with patch("grantflow.enrichment.run_enrichment.tag_batch", mock_tag_batch), \
-         patch("grantflow.enrichment.run_enrichment.SessionLocal", return_value=db_session):
-        from grantflow.enrichment import run_enrichment as run_enrichment_module
-        import importlib
-        importlib.reload(run_enrichment_module)
+         patch("grantflow.enrichment.run_enrichment.SessionLocal", mock_session_local):
         from grantflow.enrichment.run_enrichment import run_enrichment
         run_enrichment()
 

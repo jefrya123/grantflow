@@ -60,6 +60,9 @@ class Opportunity(Base):
     # Canonical ID for cross-source deduplication
     canonical_id = Column(Text, nullable=True, index=True)
 
+    # LLM-assigned topic/sector tags (JSON array string e.g. '["health", "research"]')
+    topic_tags = Column(Text, nullable=True)
+
 
 class Award(Base):
     __tablename__ = "awards"

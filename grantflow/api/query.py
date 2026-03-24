@@ -23,6 +23,7 @@ def build_opportunity_query(
     max_award: float | None = None,
     closing_after: str | None = None,
     closing_before: str | None = None,
+    topic: str | None = None,
 ):
     """
     Build an unsorted, unpaginated SQLAlchemy query for Opportunity rows.
@@ -70,5 +71,7 @@ def build_opportunity_query(
         query = query.filter(Opportunity.close_date >= closing_after)
     if closing_before:
         query = query.filter(Opportunity.close_date <= closing_before)
+    if topic:
+        query = query.filter(Opportunity.topic_tags.ilike(f'%"{topic}"%'))
 
     return query

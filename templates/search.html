@@ -31,6 +31,22 @@
                 <option value="Other" {% if filters.category == 'Other' %}selected{% endif %}>Other</option>
             </select>
             <input type="text" name="eligible" placeholder="Eligibility..." value="{{ filters.eligible }}">
+            <select name="topic">
+                <option value="">All Topics</option>
+                <option value="health" {% if filters.topic == 'health' %}selected{% endif %}>Health</option>
+                <option value="research" {% if filters.topic == 'research' %}selected{% endif %}>Research</option>
+                <option value="education" {% if filters.topic == 'education' %}selected{% endif %}>Education</option>
+                <option value="environment" {% if filters.topic == 'environment' %}selected{% endif %}>Environment</option>
+                <option value="housing" {% if filters.topic == 'housing' %}selected{% endif %}>Housing</option>
+                <option value="small_business" {% if filters.topic == 'small_business' %}selected{% endif %}>Small Business</option>
+                <option value="agriculture" {% if filters.topic == 'agriculture' %}selected{% endif %}>Agriculture</option>
+                <option value="transportation" {% if filters.topic == 'transportation' %}selected{% endif %}>Transportation</option>
+                <option value="defense" {% if filters.topic == 'defense' %}selected{% endif %}>Defense</option>
+                <option value="arts" {% if filters.topic == 'arts' %}selected{% endif %}>Arts</option>
+                <option value="justice" {% if filters.topic == 'justice' %}selected{% endif %}>Justice</option>
+                <option value="technology" {% if filters.topic == 'technology' %}selected{% endif %}>Technology</option>
+                <option value="community_development" {% if filters.topic == 'community_development' %}selected{% endif %}>Community Development</option>
+            </select>
             <input type="date" name="closing_after" value="{{ filters.closing_after }}" title="Closing after">
             <input type="date" name="closing_before" value="{{ filters.closing_before }}" title="Closing before">
             <input type="number" name="min_award" placeholder="Min award $" value="{{ filters.min_award }}" step="any">

@@ -32,6 +32,7 @@ def search_page(
     max_award: float | None = None,
     closing_after: str | None = None,
     closing_before: str | None = None,
+    topic: str | None = None,
     sort: str = "post_date",
     order: str = "desc",
     page: int = Query(default=1, ge=1),
@@ -74,6 +75,8 @@ def search_page(
         query = query.filter(Opportunity.close_date >= closing_after)
     if closing_before:
         query = query.filter(Opportunity.close_date <= closing_before)
+    if topic:
+        query = query.filter(Opportunity.topic_tags.ilike(f'%"{topic}"%'))
 
     total = query.count()
 
@@ -104,7 +107,7 @@ def search_page(
         "pages": pages,
         "filters": _build_filters(q, status, source, agency, category,
                                   eligible, min_award, max_award,
-                                  closing_after, closing_before, sort, order),
+                                  closing_after, closing_before, sort, order, topic),
         "now_date": today_str,
         "closing_soon_date": closing_soon_str,
     })
@@ -138,7 +141,7 @@ def detail_page(
 
 def _build_filters(q, status, source, agency, category, eligible,
                    min_award, max_award, closing_after, closing_before,
-                   sort, order):
+                   sort, order, topic=None):
     return {
         "q": q or "",
         "status": status or "",
@@ -152,6 +155,7 @@ def _build_filters(q, status, source, agency, category, eligible,
         "closing_before": closing_before or "",
         "sort": sort,
         "order": order,
+        "topic": topic or "",
     }
 
 

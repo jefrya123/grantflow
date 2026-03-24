@@ -64,6 +64,7 @@ class OpportunityResponse(BaseModel):
     contact_text: Optional[str] = None
     additional_info_url: Optional[str] = None
     source_url: Optional[str] = None
+    topic_tags: Optional[str] = None
 
 
 # ---------------------------------------------------------------------------

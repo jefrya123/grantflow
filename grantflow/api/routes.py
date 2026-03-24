@@ -40,6 +40,7 @@ def search_opportunities(
     max_award: float | None = None,
     closing_after: str | None = None,
     closing_before: str | None = None,
+    topic: str | None = Query(default=None),
     sort: str = "post_date",
     order: str = "desc",
     page: int = Query(default=1, ge=1),
@@ -59,6 +60,7 @@ def search_opportunities(
         max_award=max_award,
         closing_after=closing_after,
         closing_before=closing_before,
+        topic=topic,
     )
 
     # Count total before pagination

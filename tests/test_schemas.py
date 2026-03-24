@@ -131,6 +131,7 @@ def test_opportunity_response_preserves_exact_field_names():
         "last_updated", "award_floor", "award_ceiling", "estimated_total_funding",
         "expected_number_of_awards", "cost_sharing_required", "contact_email",
         "contact_text", "additional_info_url", "source_url",
+        "topic_tags",
     }
     assert set(serialized.keys()) == expected_keys
 
