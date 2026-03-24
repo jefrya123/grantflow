@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 02-pipeline-hardening-05-PLAN.md
-last_updated: "2026-03-24T18:18:37.094Z"
+stopped_at: Completed 03-api-key-infrastructure-01-PLAN.md
+last_updated: "2026-03-24T18:28:49.693Z"
 last_activity: 2026-03-24 — Roadmap created, ready to begin Phase 1 planning
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 13
-  completed_plans: 8
+  completed_plans: 9
   percent: 33
 ---
 
@@ -58,6 +58,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 02-pipeline-hardening P02 | 15 | 2 tasks | 5 files |
 | Phase 02-pipeline-hardening P04 | 2 | 2 tasks | 3 files |
 | Phase 02-pipeline-hardening P05 | 2 | 2 tasks | 6 files |
+| Phase 03-api-key-infrastructure P01 | 12 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -89,6 +90,9 @@ Recent decisions affecting current work:
 - [Phase 02-pipeline-hardening]: GRANTS_GOV_USE_REST=true causes hard error when REST unavailable — makes migration testing explicit, no silent XML fallback
 - [Phase 02-pipeline-hardening]: SMTP failures in check_staleness() logged but never raised — monitoring never crashes pipeline
 - [Phase 02-pipeline-hardening]: normalize_cfda() normalizes at ingest time (no ilike) — eliminates format mismatch, avoids full table scans per CONCERNS.md
+- [Phase 03-api-key-infrastructure]: Migration uses revision 0004 not 0003 — 0003 was already claimed by pipeline_run_table
+- [Phase 03-api-key-infrastructure]: Error shape established: all API errors return {error_code, message} in HTTPException detail
+- [Phase 03-api-key-infrastructure]: API key format: gf_ + secrets.token_urlsafe(32), SHA-256 hash stored, plaintext returned exactly once
 
 ### Pending Todos
 
@@ -103,6 +107,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T18:07:30.298Z
-Stopped at: Completed 02-pipeline-hardening-05-PLAN.md
+Last session: 2026-03-24T18:28:49.690Z
+Stopped at: Completed 03-api-key-infrastructure-01-PLAN.md
 Resume file: None

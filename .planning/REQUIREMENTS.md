@@ -43,10 +43,10 @@
 
 ### API
 
-- [ ] **API-01**: API keys generated via self-serve endpoint (hash stored, plaintext shown once)
+- [x] **API-01**: API keys generated via self-serve endpoint (hash stored, plaintext shown once)
 - [ ] **API-02**: Rate limiting per API key with configurable tiers (free/starter/growth)
 - [ ] **API-03**: API versioned at /api/v1/ with stable schema contract
-- [ ] **API-04**: Consistent error responses with error codes and messages
+- [x] **API-04**: Consistent error responses with error codes and messages
 - [ ] **API-05**: Bulk export endpoint (CSV/JSON for search results)
 - [ ] **API-06**: Historical awards linked in opportunity detail responses
 - [ ] **API-07**: OpenAPI docs auto-generated and accurate
