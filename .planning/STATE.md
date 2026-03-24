@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 10-data-population-validation-03-PLAN.md
-last_updated: "2026-03-24T23:02:21.872Z"
+stopped_at: Completed 10-data-population-validation-04-PLAN.md (Phase 10 complete)
+last_updated: "2026-03-24T23:09:50.003Z"
 last_activity: 2026-03-24 — Roadmap created, ready to begin Phase 1 planning
 progress:
   total_phases: 10
-  completed_phases: 9
+  completed_phases: 10
   total_plans: 28
-  completed_plans: 27
+  completed_plans: 28
   percent: 33
 ---
 
@@ -77,6 +77,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 10-data-population-validation P01 | 3 | 2 tasks | 5 files |
 | Phase 10-data-population-validation P02 | 4 | 2 tasks | 1 files |
 | Phase 10-data-population-validation P03 | 8 | 2 tasks | 7 files |
+| Phase 10-data-population-validation P04 | 5 | 1 tasks | 0 files |
 
 ## Accumulated Context
 
@@ -161,6 +162,8 @@ Recent decisions affecting current work:
 - [Phase 10-data-population-validation]: BaseStateScraper.run() uses raw SQL upsert — avoids ORM loading search_vector (TSVECTORType) that doesn't exist in SQLite; same pattern as assign_canonical_ids()
 - [Phase 10-data-population-validation]: IL scraper switched from CKAN to Socrata — data.illinois.gov is Socrata-based; CKAN package_show returns 404
 - [Phase 10-data-population-validation]: NY/IL/TX scrapers have DEFAULT_DATASET_ID fallbacks so they work without env vars; dataset IDs confirmed: NY=4e8n-qriw, IL=q46r-i78b, TX=pp37-5cwt
+- [Phase 10-data-population-validation]: search_vector column added to SQLite via ALTER TABLE — ORM declares it but migration never created it; every API call 500-ed without it
+- [Phase 10-data-population-validation]: API smoke test uses per-source ?source= filter queries — default sort by post_date desc nullslast returns only date-bearing sources (grants_gov + state_illinois) in top results; other state sources have NULL post_dates
 
 ### Pending Todos
 
@@ -179,6 +182,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T23:02:13.434Z
-Stopped at: Completed 10-data-population-validation-03-PLAN.md
+Last session: 2026-03-24T23:09:49.999Z
+Stopped at: Completed 10-data-population-validation-04-PLAN.md (Phase 10 complete)
 Resume file: None
