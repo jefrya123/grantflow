@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 02-pipeline-hardening-03-PLAN.md
-last_updated: "2026-03-24T17:58:39.178Z"
+stopped_at: Completed 02-pipeline-hardening-02-PLAN.md
+last_updated: "2026-03-24T18:00:58.347Z"
 last_activity: 2026-03-24 — Roadmap created, ready to begin Phase 1 planning
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 13
-  completed_plans: 5
+  completed_plans: 7
   percent: 33
 ---
 
@@ -55,6 +55,8 @@ Progress: [███░░░░░░░] 33%
 | Phase 01-foundation P03 | 12 | 2 tasks | 5 files |
 | Phase 02-pipeline-hardening P01 | 15 | 2 tasks | 6 files |
 | Phase 02-pipeline-hardening P03 | 15 | 2 tasks | 4 files |
+| Phase 02-pipeline-hardening P02 | 15 | 2 tasks | 5 files |
+| Phase 02-pipeline-hardening P04 | 2 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -78,6 +80,9 @@ Recent decisions affecting current work:
 - [Phase 02-pipeline-hardening]: structlog stdlib bridge pattern established: configure_structlog() routes stdlib logging through structlog pipeline at both app startup and CLI entry
 - [Phase 02-pipeline-hardening]: 30-day lookback on first SAM.gov run — stays within 10 req/day public limit on initial setup
 - [Phase 02-pipeline-hardening]: status='partial' (not 'error') on SAM.gov 429 rate-limit hit — partial data is usable and preserved as incremental cursor
+- [Phase 02-pipeline-hardening]: APScheduler run_in_executor pattern: run_all_ingestion is sync; executor prevents blocking event loop
+- [Phase 02-pipeline-hardening]: _write_pipeline_run() in run_all.py: centralises PipelineRun accounting, keeps ingesters focused on data work
+- [Phase 02-pipeline-hardening]: USAspending incremental 36h window: tolerates daily runs with drift; 2-day buffer covers late-arriving data
 
 ### Pending Todos
 
@@ -92,6 +97,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T17:58:39.175Z
-Stopped at: Completed 02-pipeline-hardening-03-PLAN.md
+Last session: 2026-03-24T18:00:52.379Z
+Stopped at: Completed 02-pipeline-hardening-02-PLAN.md
 Resume file: None

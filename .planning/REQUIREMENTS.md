@@ -14,9 +14,9 @@
 
 ### Pipeline
 
-- [ ] **PIPE-01**: Grants.gov ingestion runs automatically on daily schedule
-- [ ] **PIPE-02**: USAspending ingestion runs automatically with incremental updates
-- [ ] **PIPE-03**: SBIR ingestion works reliably (fix rate limiting, retry logic)
+- [x] **PIPE-01**: Grants.gov ingestion runs automatically on daily schedule
+- [x] **PIPE-02**: USAspending ingestion runs automatically with incremental updates
+- [x] **PIPE-03**: SBIR ingestion works reliably (fix rate limiting, retry logic)
 - [x] **PIPE-04**: SAM.gov contract opportunities ingested (with registered API key, incremental design)
 - [ ] **PIPE-05**: Pipeline monitoring detects stale data (no update in 48h triggers alert)
 - [x] **PIPE-06**: Pipeline logs ingestion stats (records added/updated/failed per run)
