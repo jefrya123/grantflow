@@ -1,10 +1,16 @@
 import asyncio
 import os
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
+
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.middleware import SlowAPIMiddleware
+from slowapi.errors import RateLimitExceeded
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -15,6 +21,29 @@ from grantflow.pipeline.logging import configure_structlog, bind_source_logger
 from grantflow.ingest.run_all import run_all_ingestion
 
 logger_app = bind_source_logger("app")
+
+# Rate limiter — keyed on X-API-Key header (falls back to IP for public routes)
+limiter = Limiter(
+    key_func=lambda request: request.headers.get("x-api-key", get_remote_address(request))
+)
+
+
+async def custom_rate_limit_handler(request: Request, exc: RateLimitExceeded) -> JSONResponse:
+    """Return consistent {error_code, message} shape with Retry-After header."""
+    retry_after = getattr(exc, "retry_after", None)
+    headers = {}
+    if retry_after is not None:
+        headers["Retry-After"] = str(retry_after)
+    return JSONResponse(
+        status_code=429,
+        content={
+            "detail": {
+                "error_code": "RATE_LIMIT_EXCEEDED",
+                "message": "Rate limit exceeded. Retry-After header shows seconds until reset.",
+            }
+        },
+        headers=headers,
+    )
 
 
 @asynccontextmanager
@@ -50,6 +79,11 @@ app = FastAPI(
     ],
     lifespan=lifespan,
 )
+
+# Attach limiter and rate-limit error handler
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, custom_rate_limit_handler)
+app.add_middleware(SlowAPIMiddleware)
 
 # CORS middleware
 app.add_middleware(

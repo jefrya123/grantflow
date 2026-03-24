@@ -1,12 +1,13 @@
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, Query, HTTPException, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import func, case, and_
 from datetime import datetime, timedelta, timezone
 
-from grantflow.models import Opportunity, Award, Agency, IngestionLog
+from grantflow.models import Opportunity, Award, Agency, IngestionLog, ApiKey
 from grantflow.database import get_db
 from grantflow.config import DATABASE_URL as _DB_URL
 from grantflow.pipeline.monitor import get_freshness_report
+from grantflow.api.auth import get_api_key
 from grantflow.api.schemas import (
     OpportunityResponse,
     OpportunityDetailResponse,
@@ -14,12 +15,15 @@ from grantflow.api.schemas import (
     SearchResponse,
     StatsResponse,
 )
+from grantflow.app import limiter
 
 router = APIRouter(prefix="/api/v1")
 
 
 @router.get("/opportunities/search", response_model=SearchResponse, tags=["opportunities"])
+@limiter.limit("1000/day")
 def search_opportunities(
+    request: Request,
     q: str | None = None,
     status: str | None = None,
     agency: str | None = None,
@@ -35,6 +39,7 @@ def search_opportunities(
     page: int = Query(default=1, ge=1),
     per_page: int = Query(default=20, ge=1, le=100),
     db: Session = Depends(get_db),
+    api_key: ApiKey = Depends(get_api_key),
 ) -> SearchResponse:
     if q:
         if _DB_URL.startswith("postgresql") or _DB_URL.startswith("postgres"):
@@ -107,7 +112,13 @@ def search_opportunities(
 
 
 @router.get("/opportunities/{opportunity_id}", response_model=OpportunityDetailResponse, tags=["opportunities"])
-def get_opportunity(opportunity_id: str, db: Session = Depends(get_db)) -> OpportunityDetailResponse:
+@limiter.limit("1000/day")
+def get_opportunity(
+    request: Request,
+    opportunity_id: str,
+    db: Session = Depends(get_db),
+    api_key: ApiKey = Depends(get_api_key),
+) -> OpportunityDetailResponse:
     opp = db.query(Opportunity).filter(Opportunity.id == opportunity_id).first()
     if not opp:
         raise HTTPException(status_code=404, detail="Opportunity not found")
@@ -130,7 +141,12 @@ def get_opportunity(opportunity_id: str, db: Session = Depends(get_db)) -> Oppor
 
 
 @router.get("/stats", response_model=StatsResponse, tags=["opportunities"])
-def get_stats(db: Session = Depends(get_db)) -> StatsResponse:
+@limiter.limit("1000/day")
+def get_stats(
+    request: Request,
+    db: Session = Depends(get_db),
+    api_key: ApiKey = Depends(get_api_key),
+) -> StatsResponse:
     total_opportunities = db.query(func.count(Opportunity.id)).scalar() or 0
 
     # By source
@@ -177,7 +193,12 @@ def get_stats(db: Session = Depends(get_db)) -> StatsResponse:
 
 
 @router.get("/agencies", tags=["opportunities"])
-def get_agencies(db: Session = Depends(get_db)):
+@limiter.limit("1000/day")
+def get_agencies(
+    request: Request,
+    db: Session = Depends(get_db),
+    api_key: ApiKey = Depends(get_api_key),
+):
     rows = db.query(
         Opportunity.agency_code,
         Opportunity.agency_name,
