@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 02-pipeline-hardening-04-PLAN.md
-last_updated: "2026-03-24T18:01:04.393Z"
+stopped_at: Completed 02-pipeline-hardening-05-PLAN.md
+last_updated: "2026-03-24T18:07:30.300Z"
 last_activity: 2026-03-24 — Roadmap created, ready to begin Phase 1 planning
 progress:
   total_phases: 7
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 13
-  completed_plans: 7
+  completed_plans: 8
   percent: 33
 ---
 
@@ -57,6 +57,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 02-pipeline-hardening P03 | 15 | 2 tasks | 4 files |
 | Phase 02-pipeline-hardening P02 | 15 | 2 tasks | 5 files |
 | Phase 02-pipeline-hardening P04 | 2 | 2 tasks | 3 files |
+| Phase 02-pipeline-hardening P05 | 2 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -86,6 +87,8 @@ Recent decisions affecting current work:
 - [Phase 02-pipeline-hardening]: REST returns None on any failure (not raises) — clean fallback contract for dual-source strategy
 - [Phase 02-pipeline-hardening]: MIN_REST_THRESHOLD=100: fewer records treated as unreliable REST, triggers XML fallback
 - [Phase 02-pipeline-hardening]: GRANTS_GOV_USE_REST=true causes hard error when REST unavailable — makes migration testing explicit, no silent XML fallback
+- [Phase 02-pipeline-hardening]: SMTP failures in check_staleness() logged but never raised — monitoring never crashes pipeline
+- [Phase 02-pipeline-hardening]: normalize_cfda() normalizes at ingest time (no ilike) — eliminates format mismatch, avoids full table scans per CONCERNS.md
 
 ### Pending Todos
 
@@ -100,6 +103,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T18:01:04.389Z
-Stopped at: Completed 02-pipeline-hardening-04-PLAN.md
+Last session: 2026-03-24T18:07:30.298Z
+Stopped at: Completed 02-pipeline-hardening-05-PLAN.md
 Resume file: None
