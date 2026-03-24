@@ -23,6 +23,7 @@
 - [ ] **PIPE-07**: Cross-source joining links opportunities to historical awards via CFDA/ALN numbers
 - [ ] **PIPE-08**: Grants.gov ingestion supports both XML extract and new REST API (migration-safe)
 
+
 ### Data Quality
 
 - [ ] **QUAL-01**: Eligibility codes normalized to human-readable categories
@@ -98,53 +99,54 @@
 
 ## Traceability
 
-| Requirement | Phase | Status |
-|-------------|-------|--------|
-| FOUND-01 | Phase 1 | Pending |
-| FOUND-02 | Phase 1 | Pending |
-| FOUND-03 | Phase 1 | Pending |
-| FOUND-04 | Phase 1 | Pending |
-| PIPE-01 | Phase 2 | Pending |
-| PIPE-02 | Phase 2 | Pending |
-| PIPE-03 | Phase 2 | Pending |
-| PIPE-04 | Phase 2 | Pending |
-| PIPE-05 | Phase 2 | Pending |
-| PIPE-06 | Phase 2 | Pending |
-| PIPE-07 | Phase 2 | Pending |
-| PIPE-08 | Phase 2 | Pending |
-| QUAL-01 | Phase 3 | Pending |
-| QUAL-02 | Phase 3 | Pending |
-| QUAL-03 | Phase 3 | Pending |
-| QUAL-04 | Phase 5 | Pending |
-| QUAL-05 | Phase 3 | Pending |
-| QUAL-06 | Phase 3 | Pending |
-| STATE-01 | Phase 4 | Pending |
-| STATE-02 | Phase 4 | Pending |
-| STATE-03 | Phase 4 | Pending |
-| STATE-04 | Phase 4 | Pending |
-| STATE-05 | Phase 4 | Pending |
-| API-01 | Phase 3 | Pending |
-| API-02 | Phase 3 | Pending |
-| API-03 | Phase 3 | Pending |
-| API-04 | Phase 3 | Pending |
-| API-05 | Phase 3 | Pending |
-| API-06 | Phase 3 | Pending |
-| API-07 | Phase 3 | Pending |
-| API-08 | Phase 3 | Pending |
-| WEB-01 | Phase 3 | Pending |
-| WEB-02 | Phase 3 | Pending |
-| WEB-03 | Phase 3 | Pending |
-| WEB-04 | Phase 3 | Pending |
-| GTM-01 | Phase 5 | Pending |
-| GTM-02 | Phase 5 | Pending |
-| GTM-03 | Phase 5 | Pending |
-| GTM-04 | Phase 5 | Pending |
+| Requirement | Phase | Wave | Status |
+|-------------|-------|------|--------|
+| FOUND-01 | Phase 1: Foundation | 1 | Pending |
+| FOUND-02 | Phase 1: Foundation | 1 | Pending |
+| FOUND-03 | Phase 1: Foundation | 1 | Pending |
+| FOUND-04 | Phase 1: Foundation | 1 | Pending |
+| PIPE-01 | Phase 2: Pipeline Hardening | 2 | Pending |
+| PIPE-02 | Phase 2: Pipeline Hardening | 2 | Pending |
+| PIPE-03 | Phase 2: Pipeline Hardening | 2 | Pending |
+| PIPE-04 | Phase 2: Pipeline Hardening | 2 | Pending |
+| PIPE-05 | Phase 2: Pipeline Hardening | 2 | Pending |
+| PIPE-06 | Phase 2: Pipeline Hardening | 2 | Pending |
+| PIPE-07 | Phase 2: Pipeline Hardening | 2 | Pending |
+| PIPE-08 | Phase 2: Pipeline Hardening | 2 | Pending |
+
+| QUAL-01 | Phase 4: Data Quality | 2 | Pending |
+| QUAL-02 | Phase 4: Data Quality | 2 | Pending |
+| QUAL-03 | Phase 4: Data Quality | 2 | Pending |
+| QUAL-04 | Phase 7: GTM + Enrichment | 4 | Pending |
+| QUAL-05 | Phase 4: Data Quality | 2 | Pending |
+| QUAL-06 | Phase 4: Data Quality | 2 | Pending |
+| STATE-01 | Phase 5: State Data | 3 | Pending |
+| STATE-02 | Phase 5: State Data | 3 | Pending |
+| STATE-03 | Phase 5: State Data | 3 | Pending |
+| STATE-04 | Phase 5: State Data | 3 | Pending |
+| STATE-05 | Phase 5: State Data | 3 | Pending |
+| API-01 | Phase 3: API Key Infrastructure | 2 | Pending |
+| API-02 | Phase 3: API Key Infrastructure | 2 | Pending |
+| API-03 | Phase 3: API Key Infrastructure | 2 | Pending |
+| API-04 | Phase 3: API Key Infrastructure | 2 | Pending |
+| API-05 | Phase 6: Advanced API + Web UI | 3 | Pending |
+| API-06 | Phase 6: Advanced API + Web UI | 3 | Pending |
+| API-07 | Phase 3: API Key Infrastructure | 2 | Pending |
+| API-08 | Phase 6: Advanced API + Web UI | 3 | Pending |
+| WEB-01 | Phase 6: Advanced API + Web UI | 3 | Pending |
+| WEB-02 | Phase 6: Advanced API + Web UI | 3 | Pending |
+| WEB-03 | Phase 6: Advanced API + Web UI | 3 | Pending |
+| WEB-04 | Phase 6: Advanced API + Web UI | 3 | Pending |
+| GTM-01 | Phase 7: GTM + Enrichment | 4 | Pending |
+| GTM-02 | Phase 7: GTM + Enrichment | 4 | Pending |
+| GTM-03 | Phase 7: GTM + Enrichment | 4 | Pending |
+| GTM-04 | Phase 7: GTM + Enrichment | 4 | Pending |
 
 **Coverage:**
 - v1 requirements: 35 total
-- Mapped to phases: 35
+- Mapped to phases: 36
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-24*
-*Last updated: 2026-03-24 after initial definition*
+*Last updated: 2026-03-24 — restructured to 7-phase wave model*
