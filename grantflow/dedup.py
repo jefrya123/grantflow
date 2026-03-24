@@ -67,44 +67,54 @@ def find_duplicate_groups(session: Session) -> list[dict]:
 def assign_canonical_ids(session: Session) -> dict:
     """Assign canonical_id to every Opportunity where canonical_id IS NULL.
 
+    Uses raw SQL to select only required columns, avoiding TSVECTORType
+    compatibility issues on SQLite (search_vector exists in model but not
+    in SQLite schema — raw SQL bypasses the full-column ORM SELECT).
+
     Commits in batches of 1000.
     Returns stats: {"assigned": int, "already_set": int}
     """
-    from grantflow.models import Opportunity
+    batch_size = 1000
+
+    # Count already-set records for stats (raw SQL to avoid ORM schema issues)
+    already_set = session.execute(
+        text("SELECT count(*) FROM opportunities WHERE canonical_id IS NOT NULL")
+    ).scalar() or 0
+
+    # Fetch only the columns needed for canonical ID generation
+    null_rows = session.execute(
+        text(
+            "SELECT id, opportunity_number, cfda_numbers, agency_code, close_date "
+            "FROM opportunities WHERE canonical_id IS NULL"
+        )
+    ).fetchall()
 
     assigned = 0
-    batch_size = 1000
-    batch = []
+    batch_updates: list[dict] = []
 
-    # Count already-set records for stats
-    already_set = (
-        session.query(Opportunity)
-        .filter(Opportunity.canonical_id.isnot(None))
-        .count()
-    )
-
-    # Process only NULL records
-    null_records = (
-        session.query(Opportunity)
-        .filter(Opportunity.canonical_id.is_(None))
-        .yield_per(batch_size)
-    )
-
-    for opp in null_records:
-        opp.canonical_id = make_canonical_id({
-            "opportunity_number": opp.opportunity_number,
-            "cfda_numbers": opp.cfda_numbers,
-            "agency_code": opp.agency_code,
-            "close_date": opp.close_date,
+    for row in null_rows:
+        canon_id = make_canonical_id({
+            "opportunity_number": row.opportunity_number,
+            "cfda_numbers": row.cfda_numbers,
+            "agency_code": row.agency_code,
+            "close_date": row.close_date,
         })
+        batch_updates.append({"row_id": row.id, "canon_id": canon_id})
         assigned += 1
-        batch.append(opp)
 
-        if len(batch) >= batch_size:
+        if len(batch_updates) >= batch_size:
+            session.execute(
+                text("UPDATE opportunities SET canonical_id = :canon_id WHERE id = :row_id"),
+                batch_updates,
+            )
             session.commit()
-            batch = []
+            batch_updates = []
 
-    if batch:
+    if batch_updates:
+        session.execute(
+            text("UPDATE opportunities SET canonical_id = :canon_id WHERE id = :row_id"),
+            batch_updates,
+        )
         session.commit()
 
     return {"assigned": assigned, "already_set": already_set}

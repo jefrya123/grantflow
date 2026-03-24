@@ -156,6 +156,20 @@ def run_all_ingestion() -> dict:
     summary["cfda_link"] = link_stats
     logger.info("cfda_linking_complete", **link_stats)
 
+    # 9. Assign canonical IDs for cross-source deduplication
+    from grantflow.dedup import assign_canonical_ids
+    dedup_session = SessionLocal()
+    try:
+        dedup_stats = assign_canonical_ids(dedup_session)
+        summary["dedup"] = dedup_stats
+        logger.info(
+            "canonical_ids_assigned",
+            assigned=dedup_stats["assigned"],
+            already_set=dedup_stats["already_set"],
+        )
+    finally:
+        dedup_session.close()
+
     return summary
 
 
