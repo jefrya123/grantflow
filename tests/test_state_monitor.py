@@ -1,8 +1,8 @@
-"""Test scaffolds for state monitor behaviors (STATE-04 behaviors).
+"""Tests for state monitor behaviors: zero-record detection and per-source stale thresholds.
 
-These tests are RED until Plan 03 implements:
+Covers STATE-04 requirements:
   - check_zero_records() in pipeline/monitor.py
-  - Per-source stale thresholds (240h for weekly state sources)
+  - Per-source stale thresholds (240h for weekly state sources, 48h for federal)
 """
 
 import pytest
@@ -43,18 +43,55 @@ def test_zero_records_detection(db_session):
     assert "state_california" in result
 
 
-def test_state_stale_threshold(db_session):
-    """State sources with 240h threshold are NOT stale when run was 5 days (120h) ago."""
-    from grantflow.pipeline.monitor import check_staleness_with_thresholds  # noqa: PLC0415
+def test_zero_records_ignores_federal(db_session):
+    """check_zero_records() does NOT check federal sources (grants_gov, usaspending, etc.)."""
+    from grantflow.pipeline.monitor import check_zero_records  # noqa: PLC0415
 
+    completed_at = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
+    _make_pipeline_run(
+        "grants_gov", "success", completed_at, db_session, records_processed=0
+    )
+
+    result = check_zero_records(db_session)
+    assert "grants_gov" not in result
+
+
+def test_zero_records_ignores_error_runs(db_session):
+    """A PipelineRun with status='error' and records_processed=0 is NOT flagged."""
+    from grantflow.pipeline.monitor import check_zero_records  # noqa: PLC0415
+
+    completed_at = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
+    _make_pipeline_run(
+        "state_new_york", "error", completed_at, db_session, records_processed=0
+    )
+
+    result = check_zero_records(db_session)
+    assert "state_new_york" not in result
+
+
+def test_state_stale_threshold(db_session):
+    """State source completed 5 days ago (120h) is NOT stale with 240h threshold."""
+    from grantflow.pipeline.monitor import check_staleness  # noqa: PLC0415
+
+    # 120h ago — within 240h state threshold but beyond 48h federal threshold
     completed_at = (datetime.now(timezone.utc) - timedelta(hours=120)).isoformat()
     _make_pipeline_run(
         "state_california", "success", completed_at, db_session, records_processed=50
     )
 
-    # Per-source thresholds: state sources get 240h window
-    per_source_thresholds = {"state_california": 240}
-    stale = check_staleness_with_thresholds(db_session, per_source_thresholds)
-
-    # 120h < 240h threshold, so state_california should NOT be stale
+    stale = check_staleness(db_session)
     assert "state_california" not in stale
+
+
+def test_federal_stale_threshold_unchanged(db_session):
+    """Federal sources still use 48h threshold after the per-source refactor."""
+    from grantflow.pipeline.monitor import check_staleness  # noqa: PLC0415
+
+    # 50h ago — beyond 48h federal threshold
+    completed_at = (datetime.now(timezone.utc) - timedelta(hours=50)).isoformat()
+    _make_pipeline_run(
+        "grants_gov", "success", completed_at, db_session, records_processed=100
+    )
+
+    stale = check_staleness(db_session)
+    assert "grants_gov" in stale
