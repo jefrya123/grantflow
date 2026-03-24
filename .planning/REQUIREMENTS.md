@@ -21,7 +21,7 @@
 - [ ] **PIPE-05**: Pipeline monitoring detects stale data (no update in 48h triggers alert)
 - [x] **PIPE-06**: Pipeline logs ingestion stats (records added/updated/failed per run)
 - [ ] **PIPE-07**: Cross-source joining links opportunities to historical awards via CFDA/ALN numbers
-- [ ] **PIPE-08**: Grants.gov ingestion supports both XML extract and new REST API (migration-safe)
+- [x] **PIPE-08**: Grants.gov ingestion supports both XML extract and new REST API (migration-safe)
 
 
 ### Data Quality

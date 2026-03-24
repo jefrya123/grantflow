@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 02-pipeline-hardening-02-PLAN.md
-last_updated: "2026-03-24T18:00:58.347Z"
+stopped_at: Completed 02-pipeline-hardening-04-PLAN.md
+last_updated: "2026-03-24T18:01:04.393Z"
 last_activity: 2026-03-24 — Roadmap created, ready to begin Phase 1 planning
 progress:
   total_phases: 7
@@ -83,6 +83,9 @@ Recent decisions affecting current work:
 - [Phase 02-pipeline-hardening]: APScheduler run_in_executor pattern: run_all_ingestion is sync; executor prevents blocking event loop
 - [Phase 02-pipeline-hardening]: _write_pipeline_run() in run_all.py: centralises PipelineRun accounting, keeps ingesters focused on data work
 - [Phase 02-pipeline-hardening]: USAspending incremental 36h window: tolerates daily runs with drift; 2-day buffer covers late-arriving data
+- [Phase 02-pipeline-hardening]: REST returns None on any failure (not raises) — clean fallback contract for dual-source strategy
+- [Phase 02-pipeline-hardening]: MIN_REST_THRESHOLD=100: fewer records treated as unreliable REST, triggers XML fallback
+- [Phase 02-pipeline-hardening]: GRANTS_GOV_USE_REST=true causes hard error when REST unavailable — makes migration testing explicit, no silent XML fallback
 
 ### Pending Todos
 
@@ -97,6 +100,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T18:00:52.379Z
-Stopped at: Completed 02-pipeline-hardening-02-PLAN.md
+Last session: 2026-03-24T18:01:04.389Z
+Stopped at: Completed 02-pipeline-hardening-04-PLAN.md
 Resume file: None
