@@ -150,6 +150,12 @@ def run_all_ingestion() -> dict:
     else:
         logger.info("all_sources_fresh")
 
+    # 8. CFDA normalization and cross-reference linking
+    from grantflow.pipeline.cfda_link import link_opportunities_to_awards
+    link_stats = link_opportunities_to_awards()
+    summary["cfda_link"] = link_stats
+    logger.info("cfda_linking_complete", **link_stats)
+
     return summary
 
 

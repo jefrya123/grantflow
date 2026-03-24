@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 from grantflow.models import Opportunity, Award, Agency, IngestionLog
 from grantflow.database import get_db
 from grantflow.config import DATABASE_URL as _DB_URL
+from grantflow.pipeline.monitor import get_freshness_report
 
 router = APIRouter(prefix="/api/v1")
 
@@ -236,9 +237,13 @@ def health_check(db: Session = Depends(get_db)):
             "stale": is_stale,
         }
 
+    # Per-source freshness from PipelineRun table
+    freshness = get_freshness_report(db)
+
     return {
         "status": "stale" if overall_stale else "ok",
         "sources": sources,
+        "source_freshness": freshness,
         "checked_at": now.isoformat(),
     }
 
