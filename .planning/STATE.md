@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 10-data-population-validation-02-PLAN.md
-last_updated: "2026-03-24T22:53:31.032Z"
+stopped_at: Completed 10-data-population-validation-03-PLAN.md
+last_updated: "2026-03-24T23:02:21.872Z"
 last_activity: 2026-03-24 — Roadmap created, ready to begin Phase 1 planning
 progress:
   total_phases: 10
   completed_phases: 9
   total_plans: 28
-  completed_plans: 26
+  completed_plans: 27
   percent: 33
 ---
 
@@ -76,6 +76,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 09-api-feature-polish P01 | 2 | 2 tasks | 4 files |
 | Phase 10-data-population-validation P01 | 3 | 2 tasks | 5 files |
 | Phase 10-data-population-validation P02 | 4 | 2 tasks | 1 files |
+| Phase 10-data-population-validation P03 | 8 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -156,6 +157,10 @@ Recent decisions affecting current work:
 - [Phase 10-data-population-validation]: _normalize_row() normalizes SBIR CSV headers at read time (title-case-with-spaces -> lowercase-underscore) — O(1) per row, keeps downstream row.get() calls clean
 - [Phase 10-data-population-validation]: seen_ids set deduplicates intra-CSV duplicates in SBIR awards — prevents UNIQUE constraint violations from rows hashing to same key
 - [Phase 10-data-population-validation]: SAM.gov status='skipped' when SAM_GOV_API_KEY absent — user_setup dependency, existing guard already correct, no code change needed
+- [Phase 10-data-population-validation]: NorthCarolinaScraper uses OSBM Legislative Grants CSV (not Socrata/CKAN) — NC has no public API portal; OSBM publishes biennium legislative grants as CSV at files.nc.gov
+- [Phase 10-data-population-validation]: BaseStateScraper.run() uses raw SQL upsert — avoids ORM loading search_vector (TSVECTORType) that doesn't exist in SQLite; same pattern as assign_canonical_ids()
+- [Phase 10-data-population-validation]: IL scraper switched from CKAN to Socrata — data.illinois.gov is Socrata-based; CKAN package_show returns 404
+- [Phase 10-data-population-validation]: NY/IL/TX scrapers have DEFAULT_DATASET_ID fallbacks so they work without env vars; dataset IDs confirmed: NY=4e8n-qriw, IL=q46r-i78b, TX=pp37-5cwt
 
 ### Pending Todos
 
@@ -174,6 +179,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T22:53:31.029Z
-Stopped at: Completed 10-data-population-validation-02-PLAN.md
+Last session: 2026-03-24T23:02:13.434Z
+Stopped at: Completed 10-data-population-validation-03-PLAN.md
 Resume file: None
