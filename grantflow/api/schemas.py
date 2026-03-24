@@ -65,6 +65,7 @@ class OpportunityResponse(BaseModel):
     additional_info_url: Optional[str] = None
     source_url: Optional[str] = None
     topic_tags: Optional[str] = None
+    canonical_id: Optional[str] = None
 
 
 # ---------------------------------------------------------------------------

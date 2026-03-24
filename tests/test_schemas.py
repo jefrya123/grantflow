@@ -132,8 +132,44 @@ def test_opportunity_response_preserves_exact_field_names():
         "expected_number_of_awards", "cost_sharing_required", "contact_email",
         "contact_text", "additional_info_url", "source_url",
         "topic_tags",
+        "canonical_id",
     }
     assert set(serialized.keys()) == expected_keys
+
+
+# ---------------------------------------------------------------------------
+# canonical_id integration test
+# ---------------------------------------------------------------------------
+
+def test_canonical_id_in_api_response(client, db_session):
+    """GET /search response JSON includes canonical_id field (null or populated)."""
+    key = _make_key(db_session, suffix="_canonical")
+
+    opp = Opportunity(
+        id="opp-canonical-test",
+        source="test",
+        source_id="TEST-CANONICAL-001",
+        title="Canonical ID Test Grant",
+        canonical_id="canon_abc123def456",
+    )
+    db_session.add(opp)
+    db_session.commit()
+
+    resp = client.get(
+        "/api/v1/opportunities/search",
+        headers={"X-API-Key": key},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    results = data["results"]
+    assert len(results) >= 1
+    # All results must have canonical_id field
+    for r in results:
+        assert "canonical_id" in r, "canonical_id field missing from search result"
+    # The specific opportunity we inserted should have its canonical_id
+    matching = [r for r in results if r["id"] == "opp-canonical-test"]
+    assert len(matching) == 1
+    assert matching[0]["canonical_id"] == "canon_abc123def456"
 
 
 # ---------------------------------------------------------------------------
