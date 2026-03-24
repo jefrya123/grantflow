@@ -1,7 +1,7 @@
-"""Download and parse the Grants.gov XML bulk extract."""
+"""Download and parse the Grants.gov XML bulk extract or REST API."""
 
 import json
-import logging
+import logging  # noqa: F401 — kept for any stdlib callers
 import re
 import zipfile
 from datetime import datetime, timezone, timedelta
@@ -10,11 +10,42 @@ from xml.etree import ElementTree as ET
 
 import httpx
 
-from grantflow.config import DATA_DIR, GRANTS_GOV_XML_URL
+from grantflow.config import (
+    DATA_DIR,
+    GRANTS_GOV_XML_URL,
+    GRANTS_GOV_REST_API_BASE,
+    GRANTS_GOV_USE_REST,
+)
 from grantflow.database import SessionLocal, engine
 from grantflow.models import Opportunity, IngestionLog
 
-logger = logging.getLogger(__name__)
+from grantflow.pipeline.logging import bind_source_logger
+
+logger = bind_source_logger("grants_gov")
+
+# ─── REST API constants ────────────────────────────────────────────────────────
+
+SEARCH2_ENDPOINT = f"{GRANTS_GOV_REST_API_BASE}/search2"
+REST_PAGE_SIZE = 25        # API maximum per page
+MIN_REST_THRESHOLD = 100   # fewer records than this = treat REST as unreliable
+MAX_REST_PAGES = 200       # 200 × 25 = 5,000 record cap; prevent infinite pagination
+
+# Field mapping for REST oppHit → Opportunity columns
+REST_FIELD_MAP = {
+    "id": "source_id",
+    "title": "title",
+    "number": "opportunity_number",
+    "agencyName": "agency_name",
+    "agencyCode": "agency_code",
+    "openDate": "post_date",
+    "closeDate": "close_date",
+    "opportunityCategory": "category",
+    "awardCeiling": "award_ceiling",
+    "awardFloor": "award_floor",
+    "description": "description",
+}
+
+# ─── XML constants ─────────────────────────────────────────────────────────────
 
 # Fields to extract from each OpportunitySynopsisDetail element
 FIELD_MAP = {
@@ -51,6 +82,9 @@ INT_FIELDS = {"ExpectedNumberOfAwards"}
 BOOL_FIELDS = {"CostSharingOrMatchingRequirement"}
 
 
+# ─── Shared helpers ────────────────────────────────────────────────────────────
+
+
 def _normalize_date(value: str | None) -> str | None:
     """Convert MM/DD/YYYY to YYYY-MM-DD."""
     if not value:
@@ -61,6 +95,157 @@ def _normalize_date(value: str | None) -> str | None:
         except ValueError:
             continue
     return value
+
+
+def _upsert_batch(session, batch: list[dict], stats: dict) -> None:
+    """Upsert a batch of opportunity records."""
+    for record in batch:
+        opp_id = record["id"]
+        try:
+            existing = session.get(Opportunity, opp_id)
+            if existing:
+                for key, value in record.items():
+                    if key != "created_at":
+                        setattr(existing, key, value)
+                stats["records_updated"] += 1
+            else:
+                record["created_at"] = datetime.now(timezone.utc).isoformat()
+                session.add(Opportunity(**record))
+                stats["records_added"] += 1
+        except Exception as exc:
+            logger.warning("upsert_failed", record_id=opp_id, error=str(exc))
+            stats["records_failed"] += 1
+    session.flush()
+
+
+# ─── REST path ─────────────────────────────────────────────────────────────────
+
+
+def _ingest_via_rest(session) -> dict | None:
+    """Fetch opportunities from the Grants.gov REST search2 API.
+
+    Returns a stats dict on success, or None if REST is unavailable/unreliable
+    (caller should fall back to XML).
+    """
+    stats = {
+        "source": "grants_gov",
+        "status": "success",
+        "records_processed": 0,
+        "records_added": 0,
+        "records_updated": 0,
+        "records_failed": 0,
+        "error": None,
+    }
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    all_records: list[dict] = []
+    pages_fetched = 0
+
+    for page in range(MAX_REST_PAGES):
+        payload = {
+            "keyword": "",
+            "oppStatuses": ["forecasted", "posted"],
+            "rows": REST_PAGE_SIZE,
+            "startRecordNum": page * REST_PAGE_SIZE,
+            "sortBy": "openDate|desc",
+        }
+        try:
+            resp = httpx.post(
+                SEARCH2_ENDPOINT,
+                json=payload,
+                headers={"Content-Type": "application/json"},
+                timeout=30,
+            )
+        except (httpx.ConnectError, httpx.TimeoutException, httpx.NetworkError) as exc:
+            logger.warning("rest_unavailable", connection_error=str(exc))
+            return None
+
+        if resp.status_code >= 500:
+            logger.warning("rest_unavailable", status=resp.status_code)
+            return None
+
+        if resp.status_code >= 400:
+            logger.warning("rest_client_error", status=resp.status_code, body=resp.text[:200])
+            return None
+
+        try:
+            data = resp.json()
+        except Exception as exc:
+            logger.warning("rest_parse_error", exc=str(exc))
+            return None
+
+        opp_data = data.get("data", {})
+        opp_hits = opp_data.get("oppHits", [])
+        pages_fetched += 1
+
+        if not opp_hits:
+            break  # no more pages
+
+        for opp in opp_hits:
+            raw_id = opp.get("id")
+            if not raw_id:
+                continue
+
+            record: dict = {}
+            for rest_key, model_key in REST_FIELD_MAP.items():
+                raw_val = opp.get(rest_key)
+                if model_key in ("post_date", "close_date"):
+                    raw_val = _normalize_date(str(raw_val) if raw_val else None)
+                elif model_key in ("award_ceiling", "award_floor"):
+                    try:
+                        raw_val = float(raw_val) if raw_val is not None else None
+                    except (ValueError, TypeError):
+                        raw_val = None
+                record[model_key] = raw_val
+
+            # CFDA numbers: REST returns a list
+            cfda_list = opp.get("cfdaList", [])
+            record["cfda_numbers"] = ", ".join(cfda_list) if cfda_list else None
+
+            # Composite id — same format as XML path for deduplication
+            record["id"] = f"grants_gov_{raw_id}"
+            record["source"] = "grants_gov"
+            record["source_url"] = f"https://www.grants.gov/search-results-detail/{raw_id}"
+            record["updated_at"] = now_iso
+            record["raw_data"] = json.dumps({k: opp.get(k) for k in opp})
+
+            all_records.append(record)
+
+        # Stop if we've exhausted the result set
+        total_count = opp_data.get("totalOpportunityCount", 0)
+        if (page + 1) * REST_PAGE_SIZE >= total_count:
+            break
+
+    records_processed = len(all_records)
+    if records_processed < MIN_REST_THRESHOLD:
+        logger.warning(
+            "rest_below_threshold",
+            records=records_processed,
+            threshold=MIN_REST_THRESHOLD,
+        )
+        return None
+
+    # Upsert in batches of 500
+    batch_size = 500
+    for i in range(0, len(all_records), batch_size):
+        _upsert_batch(session, all_records[i : i + batch_size], stats)
+
+    session.commit()
+
+    stats["records_processed"] = records_processed
+    stats["extra"] = json.dumps({"path": "rest", "pages_fetched": pages_fetched})
+
+    logger.info(
+        "rest_succeeded",
+        records=records_processed,
+        pages=pages_fetched,
+        added=stats["records_added"],
+        updated=stats["records_updated"],
+    )
+    return stats
+
+
+# ─── XML path ──────────────────────────────────────────────────────────────────
 
 
 def _find_extract_url() -> str:
@@ -150,26 +335,20 @@ def _parse_element(elem: ET.Element) -> dict:
     return record
 
 
-def ingest_grants_gov() -> dict:
-    """Download, parse, and ingest the Grants.gov XML extract. Returns stats dict."""
+def _ingest_via_xml(session) -> dict | None:
+    """Download, parse, and ingest the Grants.gov XML bulk extract.
+
+    Returns a stats dict on success, or None if the XML path also fails.
+    """
     stats = {
         "source": "grants_gov",
-        "status": "error",
+        "status": "success",
         "records_processed": 0,
         "records_added": 0,
         "records_updated": 0,
+        "records_failed": 0,
         "error": None,
     }
-    started_at = datetime.now(timezone.utc).isoformat()
-
-    session = SessionLocal()
-    log_entry = IngestionLog(
-        source="grants_gov",
-        started_at=started_at,
-        status="running",
-    )
-    session.add(log_entry)
-    session.commit()
 
     try:
         url = _find_extract_url()
@@ -233,13 +412,79 @@ def ingest_grants_gov() -> dict:
 
         session.commit()
 
-        stats["status"] = "success"
+        stats["extra"] = json.dumps({"path": "xml"})
         logger.info(
-            "Grants.gov ingestion complete: %d processed, %d added, %d updated",
-            stats["records_processed"],
-            stats["records_added"],
-            stats["records_updated"],
+            "xml_succeeded",
+            records=stats["records_processed"],
+            added=stats["records_added"],
+            updated=stats["records_updated"],
         )
+        return stats
+
+    except Exception as exc:
+        logger.warning("xml_path_failed", error=str(exc))
+        return None
+
+
+# ─── Public entry point ────────────────────────────────────────────────────────
+
+
+def ingest_grants_gov() -> dict:
+    """Ingest Grants.gov opportunities using REST-first, XML-fallback strategy.
+
+    Returns a stats dict with status, record counts, and the path used.
+    """
+    stats = {
+        "source": "grants_gov",
+        "status": "error",
+        "records_processed": 0,
+        "records_added": 0,
+        "records_updated": 0,
+        "records_failed": 0,
+        "error": None,
+    }
+    started_at = datetime.now(timezone.utc).isoformat()
+
+    session = SessionLocal()
+    log_entry = IngestionLog(
+        source="grants_gov",
+        started_at=started_at,
+        status="running",
+    )
+    session.add(log_entry)
+    session.commit()
+
+    try:
+        if GRANTS_GOV_USE_REST:
+            # Force REST-only mode (config flag for testing/migration validation)
+            logger.info("mode=rest_only (GRANTS_GOV_USE_REST=true)")
+            rest_stats = _ingest_via_rest(session)
+            if rest_stats is None:
+                stats["status"] = "error"
+                stats["error"] = "REST API unavailable and REST-only mode is set"
+            else:
+                stats.update(rest_stats)
+        else:
+            # Try REST first
+            logger.info("mode=rest_first attempting REST API")
+            rest_stats = _ingest_via_rest(session)
+
+            if rest_stats is not None:
+                logger.info(
+                    "rest_succeeded",
+                    records=rest_stats["records_processed"],
+                    path="rest",
+                )
+                stats.update(rest_stats)
+            else:
+                # REST unavailable or returned too few records — fall back to XML
+                logger.info("rest_fallback", reason="REST returned None, using XML extract")
+                xml_stats = _ingest_via_xml(session)
+                if xml_stats is not None:
+                    stats.update(xml_stats)
+                else:
+                    stats["status"] = "error"
+                    stats["error"] = "Both REST and XML paths failed"
 
     except Exception as e:
         logger.exception("Grants.gov ingestion failed: %s", e)
@@ -261,20 +506,3 @@ def ingest_grants_gov() -> dict:
         session.close()
 
     return stats
-
-
-def _upsert_batch(session, batch: list[dict], stats: dict) -> None:
-    """Upsert a batch of opportunity records."""
-    for record in batch:
-        opp_id = record["id"]
-        existing = session.get(Opportunity, opp_id)
-        if existing:
-            for key, value in record.items():
-                if key != "created_at":
-                    setattr(existing, key, value)
-            stats["records_updated"] += 1
-        else:
-            record["created_at"] = datetime.now(timezone.utc).isoformat()
-            session.add(Opportunity(**record))
-            stats["records_added"] += 1
-    session.flush()
