@@ -154,6 +154,10 @@ Recent decisions affecting current work:
 
 None yet.
 
+### Roadmap Evolution
+
+- Phase 10 added: Data Population & Validation — run all pipelines, fix failures, verify data usefulness
+
 ### Blockers/Concerns
 
 - [Research]: Grants.gov XML bulk extract is being deprecated — dual-source ingest (XML + REST) is mandatory in Phase 2; do not migrate off XML until REST has been stable 30+ days

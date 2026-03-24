@@ -218,3 +218,21 @@ Wave 5:  Phase 8 ║ Phase 9   (gap closure — parallel)
 | 7. GTM + Enrichment | 2/2 | Complete   | 2026-03-24 | Complete | 2026-03-24 |
 | 8. Pipeline & Data Cleanup | 2/2 | Complete   | 2026-03-24 | Not started | - |
 | 9. API & Feature Polish | 2/2 | Complete   | 2026-03-24 | Not started | - |
+
+### Phase 10: Data Population & Validation
+**Goal**: Actually run all pipelines (SBIR, SAM.gov, state scrapers, LLM enrichment), fix what breaks, verify normalization produces human-readable labels, and validate the data makes the product useful
+**Depends on**: Phase 9
+**Wave**: 6 (data population)
+**Requirements**: PIPE-03, PIPE-04, STATE-02, QUAL-01, QUAL-04
+**Success Criteria** (what must be TRUE):
+  1. SBIR ingestion completes successfully with >0 records in the database
+  2. SAM.gov ingestion completes successfully with contract opportunities loaded
+  3. State scrapers run for all configured states with data in the unified schema
+  4. LLM enrichment populates topic_tags on a meaningful sample of opportunities
+  5. Eligibility fields show human-readable labels (not raw codes like "25")
+  6. Category fields show human-readable names (not raw codes like "D")
+  7. The API returns multi-source data with normalized, useful field values
+**Plans**: 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 10 to break down)
