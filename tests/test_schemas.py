@@ -2,6 +2,9 @@
 Schema contract tests — field presence and types.
 Verifies that Pydantic response models enforce the stable API contract.
 """
+import datetime
+import hashlib
+
 import pytest
 from grantflow.api.schemas import (
     OpportunityResponse,
@@ -11,6 +14,31 @@ from grantflow.api.schemas import (
     KeyCreateResponse,
     StatsResponse,
 )
+from grantflow.models import Opportunity, Award, ApiKey
+
+
+# ---------------------------------------------------------------------------
+# Helpers (used by linked-awards integration test)
+# ---------------------------------------------------------------------------
+
+def _hash(key: str) -> str:
+    return hashlib.sha256(key.encode()).hexdigest()
+
+
+def _make_key(db, suffix: str = "") -> str:
+    plaintext = f"schemas_testkey{suffix}"
+    row = ApiKey(
+        key_hash=_hash(plaintext),
+        key_prefix=plaintext[:8],
+        tier="free",
+        is_active=True,
+        created_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        last_used_at=None,
+        request_count=0,
+    )
+    db.add(row)
+    db.commit()
+    return plaintext
 
 
 # ---------------------------------------------------------------------------
@@ -234,3 +262,58 @@ def test_stats_response_fields():
     assert stats.by_source["grants_gov"] == 80
     assert stats.total_award_dollars == 5000000.0
     assert len(stats.top_agencies) == 1
+
+
+# ---------------------------------------------------------------------------
+# Linked awards integration test (API-06)
+# ---------------------------------------------------------------------------
+
+def test_opportunity_detail_awards(client, db_session):
+    """GET /api/v1/opportunities/{id} returns non-empty awards list with AwardResponse fields."""
+    key = _make_key(db_session, suffix="_awards")
+
+    # Create an opportunity with a known opportunity_number
+    opp = Opportunity(
+        id="opp-linked-award-test",
+        source="schemas_test",
+        source_id="ST-LINKED-001",
+        title="Linked Award Test Grant",
+        opportunity_number="SCHEMAS-TEST-001",
+        opportunity_status="posted",
+        agency_code="NSF",
+        agency_name="National Science Foundation",
+    )
+    db_session.add(opp)
+
+    # Create an award linked by opportunity_number
+    award = Award(
+        id="award-linked-test-001",
+        source="usaspending",
+        award_id="USA-LINKED-001",
+        title="Linked Test Award",
+        recipient_name="Test Nonprofit",
+        award_amount=150000.0,
+        award_date="2024-06-01",
+        agency_name="National Science Foundation",
+        opportunity_number="SCHEMAS-TEST-001",
+    )
+    db_session.add(award)
+    db_session.commit()
+
+    resp = client.get(
+        "/api/v1/opportunities/opp-linked-award-test",
+        headers={"X-API-Key": key},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+
+    assert "awards" in data, "Detail response must include 'awards' field"
+    assert len(data["awards"]) >= 1, "Must return at least one linked award"
+
+    aw = data["awards"][0]
+    # Verify AwardResponse fields are present
+    assert "id" in aw
+    assert "recipient_name" in aw
+    assert "award_amount" in aw
+    assert aw["recipient_name"] == "Test Nonprofit"
+    assert aw["award_amount"] == 150000.0
