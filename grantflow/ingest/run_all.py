@@ -141,6 +141,15 @@ def run_all_ingestion() -> dict:
         failures=failures,
     )
 
+    # 7. Staleness check — alert if any source missed its window
+    from grantflow.pipeline.monitor import check_staleness
+    stale_sources = check_staleness()
+    if stale_sources:
+        summary["stale_sources"] = stale_sources
+        logger.warning("stale_sources_after_run", sources=stale_sources)
+    else:
+        logger.info("all_sources_fresh")
+
     return summary
 
 
