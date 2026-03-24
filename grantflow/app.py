@@ -19,8 +19,12 @@ from grantflow.config import HOST, PORT, BASE_DIR
 from grantflow.database import init_db
 from grantflow.pipeline.logging import configure_structlog, bind_source_logger
 from grantflow.ingest.run_all import run_all_ingestion
+from grantflow.ingest.run_state import run_state_ingestion
 
 logger_app = bind_source_logger("app")
+
+# Module-level scheduler so tests and external code can inspect registered jobs
+scheduler = AsyncIOScheduler()
 
 # Rate limiter — keyed on X-API-Key header (falls back to IP for public routes)
 limiter = Limiter(
@@ -51,7 +55,6 @@ async def lifespan(app: FastAPI):
     configure_structlog(env=os.getenv("GRANTFLOW_ENV", "development"))
     init_db()
 
-    scheduler = AsyncIOScheduler()
     scheduler.add_job(
         lambda: asyncio.get_event_loop().run_in_executor(None, run_all_ingestion),
         CronTrigger(hour=2, minute=0, timezone="UTC"),
@@ -59,8 +62,16 @@ async def lifespan(app: FastAPI):
         replace_existing=True,
         misfire_grace_time=3600,  # tolerate up to 1h delay (e.g. server restart at 02:00)
     )
+    scheduler.add_job(
+        lambda: asyncio.get_event_loop().run_in_executor(None, run_state_ingestion),
+        CronTrigger(day_of_week="sun", hour=3, minute=0, timezone="UTC"),
+        id="weekly_state_ingestion",
+        replace_existing=True,
+        misfire_grace_time=3600,
+    )
     scheduler.start()
     logger_app.info("APScheduler started — daily ingestion at 02:00 UTC")
+    logger_app.info("APScheduler started — weekly state ingestion at Sunday 03:00 UTC")
     yield
     scheduler.shutdown(wait=False)
 

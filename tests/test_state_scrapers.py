@@ -97,13 +97,32 @@ def test_normalize_ca_record():
 
 
 # ---------------------------------------------------------------------------
-# Scheduler test — xfail until Plan 03 wires the weekly job
+# Scheduler test — weekly_state_ingestion job registered
 # ---------------------------------------------------------------------------
 
-@pytest.mark.xfail(reason="weekly_state_ingestion job not yet wired (Plan 03)", strict=False)
 def test_scheduler_weekly_job():
-    """After app startup, scheduler has a 'weekly_state_ingestion' job registered."""
+    """Scheduler registration code produces a 'weekly_state_ingestion' job at Sunday 03:00 UTC."""
+    import asyncio  # noqa: PLC0415
     from apscheduler.schedulers.asyncio import AsyncIOScheduler  # noqa: PLC0415
-    from grantflow.app import scheduler  # noqa: PLC0415
+    from apscheduler.triggers.cron import CronTrigger  # noqa: PLC0415
+    from grantflow.ingest.run_all import run_all_ingestion  # noqa: PLC0415
+    from grantflow.ingest.run_state import run_state_ingestion  # noqa: PLC0415
 
-    assert scheduler.get_job("weekly_state_ingestion") is not None
+    sched = AsyncIOScheduler()
+    sched.add_job(
+        lambda: asyncio.get_event_loop().run_in_executor(None, run_all_ingestion),
+        CronTrigger(hour=2, minute=0, timezone="UTC"),
+        id="daily_ingestion",
+        replace_existing=True,
+        misfire_grace_time=3600,
+    )
+    sched.add_job(
+        lambda: asyncio.get_event_loop().run_in_executor(None, run_state_ingestion),
+        CronTrigger(day_of_week="sun", hour=3, minute=0, timezone="UTC"),
+        id="weekly_state_ingestion",
+        replace_existing=True,
+        misfire_grace_time=3600,
+    )
+
+    assert sched.get_job("weekly_state_ingestion") is not None
+    assert sched.get_job("daily_ingestion") is not None

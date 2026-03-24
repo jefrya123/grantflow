@@ -142,13 +142,19 @@ def run_all_ingestion() -> dict:
     )
 
     # 7. Staleness check — alert if any source missed its window
-    from grantflow.pipeline.monitor import check_staleness
+    from grantflow.pipeline.monitor import check_staleness, check_zero_records
     stale_sources = check_staleness()
     if stale_sources:
         summary["stale_sources"] = stale_sources
         logger.warning("stale_sources_after_run", sources=stale_sources)
     else:
         logger.info("all_sources_fresh")
+
+    # 7b. Zero-record check — alert if any state scraper returned 0 records
+    broken = check_zero_records()
+    if broken:
+        summary["broken_scrapers"] = broken
+        logger.warning("zero_record_scrapers_detected", sources=broken)
 
     # 8. CFDA normalization and cross-reference linking
     from grantflow.pipeline.cfda_link import link_opportunities_to_awards
