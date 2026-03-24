@@ -205,3 +205,15 @@ class TestNormalizeAgencyName:
     def test_known_name_unchanged(self):
         # Already-canonical names should pass through unchanged
         assert normalize_agency_name("National Science Foundation") == "National Science Foundation"
+
+
+# ─── normalize_date — timezone offset edge cases (QUAL-05) ────────────────────
+
+class TestNormalizeDateTimezoneOffset:
+    def test_normalize_date_iso_with_tz_offset(self):
+        """ISO 8601 with timezone offset (SAM.gov format) must return date portion only."""
+        assert normalize_date("2024-03-15T00:00:00-04:00") == "2024-03-15"
+
+    def test_normalize_date_iso_with_utc_z(self):
+        """ISO 8601 with Z suffix (UTC) must return date portion only (Python 3.11+)."""
+        assert normalize_date("2024-03-15T00:00:00Z") == "2024-03-15"
