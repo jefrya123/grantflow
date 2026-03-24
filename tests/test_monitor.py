@@ -4,7 +4,9 @@ import pytest
 from datetime import datetime, timezone, timedelta
 
 from grantflow.models import PipelineRun
-from grantflow.pipeline.monitor import get_freshness_report, check_staleness, STALE_THRESHOLD_HOURS
+from grantflow.pipeline.monitor import (
+    get_freshness_report, check_staleness, STALE_THRESHOLD_HOURS, KNOWN_SOURCES
+)
 
 
 def _make_pipeline_run(source: str, status: str, completed_at: str, session) -> PipelineRun:
@@ -23,11 +25,13 @@ def test_freshness_report_never_run(db_session):
     """Empty DB → all known sources show 'never_run'."""
     report = get_freshness_report(db_session)
 
-    assert set(report.keys()) == {"grants_gov", "usaspending", "sbir", "sam_gov"}
-    for source, info in report.items():
-        assert info["status"] == "never_run", f"{source} should be never_run"
-        assert info["last_success"] is None
-        assert info["hours_since"] is None
+    # Report covers all known sources (federal + state)
+    assert set(report.keys()) == set(KNOWN_SOURCES)
+    # Federal sources always present
+    for source in ("grants_gov", "usaspending", "sbir", "sam_gov"):
+        assert report[source]["status"] == "never_run", f"{source} should be never_run"
+        assert report[source]["last_success"] is None
+        assert report[source]["hours_since"] is None
 
 
 def test_freshness_report_ok(db_session):
