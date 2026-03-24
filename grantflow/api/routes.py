@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import text, func, case, and_
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
-from grantflow.models import Opportunity, Award, Agency
+from grantflow.models import Opportunity, Award, Agency, IngestionLog
 from grantflow.database import get_db
 
 router = APIRouter(prefix="/api/v1")
@@ -180,6 +180,63 @@ def get_agencies(db: Session = Depends(get_db)):
         {"code": row[0], "name": row[1], "opportunity_count": row[2]}
         for row in rows
     ]
+
+
+@router.get("/health")
+def health_check(db: Session = Depends(get_db)):
+    """Returns pipeline freshness and record counts per source."""
+    now = datetime.now(timezone.utc)
+    stale_threshold = now - timedelta(hours=48)
+
+    # Most recent IngestionLog per source (highest id = most recent row)
+    latest_ids = (
+        db.query(func.max(IngestionLog.id).label("max_id"))
+        .group_by(IngestionLog.source)
+        .subquery()
+    )
+    latest_logs = (
+        db.query(IngestionLog)
+        .filter(IngestionLog.id.in_(latest_ids))
+        .all()
+    )
+
+    # Record counts per source
+    count_rows = (
+        db.query(Opportunity.source, func.count(Opportunity.id))
+        .group_by(Opportunity.source)
+        .all()
+    )
+    counts_by_source = {row[0]: row[1] for row in count_rows}
+
+    sources = {}
+    overall_stale = False
+
+    for log in latest_logs:
+        is_stale = False
+        if log.completed_at and log.status == "success":
+            try:
+                completed = datetime.fromisoformat(log.completed_at.replace("Z", "+00:00"))
+                if completed.tzinfo is None:
+                    completed = completed.replace(tzinfo=timezone.utc)
+                if completed < stale_threshold:
+                    is_stale = True
+                    overall_stale = True
+            except (ValueError, AttributeError):
+                pass
+
+        sources[log.source] = {
+            "last_ingestion_at": log.completed_at,
+            "last_status": log.status,
+            "records_added_last_run": log.records_added,
+            "record_count": counts_by_source.get(log.source, 0),
+            "stale": is_stale,
+        }
+
+    return {
+        "status": "stale" if overall_stale else "ok",
+        "sources": sources,
+        "checked_at": now.isoformat(),
+    }
 
 
 def _opportunity_to_dict(o: Opportunity) -> dict:
