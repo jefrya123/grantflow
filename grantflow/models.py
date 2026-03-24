@@ -123,3 +123,16 @@ class PipelineRun(Base):
     records_failed = Column(Integer, default=0)
     error_message = Column(Text)  # full error text, not truncated
     extra = Column(Text)  # JSON blob for source-specific metadata
+
+
+class ApiKey(Base):
+    __tablename__ = "api_keys"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    key_hash = Column(Text, nullable=False, unique=True, index=True)  # SHA-256(plaintext key)
+    key_prefix = Column(Text, nullable=False)  # first 8 chars of plaintext for display
+    tier = Column(Text, nullable=False, default="free")  # "free" | "starter" | "growth"
+    is_active = Column(Boolean, nullable=False, default=True, index=True)
+    created_at = Column(Text, nullable=False)  # ISO 8601 UTC
+    last_used_at = Column(Text, nullable=True)
+    request_count = Column(Integer, default=0)
