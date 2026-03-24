@@ -18,7 +18,6 @@ from grantflow.normalizers import (
     normalize_date,
     normalize_eligibility_codes,
     normalize_agency_name,
-    validate_award_amounts,
 )
 from grantflow.pipeline.logging import bind_source_logger
 
