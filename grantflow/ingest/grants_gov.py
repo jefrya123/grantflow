@@ -233,16 +233,6 @@ def ingest_grants_gov() -> dict:
 
         session.commit()
 
-        # Rebuild FTS index
-        from sqlalchemy import text
-        with engine.connect() as conn:
-            conn.execute(text("DELETE FROM opportunities_fts"))
-            conn.execute(text(
-                "INSERT INTO opportunities_fts(rowid, title, description, agency_name, category) "
-                "SELECT rowid, title, description, agency_name, category FROM opportunities"
-            ))
-            conn.commit()
-
         stats["status"] = "success"
         logger.info(
             "Grants.gov ingestion complete: %d processed, %d added, %d updated",

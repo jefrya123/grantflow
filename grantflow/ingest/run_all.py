@@ -14,18 +14,6 @@ from grantflow.ingest.sbir import ingest_sbir
 logger = logging.getLogger(__name__)
 
 
-def _rebuild_fts():
-    """Rebuild the FTS5 full-text search index for opportunities."""
-    logger.info("Rebuilding FTS index ...")
-    with engine.connect() as conn:
-        conn.execute(text("DELETE FROM opportunities_fts"))
-        conn.execute(text(
-            "INSERT INTO opportunities_fts(rowid, title, description, agency_name, category) "
-            "SELECT rowid, title, description, agency_name, category FROM opportunities"
-        ))
-        conn.commit()
-    logger.info("FTS index rebuilt.")
-
 
 def run_all_ingestion() -> dict:
     """Run all ingestion pipelines in sequence. Returns summary stats."""
@@ -55,13 +43,7 @@ def run_all_ingestion() -> dict:
     logger.info("=" * 60)
     results["sbir"] = ingest_sbir()
 
-    # 5. Rebuild FTS index (covers all sources)
-    try:
-        _rebuild_fts()
-    except Exception as e:
-        logger.exception("FTS rebuild failed: %s", e)
-
-    # 6. Summary
+    # 5. Summary
     elapsed = (datetime.now(timezone.utc) - started).total_seconds()
     summary = {
         "sources": results,
