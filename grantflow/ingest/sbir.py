@@ -1,9 +1,11 @@
 """Download and parse SBIR award data and solicitations."""
 
 import csv
+import hashlib
 import io
 import json
-import logging
+import logging  # noqa: F401 — kept for any stdlib callers
+import time
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
@@ -12,8 +14,9 @@ import httpx
 from grantflow.config import DATA_DIR, SBIR_AWARDS_CSV_URL, SBIR_SOLICITATIONS_API
 from grantflow.database import SessionLocal
 from grantflow.models import Award, Opportunity, IngestionLog
+from grantflow.pipeline.logging import bind_source_logger
 
-logger = logging.getLogger(__name__)
+logger = bind_source_logger("sbir")
 
 # Minimum year for awards (last 3 years)
 MIN_AWARD_YEAR = datetime.now(timezone.utc).year - 3
@@ -55,7 +58,6 @@ def _make_award_key(row: dict) -> str:
         row.get("award_title", "")[:50] if row.get("award_title") else "",
         row.get("contract", "") or row.get("award_number", "") or "",
     ]
-    import hashlib
     key = hashlib.md5("|".join(parts).encode()).hexdigest()[:16]
     return key
 
@@ -168,17 +170,30 @@ def _ingest_solicitations(session, stats: dict) -> None:
     logger.info("Fetching SBIR solicitations ...")
     now_iso = datetime.now(timezone.utc).isoformat()
 
+    last_exc = None
+    for attempt in range(3):
+        try:
+            resp = httpx.get(
+                SBIR_SOLICITATIONS_API,
+                params={"rows": 50},
+                follow_redirects=True,
+                timeout=30,
+            )
+            resp.raise_for_status()
+            break
+        except (httpx.HTTPStatusError, httpx.RequestError) as e:
+            last_exc = e
+            logger.warning("sbir_solicitations_fetch_retry", attempt=attempt + 1, error=str(e))
+            if attempt < 2:
+                time.sleep(2 ** attempt)
+    else:
+        logger.error("sbir_solicitations_fetch_failed", error=str(last_exc))
+        return
+
     try:
-        resp = httpx.get(
-            SBIR_SOLICITATIONS_API,
-            params={"rows": 50},
-            follow_redirects=True,
-            timeout=30,
-        )
-        resp.raise_for_status()
         data = resp.json()
     except Exception as e:
-        logger.warning("Failed to fetch SBIR solicitations: %s", e)
+        logger.warning("sbir_solicitations_parse_failed", error=str(e))
         return
 
     # The API may return a list or a dict with a results key
@@ -202,6 +217,9 @@ def _ingest_solicitations(session, stats: dict) -> None:
         close_date = _parse_date(item.get("close_date") or item.get("application_due_date"))
         open_date = _parse_date(item.get("open_date") or item.get("post_date"))
 
+        today = datetime.now(timezone.utc).date().isoformat()
+        opportunity_status = "closed" if (close_date and close_date < today) else "posted"
+
         record = {
             "id": opp_id,
             "source": "sbir",
@@ -212,6 +230,7 @@ def _ingest_solicitations(session, stats: dict) -> None:
             "agency_code": item.get("agency") or "",
             "close_date": close_date,
             "post_date": open_date,
+            "opportunity_status": opportunity_status,
             "category": "SBIR/STTR",
             "source_url": item.get("solicitation_url") or item.get("url", ""),
             "additional_info_url": item.get("solicitation_url") or item.get("url", ""),
@@ -242,6 +261,7 @@ def ingest_sbir() -> dict:
         "records_processed": 0,
         "records_added": 0,
         "records_updated": 0,
+        "records_failed": 0,
         "error": None,
     }
     started_at = datetime.now(timezone.utc).isoformat()

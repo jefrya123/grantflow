@@ -1,16 +1,18 @@
 """Pull recent grant awards from the USAspending.gov API."""
 
 import json
-import logging
+import logging  # noqa: F401 — kept for any stdlib callers
+import re
 from datetime import datetime, timezone, timedelta
 
 import httpx
 
 from grantflow.config import USASPENDING_API_BASE
 from grantflow.database import SessionLocal
-from grantflow.models import Award, Agency, IngestionLog
+from grantflow.models import Award, Agency, IngestionLog, PipelineRun
+from grantflow.pipeline.logging import bind_source_logger
 
-logger = logging.getLogger(__name__)
+logger = bind_source_logger("usaspending")
 
 SEARCH_ENDPOINT = f"{USASPENDING_API_BASE}/search/spending_by_award/"
 
@@ -37,16 +39,17 @@ PER_PAGE = 100
 MAX_RECORDS = 5000
 
 
-def _build_request_body(page: int) -> dict:
+def _build_request_body(page: int, start_date: str | None = None) -> dict:
     """Build the POST body for the USAspending search API."""
     today = datetime.now(timezone.utc)
-    two_years_ago = today - timedelta(days=730)
+    if start_date is None:
+        start_date = (today - timedelta(days=730)).strftime("%Y-%m-%d")
 
     return {
         "filters": {
             "time_period": [
                 {
-                    "start_date": two_years_ago.strftime("%Y-%m-%d"),
+                    "start_date": start_date,
                     "end_date": today.strftime("%Y-%m-%d"),
                 }
             ],
@@ -103,6 +106,7 @@ def ingest_usaspending() -> dict:
         "records_processed": 0,
         "records_added": 0,
         "records_updated": 0,
+        "records_failed": 0,
         "error": None,
     }
     started_at = datetime.now(timezone.utc).isoformat()
@@ -117,13 +121,43 @@ def ingest_usaspending() -> dict:
     session.commit()
 
     try:
+        # --- Incremental mode: use last successful run's completed_at as lookback anchor ---
+        incremental_start: str | None = None
+        last_run = (
+            session.query(PipelineRun)
+            .filter(
+                PipelineRun.source == "usaspending",
+                PipelineRun.status == "success",
+            )
+            .order_by(PipelineRun.completed_at.desc())
+            .first()
+        )
+        if last_run and last_run.completed_at:
+            try:
+                last_completed = datetime.fromisoformat(last_run.completed_at.replace("Z", "+00:00"))
+                age_hours = (datetime.now(timezone.utc) - last_completed).total_seconds() / 3600
+                if age_hours < 36:
+                    # Subtract 2 days buffer for late-arriving data
+                    anchor = last_completed - timedelta(days=2)
+                    incremental_start = anchor.strftime("%Y-%m-%d")
+                    logger.info(
+                        "usaspending_incremental_mode",
+                        last_run=last_run.completed_at,
+                        start_date=incremental_start,
+                    )
+            except (ValueError, TypeError):
+                pass
+
+        if incremental_start is None:
+            logger.info("usaspending_full_mode", lookback_days=730)
+
         agencies_seen: dict[str, str] = {}
         page = 1
         total_fetched = 0
 
         with httpx.Client(timeout=60) as client:
             while total_fetched < MAX_RECORDS:
-                body = _build_request_body(page)
+                body = _build_request_body(page, start_date=incremental_start)
                 logger.info("Fetching USAspending page %d ...", page)
 
                 resp = client.post(SEARCH_ENDPOINT, json=body)
@@ -175,7 +209,7 @@ def ingest_usaspending() -> dict:
 
         # Upsert agencies
         for agency_name, sub_agency in agencies_seen.items():
-            code = agency_name.replace(" ", "_").upper()[:50]
+            code = re.sub(r"[^A-Z0-9]", "_", agency_name.upper())[:50]
             existing = session.get(Agency, code)
             if not existing:
                 session.add(Agency(
