@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-foundation-01-PLAN.md
-last_updated: "2026-03-24T17:30:33.193Z"
+stopped_at: Completed 01-foundation-02-PLAN.md
+last_updated: "2026-03-24T17:34:41.529Z"
 last_activity: 2026-03-24 — Roadmap created, ready to begin Phase 1 planning
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 2
   percent: 33
 ---
 
@@ -51,6 +51,7 @@ Progress: [███░░░░░░░] 33%
 
 *Updated after each plan completion*
 | Phase 01-foundation P01 | 2 | 2 tasks | 6 files |
+| Phase 01-foundation P02 | 525579min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -66,6 +67,8 @@ Recent decisions affecting current work:
 - [Phase 01-foundation]: Routes stay sync this phase — psycopg2 for sync engine, asyncpg reserved for future async migration
 - [Phase 01-foundation]: alembic.ini sqlalchemy.url commented out — env.py injects GRANTFLOW_DATABASE_URL at runtime, no credential leakage
 - [Phase 01-foundation]: FTS5 virtual table removed from init_db() — SQLite-only artifact; PostgreSQL tsvector goes in Plan 02
+- [Phase 01-foundation]: TSVECTORType TypeDecorator used in models.py for dialect-aware FTS column — maps to TSVECTOR on PostgreSQL, TEXT on SQLite
+- [Phase 01-foundation]: FTS dialect detection via DATABASE_URL.startswith('postgresql') in routes — zero-overhead branch for tsvector vs LIKE fallback
 
 ### Pending Todos
 
@@ -80,6 +83,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T17:30:33.191Z
-Stopped at: Completed 01-foundation-01-PLAN.md
+Last session: 2026-03-24T17:34:41.526Z
+Stopped at: Completed 01-foundation-02-PLAN.md
 Resume file: None

@@ -143,7 +143,7 @@ Wave 4:  Phase 7 (needs 5+6)
 
 | Phase | Wave | Depends On | Plans Complete | Status | Completed |
 |-------|------|------------|----------------|--------|-----------|
-| 1. Foundation | 1/3 | In Progress|  | Not started | - |
+| 1. Foundation | 2/3 | In Progress|  | Not started | - |
 | 2. Pipeline Hardening | 2 | Phase 1 | 0/TBD | Not started | - |
 | 3. API Key Infrastructure | 2 | Phase 1 | 0/TBD | Not started | - |
 | 4. Data Quality | 2 | Phase 1 | 0/TBD | Not started | - |
