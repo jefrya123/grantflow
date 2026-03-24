@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 03-api-key-infrastructure-01-PLAN.md
-last_updated: "2026-03-24T18:28:49.693Z"
+stopped_at: Completed 03-api-key-infrastructure-03-PLAN.md
+last_updated: "2026-03-24T18:29:51.638Z"
 last_activity: 2026-03-24 — Roadmap created, ready to begin Phase 1 planning
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 13
-  completed_plans: 9
+  completed_plans: 10
   percent: 33
 ---
 
@@ -59,6 +59,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 02-pipeline-hardening P04 | 2 | 2 tasks | 3 files |
 | Phase 02-pipeline-hardening P05 | 2 | 2 tasks | 6 files |
 | Phase 03-api-key-infrastructure P01 | 12 | 2 tasks | 5 files |
+| Phase 03-api-key-infrastructure P03 | 2 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -93,6 +94,9 @@ Recent decisions affecting current work:
 - [Phase 03-api-key-infrastructure]: Migration uses revision 0004 not 0003 — 0003 was already claimed by pipeline_run_table
 - [Phase 03-api-key-infrastructure]: Error shape established: all API errors return {error_code, message} in HTTPException detail
 - [Phase 03-api-key-infrastructure]: API key format: gf_ + secrets.token_urlsafe(32), SHA-256 hash stored, plaintext returned exactly once
+- [Phase 03-api-key-infrastructure]: eligible_applicants kept as Optional[str] — stored as JSON string in Text column, parsing out of scope for this plan
+- [Phase 03-api-key-infrastructure]: Pydantic v2 ConfigDict(from_attributes=True) pattern established for all ORM-backed response models
+- [Phase 03-api-key-infrastructure]: response_model= on all data routes locks API field-name contract — field names cannot drift when ORM models change
 
 ### Pending Todos
 
@@ -107,6 +111,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T18:28:49.690Z
-Stopped at: Completed 03-api-key-infrastructure-01-PLAN.md
+Last session: 2026-03-24T18:29:51.634Z
+Stopped at: Completed 03-api-key-infrastructure-03-PLAN.md
 Resume file: None
