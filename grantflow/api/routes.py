@@ -14,6 +14,7 @@ from grantflow.pipeline.monitor import get_freshness_report
 from grantflow.api.auth import get_api_key
 from grantflow.api.query import build_opportunity_query
 from grantflow.api.schemas import (
+    AgencyResponse,
     OpportunityResponse,
     OpportunityDetailResponse,
     AwardResponse,
@@ -240,7 +241,7 @@ def get_stats(
     )
 
 
-@router.get("/agencies", tags=["opportunities"])
+@router.get("/agencies", response_model=list[AgencyResponse], tags=["opportunities"])
 @limiter.limit("1000/day")
 def get_agencies(
     request: Request,
