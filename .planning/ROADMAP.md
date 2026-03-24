@@ -38,7 +38,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Full-text search queries run against a tsvector GIN index and return results within acceptable latency
   3. Schema changes can be applied and rolled back via Alembic migrations without manual SQL
   4. The health endpoint returns current pipeline freshness timestamps and record counts per source
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Install deps (asyncpg, psycopg2-binary, alembic), reconfigure database.py for PostgreSQL/SQLite dual-dialect, initialize Alembic with initial schema migration
+- [ ] 01-02-PLAN.md — Replace FTS5 virtual table with tsvector column + GIN index + trigger via Alembic migration 0002; update API and web routes to use to_tsquery()
+- [ ] 01-03-PLAN.md — Add GET /api/v1/health endpoint (pipeline freshness + record counts per source); create tests/conftest.py and first test suite
 
 ### Phase 2: Pipeline Hardening
 **Goal**: All federal data sources ingest automatically on a daily schedule with monitoring that detects and alerts on stale or broken data before any customer notices
@@ -138,7 +143,7 @@ Wave 4:  Phase 7 (needs 5+6)
 
 | Phase | Wave | Depends On | Plans Complete | Status | Completed |
 |-------|------|------------|----------------|--------|-----------|
-| 1. Foundation | 1 | — | 0/TBD | Not started | - |
+| 1. Foundation | 1 | — | 0/3 | Not started | - |
 | 2. Pipeline Hardening | 2 | Phase 1 | 0/TBD | Not started | - |
 | 3. API Key Infrastructure | 2 | Phase 1 | 0/TBD | Not started | - |
 | 4. Data Quality | 2 | Phase 1 | 0/TBD | Not started | - |
