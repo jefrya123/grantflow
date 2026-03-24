@@ -57,6 +57,9 @@ class Opportunity(Base):
     # Full-text search vector (PostgreSQL TSVECTOR; falls back to TEXT for SQLite)
     search_vector = Column(TSVECTORType, nullable=True)
 
+    # Canonical ID for cross-source deduplication
+    canonical_id = Column(Text, nullable=True, index=True)
+
 
 class Award(Base):
     __tablename__ = "awards"
