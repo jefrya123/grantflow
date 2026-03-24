@@ -11,7 +11,7 @@ from grantflow.models import Opportunity, Award, Agency, IngestionLog, ApiKey
 from grantflow.database import get_db
 from grantflow.config import DATABASE_URL as _DB_URL
 from grantflow.pipeline.monitor import get_freshness_report
-from grantflow.api.auth import get_api_key
+from grantflow.api.auth import get_api_key, _tier_limit, _tier_export_limit
 from grantflow.api.query import build_opportunity_query
 from grantflow.api.schemas import (
     AgencyResponse,
@@ -27,7 +27,7 @@ router = APIRouter(prefix="/api/v1")
 
 
 @router.get("/opportunities/search", response_model=SearchResponse, tags=["opportunities"])
-@limiter.limit("1000/day")
+@limiter.limit(_tier_limit)
 def search_opportunities(
     request: Request,
     q: str | None = None,
@@ -103,7 +103,7 @@ _EXPORT_CSV_COLUMNS = [
 
 
 @router.get("/opportunities/export", tags=["opportunities"])
-@limiter.limit("100/day")
+@limiter.limit(_tier_export_limit)
 def export_opportunities(
     request: Request,
     format: str = Query(default="csv", pattern="^(csv|json)$"),
@@ -163,7 +163,7 @@ def export_opportunities(
 
 
 @router.get("/opportunities/{opportunity_id}", response_model=OpportunityDetailResponse, tags=["opportunities"])
-@limiter.limit("1000/day")
+@limiter.limit(_tier_limit)
 def get_opportunity(
     request: Request,
     opportunity_id: str,
@@ -192,7 +192,7 @@ def get_opportunity(
 
 
 @router.get("/stats", response_model=StatsResponse, tags=["opportunities"])
-@limiter.limit("1000/day")
+@limiter.limit(_tier_limit)
 def get_stats(
     request: Request,
     db: Session = Depends(get_db),
@@ -244,7 +244,7 @@ def get_stats(
 
 
 @router.get("/agencies", response_model=list[AgencyResponse], tags=["opportunities"])
-@limiter.limit("1000/day")
+@limiter.limit(_tier_limit)
 def get_agencies(
     request: Request,
     db: Session = Depends(get_db),

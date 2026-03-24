@@ -156,3 +156,85 @@ def test_agencies_endpoint_requires_key(client):
     resp = client.get("/api/v1/agencies")
     assert resp.status_code == 401
     assert resp.json()["detail"]["error_code"] == "MISSING_API_KEY"
+
+
+# ---------------------------------------------------------------------------
+# Tier-aware rate limit callable tests (Plan 09-01)
+# ---------------------------------------------------------------------------
+
+@pytest.fixture()
+def patched_session_factory(db_session, monkeypatch):
+    """Redirect auth._session_factory to the test DB so _tier_limit queries it."""
+    import grantflow.api.auth as auth_mod
+    from sqlalchemy.orm import sessionmaker
+
+    # Build a factory that returns the same test session (wraps it so close() is no-op)
+    class _BoundSession:
+        """Proxy that delegates to db_session but ignores close() to avoid teardown."""
+        def __init__(self, session):
+            self._s = session
+
+        def query(self, *a, **kw):
+            return self._s.query(*a, **kw)
+
+        def close(self):
+            pass  # let conftest handle teardown
+
+    def _factory():
+        return _BoundSession(db_session)
+
+    monkeypatch.setattr(auth_mod, "_session_factory", _factory)
+    return db_session
+
+
+def test_tier_limit_free(patched_session_factory):
+    """_tier_limit() returns '1000/day' for a free-tier API key."""
+    from grantflow.api.auth import _tier_limit
+
+    plaintext = make_key(patched_session_factory, tier="free", key_suffix="_tl_free")
+    result = _tier_limit(plaintext)
+    assert result == "1000/day"
+
+
+def test_tier_limit_starter(patched_session_factory):
+    """_tier_limit() returns '10000/day' for a starter-tier API key."""
+    from grantflow.api.auth import _tier_limit
+
+    plaintext = make_key(patched_session_factory, tier="starter", key_suffix="_tl_starter")
+    result = _tier_limit(plaintext)
+    assert result == "10000/day"
+
+
+def test_tier_limit_growth(patched_session_factory):
+    """_tier_limit() returns '100000/day' for a growth-tier API key."""
+    from grantflow.api.auth import _tier_limit
+
+    plaintext = make_key(patched_session_factory, tier="growth", key_suffix="_tl_growth")
+    result = _tier_limit(plaintext)
+    assert result == "100000/day"
+
+
+def test_tier_limit_unknown_key(patched_session_factory):
+    """_tier_limit() returns '1000/day' (free default) for an unknown key."""
+    from grantflow.api.auth import _tier_limit
+
+    result = _tier_limit("totally_unknown_key_xyz_12345")
+    assert result == "1000/day"
+
+
+def test_tier_export_limit_free(patched_session_factory):
+    """_tier_export_limit() returns '100/day' for a free-tier key."""
+    from grantflow.api.auth import _tier_export_limit
+
+    plaintext = make_key(patched_session_factory, tier="free", key_suffix="_tel_free")
+    result = _tier_export_limit(plaintext)
+    assert result == "100/day"
+
+
+def test_tier_export_limit_growth(patched_session_factory):
+    """_tier_export_limit() returns '10000/day' for a growth-tier key."""
+    from grantflow.api.auth import _tier_export_limit
+
+    plaintext = make_key(patched_session_factory, tier="growth", key_suffix="_tel_growth")
+    result = _tier_export_limit(plaintext)
+    assert result == "10000/day"

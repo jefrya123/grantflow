@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from fastapi import Depends, Header, HTTPException
 from sqlalchemy.orm import Session
 
-from grantflow.database import get_db
+from grantflow.database import get_db, SessionLocal
 from grantflow.models import ApiKey
 
 # Daily request limits per tier
@@ -14,6 +14,42 @@ TIER_LIMITS = {
     "starter": 10000,
     "growth": 100000,
 }
+
+# Module-level session factory — tests may replace this with a test factory.
+_session_factory = SessionLocal
+
+
+def _lookup_tier(key: str) -> str:
+    """Hash key and look up its tier in the DB. Returns 'free' if not found."""
+    key_hash = hashlib.sha256(key.encode()).hexdigest()
+    db = _session_factory()
+    try:
+        row = (
+            db.query(ApiKey)
+            .filter(ApiKey.key_hash == key_hash, ApiKey.is_active.is_(True))
+            .first()
+        )
+        return row.tier if row and row.tier else "free"
+    finally:
+        db.close()
+
+
+def _tier_limit(key: str) -> str:
+    """slowapi callable: returns per-day rate limit string for the given raw API key.
+
+    slowapi passes the key_func result (which is the raw API key string from the
+    X-API-Key header) as the ``key`` argument when the parameter is named ``key``.
+    """
+    tier = _lookup_tier(key)
+    daily = TIER_LIMITS.get(tier, TIER_LIMITS["free"])
+    return f"{daily}/day"
+
+
+def _tier_export_limit(key: str) -> str:
+    """slowapi callable: export limit is 1/10th of the standard tier limit."""
+    tier = _lookup_tier(key)
+    daily = TIER_LIMITS.get(tier, TIER_LIMITS["free"])
+    return f"{daily // 10}/day"
 
 
 async def get_api_key(
