@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-foundation-02-PLAN.md
-last_updated: "2026-03-24T17:34:41.529Z"
+stopped_at: Completed 01-foundation-03-PLAN.md
+last_updated: "2026-03-24T17:35:19.197Z"
 last_activity: 2026-03-24 — Roadmap created, ready to begin Phase 1 planning
 progress:
   total_phases: 7
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
+  completed_plans: 3
   percent: 33
 ---
 
@@ -52,6 +52,7 @@ Progress: [███░░░░░░░] 33%
 *Updated after each plan completion*
 | Phase 01-foundation P01 | 2 | 2 tasks | 6 files |
 | Phase 01-foundation P02 | 525579min | 2 tasks | 4 files |
+| Phase 01-foundation P03 | 12 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -69,6 +70,8 @@ Recent decisions affecting current work:
 - [Phase 01-foundation]: FTS5 virtual table removed from init_db() — SQLite-only artifact; PostgreSQL tsvector goes in Plan 02
 - [Phase 01-foundation]: TSVECTORType TypeDecorator used in models.py for dialect-aware FTS column — maps to TSVECTOR on PostgreSQL, TEXT on SQLite
 - [Phase 01-foundation]: FTS dialect detection via DATABASE_URL.startswith('postgresql') in routes — zero-overhead branch for tsvector vs LIKE fallback
+- [Phase 01-foundation]: TSVECTORType TypeDecorator: renders TSVECTOR on PostgreSQL, TEXT on SQLite — enables test suite without mocking models
+- [Phase 01-foundation]: pyproject.toml setuptools.packages.find include=[grantflow*] — required for editable install with multiple top-level dirs
 
 ### Pending Todos
 
@@ -83,6 +86,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T17:34:41.526Z
-Stopped at: Completed 01-foundation-02-PLAN.md
+Last session: 2026-03-24T17:35:19.194Z
+Stopped at: Completed 01-foundation-03-PLAN.md
 Resume file: None
