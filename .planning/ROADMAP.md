@@ -111,7 +111,12 @@ Plans:
   2. Each state source has passed a ToS/robots.txt/open-data legal review before data is collected
   3. An alert fires when any state scraper returns zero records (distinguishes breakage from legitimately empty results)
   4. State data refreshes automatically on at least a weekly schedule without manual intervention
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 05-01-PLAN.md — BaseStateScraper infrastructure, test scaffolds, legal review for 5 portals
+- [ ] 05-02-PLAN.md — Implement 5 state scrapers (CA CKAN, NY Socrata, IL CKAN, TX Socrata, CO Scrapling)
+- [ ] 05-03-PLAN.md — Monitoring (zero-record alerts, per-source stale thresholds), weekly scheduling, run_state.py orchestrator
 
 ### Phase 6: Advanced API + Web UI
 **Goal**: The API delivers a complete developer experience with bulk export, agency endpoints, and linked historical awards; the web UI gives end users full search, filtering, discovery, and stats — all over clean normalized data
@@ -162,6 +167,6 @@ Wave 4:  Phase 7 (needs 5+6)
 | 2. Pipeline Hardening | 4/5 | In Progress|  | Not started | - |
 | 3. API Key Infrastructure | 3/3 | Complete   | 2026-03-24 | Not started | - |
 | 4. Data Quality | 1/2 | In Progress|  | Not started | - |
-| 5. State Data | 3 | Phases 2, 4 | 0/TBD | Not started | - |
+| 5. State Data | 3 | Phases 2, 4 | 0/3 | Not started | - |
 | 6. Advanced API + Web UI | 3 | Phases 3, 4 | 0/TBD | Not started | - |
 | 7. GTM + Enrichment | 4 | Phases 5, 6 | 0/TBD | Not started | - |
