@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 04-data-quality-02-PLAN.md
-last_updated: "2026-03-24T18:51:34.633Z"
+stopped_at: Completed 05-state-data-01-PLAN.md
+last_updated: "2026-03-24T19:30:21.242Z"
 last_activity: 2026-03-24 — Roadmap created, ready to begin Phase 1 planning
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 13
-  completed_plans: 13
+  total_plans: 16
+  completed_plans: 14
   percent: 33
 ---
 
@@ -63,6 +63,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 03-api-key-infrastructure P02 | 3 | 2 tasks | 6 files |
 | Phase 04-data-quality P01 | 3 | 2 tasks | 5 files |
 | Phase 04-data-quality P02 | 18 | 2 tasks | 5 files |
+| Phase 05-state-data P01 | 15 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -110,6 +111,9 @@ Recent decisions affecting current work:
 - [Phase 04-data-quality]: Migration numbered 0005 (not 0003 as planned) — 0003 and 0004 already claimed by pipeline_run_table and add_api_keys
 - [Phase 04-data-quality]: assign_canonical_ids uses raw SQL SELECT (not ORM query) — SQLAlchemy ORM includes search_vector which does not exist in SQLite schema; raw SQL selects only required columns
 - [Phase 04-data-quality]: Canonical ID format: canon_ + sha256(normalized_key)[:16] — opportunity_number primary key, cfda+agency+date fallback
+- [Phase 05-state-data]: BaseStateScraper.run() accepts optional session for test isolation; creates own SessionLocal() when absent
+- [Phase 05-state-data]: xfail(strict=False) for cross-plan scaffolds: test_normalize_ca_record (Plan 02) and test_scheduler_weekly_job (Plan 03) document future contracts without blocking current CI
+- [Phase 05-state-data]: Colorado marked CONDITIONAL in legal review — no centralized open data mandate; ToS/robots.txt verification required before scraping
 
 ### Pending Todos
 
@@ -124,6 +128,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T18:47:11.563Z
-Stopped at: Completed 04-data-quality-02-PLAN.md
+Last session: 2026-03-24T19:30:21.238Z
+Stopped at: Completed 05-state-data-01-PLAN.md
 Resume file: None
