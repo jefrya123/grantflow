@@ -1,0 +1,185 @@
+"""Web UI tests for WEB-01 through WEB-04 requirements.
+
+WEB-01: Search page has all filter inputs
+WEB-02: Detail page shows historical awards table
+WEB-03: Closing-soon badge on opportunities closing within 30 days
+WEB-04: /stats page with totals, by-source, top agencies, closing-soon count
+"""
+import pytest
+from datetime import date, timedelta
+
+from grantflow.models import Opportunity, Award
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _make_opp(db_session, **kwargs):
+    defaults = dict(
+        id="test-opp-001",
+        title="Test Opportunity",
+        source="grants_gov",
+        opportunity_status="posted",
+        opportunity_number="OPP-001",
+    )
+    defaults.update(kwargs)
+    opp = Opportunity(**defaults)
+    db_session.add(opp)
+    db_session.commit()
+    return opp
+
+
+def _make_award(db_session, opportunity_number="OPP-001", **kwargs):
+    defaults = dict(
+        id="award-001",
+        opportunity_number=opportunity_number,
+        recipient_name="Test Recipient",
+        award_amount=50000.0,
+        award_date="2024-01-15",
+        place_state="CA",
+        place_city="Sacramento",
+    )
+    defaults.update(kwargs)
+    award = Award(**defaults)
+    db_session.add(award)
+    db_session.commit()
+    return award
+
+
+# ---------------------------------------------------------------------------
+# WEB-01: Search filter inputs
+# ---------------------------------------------------------------------------
+
+def test_search_filter_inputs(client):
+    """GET /search HTML response contains all required filter input names."""
+    response = client.get("/search")
+    assert response.status_code == 200
+    html = response.text
+
+    required_inputs = ["agency", "category", "eligible", "closing_after", "closing_before"]
+    for name in required_inputs:
+        assert f'name="{name}"' in html, f"Missing filter input: name={name!r}"
+
+
+def test_search_existing_filter_inputs(client):
+    """Existing filter inputs are still present after changes."""
+    response = client.get("/search")
+    assert response.status_code == 200
+    html = response.text
+
+    for name in ["q", "status", "source", "min_award", "max_award"]:
+        assert f'name="{name}"' in html, f"Missing existing filter input: name={name!r}"
+
+
+# ---------------------------------------------------------------------------
+# WEB-03: Closing-soon badge
+# ---------------------------------------------------------------------------
+
+def test_closing_soon_badge(client, db_session):
+    """Opportunity closing within 30 days shows 'Closing Soon' badge."""
+    close_date = (date.today() + timedelta(days=10)).isoformat()
+    _make_opp(db_session, id="opp-soon", title="Closing Soon Opp",
+              opportunity_number="OPP-SOON", close_date=close_date)
+
+    response = client.get("/search")
+    assert response.status_code == 200
+    assert "Closing Soon" in response.text
+
+
+def test_closing_soon_no_badge_past(client, db_session):
+    """Opportunity already closed does NOT get a closing-soon badge."""
+    close_date = (date.today() - timedelta(days=5)).isoformat()
+    _make_opp(db_session, id="opp-past", title="Past Opportunity",
+              opportunity_number="OPP-PAST", close_date=close_date,
+              opportunity_status="closed")
+
+    # Only add the past opportunity — search should not show "Closing Soon"
+    response = client.get("/search?status=closed")
+    assert response.status_code == 200
+    assert "Closing Soon" not in response.text
+
+
+# ---------------------------------------------------------------------------
+# WEB-02: Detail page awards table
+# ---------------------------------------------------------------------------
+
+def test_detail_awards_section(client, db_session):
+    """Detail page with linked awards renders 'Historical Awards' heading and rows."""
+    opp = _make_opp(db_session, id="opp-detail", title="Opp With Awards",
+                    opportunity_number="OPP-DETAIL")
+    _make_award(db_session, id="award-detail-001",
+                opportunity_number="OPP-DETAIL",
+                recipient_name="Acme Corp",
+                award_amount=75000.0)
+
+    response = client.get("/opportunity/opp-detail")
+    assert response.status_code == 200
+    html = response.text
+    assert "Historical Awards" in html
+    assert "Acme Corp" in html
+
+
+def test_detail_no_awards_section(client, db_session):
+    """Detail page without awards does NOT render 'Historical Awards'."""
+    _make_opp(db_session, id="opp-noaward", title="Opp Without Awards",
+              opportunity_number="OPP-NOAWARD")
+
+    response = client.get("/opportunity/opp-noaward")
+    assert response.status_code == 200
+    assert "Historical Awards" not in response.text
+
+
+# ---------------------------------------------------------------------------
+# WEB-04: Stats page
+# ---------------------------------------------------------------------------
+
+def test_stats_page(client, db_session):
+    """GET /stats returns 200 with HTML showing totals, by-source, top agencies, closing-soon."""
+    # Add a couple of opportunities including one closing soon
+    _make_opp(db_session, id="stats-opp-1", title="Stats Opp 1",
+              source="grants_gov", agency_name="Dept of Energy",
+              opportunity_number="STATS-001")
+    close_soon = (date.today() + timedelta(days=15)).isoformat()
+    _make_opp(db_session, id="stats-opp-2", title="Stats Opp 2",
+              source="sbir", agency_name="NSF",
+              opportunity_number="STATS-002", close_date=close_soon)
+
+    response = client.get("/stats")
+    assert response.status_code == 200
+    html = response.text
+
+    # Page must contain sections for all required data
+    assert "Total" in html or "total" in html.lower()
+    # by-source breakdown
+    assert "grants_gov" in html or "sbir" in html
+    # closing-soon count
+    assert "Closing Soon" in html or "closing soon" in html.lower()
+
+
+def test_stats_page_top_agencies(client, db_session):
+    """Stats page includes a top agencies section."""
+    _make_opp(db_session, id="agency-opp-1", title="Agency Opp 1",
+              agency_name="NASA", opportunity_number="AGENCY-001")
+    _make_opp(db_session, id="agency-opp-2", title="Agency Opp 2",
+              agency_name="NASA", opportunity_number="AGENCY-002")
+
+    response = client.get("/stats")
+    assert response.status_code == 200
+    html = response.text
+    # Agency section header or the agency name itself should appear
+    assert "Agency" in html or "NASA" in html
+
+
+# ---------------------------------------------------------------------------
+# WEB-01 extension: Nav bar
+# ---------------------------------------------------------------------------
+
+def test_nav_stats_link(client):
+    """Search page nav contains link to /stats (not /api/v1/stats)."""
+    response = client.get("/search")
+    assert response.status_code == 200
+    html = response.text
+    assert 'href="/stats"' in html
+    # Must NOT link to JSON API
+    assert 'href="/api/v1/stats"' not in html
