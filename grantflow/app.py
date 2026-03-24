@@ -1,3 +1,4 @@
+import asyncio
 import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
@@ -5,16 +6,34 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
+
 from grantflow.config import HOST, PORT, BASE_DIR
 from grantflow.database import init_db
-from grantflow.pipeline.logging import configure_structlog
+from grantflow.pipeline.logging import configure_structlog, bind_source_logger
+from grantflow.ingest.run_all import run_all_ingestion
+
+logger_app = bind_source_logger("app")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     configure_structlog(env=os.getenv("GRANTFLOW_ENV", "development"))
     init_db()
+
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(
+        lambda: asyncio.get_event_loop().run_in_executor(None, run_all_ingestion),
+        CronTrigger(hour=2, minute=0, timezone="UTC"),
+        id="daily_ingestion",
+        replace_existing=True,
+        misfire_grace_time=3600,  # tolerate up to 1h delay (e.g. server restart at 02:00)
+    )
+    scheduler.start()
+    logger_app.info("APScheduler started — daily ingestion at 02:00 UTC")
     yield
+    scheduler.shutdown(wait=False)
 
 
 app = FastAPI(
