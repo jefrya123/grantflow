@@ -70,7 +70,12 @@ Plans:
   3. Rate limits fire appropriately per key tier (free/starter/growth) and return a meaningful 429 response
   4. All API endpoints are accessible under /api/v1/ with stable field names
   5. OpenAPI docs are auto-generated, accurate, and accessible without an API key
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — ApiKey model, Alembic migration 0003, POST /api/v1/keys endpoint, consistent error response shape
+- [ ] 03-02-PLAN.md — X-API-Key auth middleware, slowapi rate limiting, protect data endpoints (free=1000/day)
+- [ ] 03-03-PLAN.md — Pydantic response models replacing _opportunity_to_dict(), response_model= on all routes, OpenAPI metadata
 
 ### Phase 4: Data Quality
 **Goal**: All data served through the API and web UI uses normalized, human-readable field values — no raw government codes, no inconsistent agency names, no invalid award amounts
