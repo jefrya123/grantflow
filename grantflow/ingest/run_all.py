@@ -1,6 +1,7 @@
 """Orchestrator that runs all data ingestion pipelines."""
 
 import logging
+import os
 import sys
 from datetime import datetime, timezone
 
@@ -10,6 +11,7 @@ from grantflow.database import init_db, engine
 from grantflow.ingest.grants_gov import ingest_grants_gov
 from grantflow.ingest.usaspending import ingest_usaspending
 from grantflow.ingest.sbir import ingest_sbir
+from grantflow.pipeline.logging import configure_structlog
 
 logger = logging.getLogger(__name__)
 
@@ -67,11 +69,7 @@ def run_all_ingestion() -> dict:
 
 def main():
     """CLI entry point for running all ingestion."""
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-        stream=sys.stdout,
-    )
+    configure_structlog(env=os.getenv("GRANTFLOW_ENV", "development"))
 
     print("\n" + "=" * 60)
     print("  GrantFlow Data Ingestion Pipeline")

@@ -1,3 +1,4 @@
+import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -6,10 +7,12 @@ from pathlib import Path
 
 from grantflow.config import HOST, PORT, BASE_DIR
 from grantflow.database import init_db
+from grantflow.pipeline.logging import configure_structlog
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    configure_structlog(env=os.getenv("GRANTFLOW_ENV", "development"))
     init_db()
     yield
 
