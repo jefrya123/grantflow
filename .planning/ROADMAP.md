@@ -20,7 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - Migrate SQLite to PostgreSQL with Alembic and harden the API contract [WAVE 1 — serial blocker] (completed 2026-03-24)
 - [ ] **Phase 2: Pipeline Hardening** - Automate all federal ingestion with daily scheduling and monitoring [WAVE 2 — parallel]
-- [ ] **Phase 3: API Key Infrastructure** - Self-serve API keys with tiered rate limiting and versioned stable schema [WAVE 2 — parallel]
+- [x] **Phase 3: API Key Infrastructure** - Self-serve API keys with tiered rate limiting and versioned stable schema [WAVE 2 — parallel] (completed 2026-03-24)
 - [ ] **Phase 4: Data Quality** - Normalize eligibility codes, agency names, dates, amounts, and deduplicate across sources [WAVE 2 — parallel]
 - [ ] **Phase 5: State Data** - Build and operate scrapers for 5+ state grant portals (the competitive moat) [WAVE 3 — parallel]
 - [ ] **Phase 6: Advanced API + Web UI** - Full-featured search UI, opportunity detail, bulk export, and developer experience polish [WAVE 3 — parallel]
@@ -160,7 +160,7 @@ Wave 4:  Phase 7 (needs 5+6)
 |-------|------|------------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | Complete   | 2026-03-24 | Not started | - |
 | 2. Pipeline Hardening | 4/5 | In Progress|  | Not started | - |
-| 3. API Key Infrastructure | 2/3 | In Progress|  | Not started | - |
+| 3. API Key Infrastructure | 3/3 | Complete   | 2026-03-24 | Not started | - |
 | 4. Data Quality | 2 | Phase 1 | 0/TBD | Not started | - |
 | 5. State Data | 3 | Phases 2, 4 | 0/TBD | Not started | - |
 | 6. Advanced API + Web UI | 3 | Phases 3, 4 | 0/TBD | Not started | - |

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 03-api-key-infrastructure-03-PLAN.md
-last_updated: "2026-03-24T18:29:51.638Z"
+stopped_at: Completed 03-api-key-infrastructure-02-PLAN.md
+last_updated: "2026-03-24T18:34:23.329Z"
 last_activity: 2026-03-24 — Roadmap created, ready to begin Phase 1 planning
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 13
-  completed_plans: 10
+  completed_plans: 11
   percent: 33
 ---
 
@@ -60,6 +60,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 02-pipeline-hardening P05 | 2 | 2 tasks | 6 files |
 | Phase 03-api-key-infrastructure P01 | 12 | 2 tasks | 5 files |
 | Phase 03-api-key-infrastructure P03 | 2 | 2 tasks | 5 files |
+| Phase 03-api-key-infrastructure P02 | 3 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -97,6 +98,9 @@ Recent decisions affecting current work:
 - [Phase 03-api-key-infrastructure]: eligible_applicants kept as Optional[str] — stored as JSON string in Text column, parsing out of scope for this plan
 - [Phase 03-api-key-infrastructure]: Pydantic v2 ConfigDict(from_attributes=True) pattern established for all ORM-backed response models
 - [Phase 03-api-key-infrastructure]: response_model= on all data routes locks API field-name contract — field names cannot drift when ORM models change
+- [Phase 03-api-key-infrastructure]: Shared Limiter via import from app.py to routes.py — single in-memory counter state
+- [Phase 03-api-key-infrastructure]: Alembic stamp not upgrade for 0004 — api_keys table pre-existed from Plan 01 Base.metadata.create_all()
+- [Phase 03-api-key-infrastructure]: Flat 1000/day rate limit — slowapi does not support dynamic per-key limits; per-tier deferred to Phase 6
 
 ### Pending Todos
 
@@ -111,6 +115,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T18:29:51.634Z
-Stopped at: Completed 03-api-key-infrastructure-03-PLAN.md
+Last session: 2026-03-24T18:34:23.326Z
+Stopped at: Completed 03-api-key-infrastructure-02-PLAN.md
 Resume file: None
