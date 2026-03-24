@@ -232,7 +232,10 @@ Wave 5:  Phase 8 ║ Phase 9   (gap closure — parallel)
   5. Eligibility fields show human-readable labels (not raw codes like "25")
   6. Category fields show human-readable names (not raw codes like "D")
   7. The API returns multi-source data with normalized, useful field values
-**Plans**: 0 plans
+**Plans**: 4 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 10 to break down)
+- [ ] 10-01-PLAN.md — Add missing category/funding_instrument normalizers, wire into ingestors, backfill all 81K existing records
+- [ ] 10-02-PLAN.md — Diagnose and fix SBIR crash, configure and run SAM.gov ingestion
+- [ ] 10-03-PLAN.md — Build NC state scraper (with county-level grants), discover dataset IDs, run all state scrapers
+- [ ] 10-04-PLAN.md — Run LLM enrichment, validate all data end-to-end across all sources
