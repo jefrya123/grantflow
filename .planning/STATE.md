@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 06-advanced-api-web-ui-01-PLAN.md
-last_updated: "2026-03-24T20:01:13.003Z"
+stopped_at: Completed 07-gtm-enrichment-02-PLAN.md
+last_updated: "2026-03-24T20:26:57.491Z"
 last_activity: 2026-03-24 — Roadmap created, ready to begin Phase 1 planning
 progress:
   total_phases: 7
   completed_phases: 6
-  total_plans: 18
-  completed_plans: 18
+  total_plans: 20
+  completed_plans: 19
   percent: 33
 ---
 
@@ -68,6 +68,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 05-state-data P03 | 3 | 2 tasks | 7 files |
 | Phase 06-advanced-api-web-ui P02 | 3 | 1 tasks | 5 files |
 | Phase 06-advanced-api-web-ui P01 | 4 | 2 tasks | 6 files |
+| Phase 07-gtm-enrichment P02 | 3 | 1 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -128,6 +129,9 @@ Recent decisions affecting current work:
 - [Phase 06-advanced-api-web-ui]: StreamingResponse with csv.writer generator for CSV export — avoids buffering 10k rows in memory
 - [Phase 06-advanced-api-web-ui]: Hard cap at 10,000 rows via .limit(10_000) on build_opportunity_query() result — applied before serialization
 - [Phase 06-advanced-api-web-ui]: AgencyResponse: Optional code and name — some DB rows have NULL agency_code
+- [Phase 07-gtm-enrichment]: topic_tags stored as JSON string TEXT column — ilike filter on serialized JSON, SQLite-compatible
+- [Phase 07-gtm-enrichment]: instructor.from_provider('openai', async_client=True) for structured LLM output via Pydantic TopicTags
+- [Phase 07-gtm-enrichment]: Enrichment CLI-only Phase 7, APScheduler wiring deferred until production validation
 
 ### Pending Todos
 
@@ -142,6 +146,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T19:58:15.985Z
-Stopped at: Completed 06-advanced-api-web-ui-01-PLAN.md
+Last session: 2026-03-24T20:26:57.488Z
+Stopped at: Completed 07-gtm-enrichment-02-PLAN.md
 Resume file: None
