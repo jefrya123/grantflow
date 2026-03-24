@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, Query, Request, HTTPException
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -92,6 +93,9 @@ def search_page(
     offset = (page - 1) * per_page
     results = query.offset(offset).limit(per_page).all()
 
+    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    closing_soon_str = (datetime.now(timezone.utc) + timedelta(days=30)).strftime("%Y-%m-%d")
+
     return templates.TemplateResponse(request, "search.html", context={
         "results": results,
         "total": total,
@@ -101,6 +105,8 @@ def search_page(
         "filters": _build_filters(q, status, source, agency, category,
                                   eligible, min_award, max_award,
                                   closing_after, closing_before, sort, order),
+        "now_date": today_str,
+        "closing_soon_date": closing_soon_str,
     })
 
 
@@ -147,3 +153,44 @@ def _build_filters(q, status, source, agency, category, eligible,
         "sort": sort,
         "order": order,
     }
+
+
+@router.get("/stats")
+def stats_page(request: Request, db: Session = Depends(get_db)):
+    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    closing_soon_str = (datetime.now(timezone.utc) + timedelta(days=30)).strftime("%Y-%m-%d")
+
+    total = db.query(Opportunity).count()
+
+    by_source_rows = (
+        db.query(Opportunity.source, func.count(Opportunity.id).label("count"))
+        .group_by(Opportunity.source)
+        .all()
+    )
+    by_source = [{"source": row.source or "unknown", "count": row.count} for row in by_source_rows]
+
+    closing_soon = (
+        db.query(Opportunity)
+        .filter(
+            Opportunity.close_date >= today_str,
+            Opportunity.close_date <= closing_soon_str,
+        )
+        .count()
+    )
+
+    top_agency_rows = (
+        db.query(Opportunity.agency_name, func.count(Opportunity.id).label("count"))
+        .filter(Opportunity.agency_name.isnot(None))
+        .group_by(Opportunity.agency_name)
+        .order_by(func.count(Opportunity.id).desc())
+        .limit(10)
+        .all()
+    )
+    top_agencies = [{"agency_name": row.agency_name, "count": row.count} for row in top_agency_rows]
+
+    return templates.TemplateResponse(request, "stats.html", context={
+        "total": total,
+        "by_source": by_source,
+        "closing_soon": closing_soon,
+        "top_agencies": top_agencies,
+    })

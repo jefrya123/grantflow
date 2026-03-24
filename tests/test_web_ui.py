@@ -16,8 +16,10 @@ from grantflow.models import Opportunity, Award
 # ---------------------------------------------------------------------------
 
 def _make_opp(db_session, **kwargs):
+    opp_id = kwargs.get("id", "test-opp-001")
     defaults = dict(
-        id="test-opp-001",
+        id=opp_id,
+        source_id=f"src-{opp_id}",
         title="Test Opportunity",
         source="grants_gov",
         opportunity_status="posted",
@@ -31,8 +33,11 @@ def _make_opp(db_session, **kwargs):
 
 
 def _make_award(db_session, opportunity_number="OPP-001", **kwargs):
+    award_id = kwargs.get("id", "award-001")
     defaults = dict(
-        id="award-001",
+        id=award_id,
+        source="usaspending",
+        award_id=f"awd-{award_id}",
         opportunity_number=opportunity_number,
         recipient_name="Test Recipient",
         award_amount=50000.0,

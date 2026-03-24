@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Stats - GrantFlow{% endblock %}
+
+{% block content %}
+<div class="stats-page">
+    <h2>Grant Data Statistics</h2>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">Total Opportunities</div>
+            <div class="stat-value">{{ total | default(0) }}</div>
+        </div>
+
+        <div class="stat-card stat-closing-soon">
+            <div class="stat-label">Closing Soon (30 days)</div>
+            <div class="stat-value">{{ closing_soon | default(0) }}</div>
+        </div>
+    </div>
+
+    {% if by_source %}
+    <div class="stats-section">
+        <h3>Opportunities by Source</h3>
+        <table class="stats-table">
+            <thead>
+                <tr>
+                    <th>Source</th>
+                    <th>Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in by_source %}
+                <tr>
+                    <td>{{ row.source }}</td>
+                    <td>{{ row.count }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    {% if top_agencies %}
+    <div class="stats-section">
+        <h3>Top Agencies by Opportunity Count</h3>
+        <table class="stats-table">
+            <thead>
+                <tr>
+                    <th>Agency</th>
+                    <th>Opportunities</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in top_agencies %}
+                <tr>
+                    <td>{{ row.agency_name }}</td>
+                    <td>{{ row.count }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
