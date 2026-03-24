@@ -114,12 +114,24 @@ def normalize_date(value: str | None) -> str | None:
     Returns None for None, empty input, or unparseable values.
     This is stricter than the old _normalize_date in grants_gov.py —
     unparseable values return None instead of the raw string.
+
+    Pre-pass: datetime.fromisoformat() handles ISO 8601 with timezone offsets
+    (e.g. "2024-03-15T00:00:00-04:00" or "2024-03-15T00:00:00Z") which
+    strptime cannot parse.  Python 3.11+ supports the full ISO 8601 spec
+    including Z suffix.  The _DATE_FORMATS loop handles non-ISO formats
+    (MM/DD/YYYY, YYYYMMDD, etc.) that fromisoformat would reject.
     """
     if not value:
         return None
     value = value.strip()
     if not value:
         return None
+    # Pre-pass: handle ISO 8601 with timezone offset
+    try:
+        dt = datetime.fromisoformat(value)
+        return dt.strftime("%Y-%m-%d")
+    except ValueError:
+        pass
     for fmt in _DATE_FORMATS:
         try:
             return datetime.strptime(value, fmt).strftime("%Y-%m-%d")

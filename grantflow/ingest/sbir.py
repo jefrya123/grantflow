@@ -19,6 +19,8 @@ from grantflow.normalizers import (
     normalize_eligibility_codes,
     normalize_agency_name,
 )
+# Note: award amount validation is not imported — SBIR records do not have
+# award_floor or award_ceiling fields (QUAL-06).
 from grantflow.pipeline.logging import bind_source_logger
 
 logger = bind_source_logger("sbir")
