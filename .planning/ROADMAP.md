@@ -56,8 +56,14 @@ Plans:
   3. An alert fires within 48 hours when any source has not updated (stale data detection)
   4. Grants.gov ingestion works from both XML extract and the new REST API so migration can happen safely
   5. Opportunities are cross-referenced to historical USAspending awards via CFDA/ALN numbers
+**Plans**: 5 plans
 
-**Plans**: TBD
+Plans:
+- [ ] 02-01-PLAN.md — PipelineRun model + Alembic migration 0003; structlog setup with configure_structlog() and bind_source_logger()
+- [ ] 02-02-PLAN.md — APScheduler daily cron at 02:00 UTC in app lifespan; harden all three ingesters (PipelineRun writes, structlog, SBIR retry, USAspending incremental, bug fixes)
+- [ ] 02-03-PLAN.md — SAM.gov incremental ingestor: rate-limit-aware, skips cleanly without API key, integrated as pipeline step 4
+- [ ] 02-04-PLAN.md — Grants.gov dual-source: REST API primary path + XML fallback; GRANTS_GOV_USE_REST flag for migration testing
+- [ ] 02-05-PLAN.md — Stale data monitor (48h alert, email on GRANTFLOW_ALERT_EMAIL); CFDA normalization and cross-source award linking; /api/v1/health freshness extension
 
 ### Phase 3: API Key Infrastructure
 **Goal**: Developers can self-serve API keys, the API is versioned at /api/v1/ with stable schema, and rate limiting enforces tier boundaries — the foundation for monetization
@@ -153,7 +159,7 @@ Wave 4:  Phase 7 (needs 5+6)
 | Phase | Wave | Depends On | Plans Complete | Status | Completed |
 |-------|------|------------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | Complete   | 2026-03-24 | Not started | - |
-| 2. Pipeline Hardening | 2 | Phase 1 | 0/TBD | Not started | - |
+| 2. Pipeline Hardening | 2 | Phase 1 | 0/5 | Not started | - |
 | 3. API Key Infrastructure | 2 | Phase 1 | 0/TBD | Not started | - |
 | 4. Data Quality | 2 | Phase 1 | 0/TBD | Not started | - |
 | 5. State Data | 3 | Phases 2, 4 | 0/TBD | Not started | - |
