@@ -18,6 +18,10 @@ dependencies = [
     "structlog>=24.0",
     "apscheduler>=3.11,<4.0",
     "slowapi>=0.1.9",
+    "scrapling>=0.4.2",
+    "curl-cffi>=0.14.0",
+    "playwright>=1.58.0",
+    "browserforge>=1.2.4",
 ]
 
 [project.scripts]
