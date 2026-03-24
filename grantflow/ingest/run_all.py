@@ -11,6 +11,7 @@ from grantflow.database import init_db, engine
 from grantflow.ingest.grants_gov import ingest_grants_gov
 from grantflow.ingest.usaspending import ingest_usaspending
 from grantflow.ingest.sbir import ingest_sbir
+from grantflow.ingest.sam_gov import ingest_sam_gov
 from grantflow.pipeline.logging import configure_structlog
 
 logger = logging.getLogger(__name__)
@@ -29,23 +30,29 @@ def run_all_ingestion() -> dict:
 
     # 2. Grants.gov
     logger.info("=" * 60)
-    logger.info("STEP 1/3: Grants.gov XML extract")
+    logger.info("STEP 1/4: Grants.gov XML extract")
     logger.info("=" * 60)
     results["grants_gov"] = ingest_grants_gov()
 
     # 3. USAspending
     logger.info("=" * 60)
-    logger.info("STEP 2/3: USAspending.gov API")
+    logger.info("STEP 2/4: USAspending.gov API")
     logger.info("=" * 60)
     results["usaspending"] = ingest_usaspending()
 
     # 4. SBIR
     logger.info("=" * 60)
-    logger.info("STEP 3/3: SBIR awards & solicitations")
+    logger.info("STEP 3/4: SBIR awards & solicitations")
     logger.info("=" * 60)
     results["sbir"] = ingest_sbir()
 
-    # 5. Summary
+    # 5. SAM.gov (incremental, skipped if no API key)
+    logger.info("=" * 60)
+    logger.info("STEP 4/4: SAM.gov contract opportunities (incremental)")
+    logger.info("=" * 60)
+    results["sam_gov"] = ingest_sam_gov()
+
+    # 6. Summary
     elapsed = (datetime.now(timezone.utc) - started).total_seconds()
     summary = {
         "sources": results,
