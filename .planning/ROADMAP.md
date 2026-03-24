@@ -217,4 +217,4 @@ Wave 5:  Phase 8 ║ Phase 9   (gap closure — parallel)
 | 6. Advanced API + Web UI | 2/2 | Complete   | 2026-03-24 | Complete | 2026-03-24 |
 | 7. GTM + Enrichment | 2/2 | Complete   | 2026-03-24 | Complete | 2026-03-24 |
 | 8. Pipeline & Data Cleanup | 2/2 | Complete   | 2026-03-24 | Not started | - |
-| 9. API & Feature Polish | 5 | Phase 8 | 0/2 | Not started | - |
+| 9. API & Feature Polish | 1/2 | In Progress|  | Not started | - |

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 08-pipeline-data-cleanup-02-PLAN.md
-last_updated: "2026-03-24T21:06:44.285Z"
+stopped_at: Completed 09-api-feature-polish-02-PLAN.md
+last_updated: "2026-03-24T21:22:39.382Z"
 last_activity: 2026-03-24 — Roadmap created, ready to begin Phase 1 planning
 progress:
   total_phases: 9
   completed_phases: 8
-  total_plans: 22
-  completed_plans: 22
+  total_plans: 24
+  completed_plans: 23
   percent: 33
 ---
 
@@ -72,6 +72,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 07-gtm-enrichment P01 | 4 | 2 tasks | 12 files |
 | Phase 08-pipeline-data-cleanup P01 | 8 | 2 tasks | 4 files |
 | Phase 08-pipeline-data-cleanup P02 | 2 | 2 tasks | 2 files |
+| Phase 09-api-feature-polish P02 | 2 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -142,6 +143,9 @@ Recent decisions affecting current work:
 - [Phase 08-pipeline-data-cleanup]: sbir.py comment rephrased to avoid containing the dead symbol name — avoids false positive in text-search smoke test
 - [Phase 08-pipeline-data-cleanup]: _parse_sam_date deleted entirely — normalize_date handles all same formats plus more after Plan 01 fromisoformat pre-pass
 - [Phase 08-pipeline-data-cleanup]: All four federal ingestors (Grants.gov, USAspending, SBIR, SAM.gov) now share one normalization pipeline via normalizers.py
+- [Phase 09-api-feature-polish]: canonical_id added to OpportunityResponse — OpportunityDetailResponse inherits automatically
+- [Phase 09-api-feature-polish]: daily_enrichment registered unconditionally — OPENAI_API_KEY gate lives inside run_enrichment()
+- [Phase 09-api-feature-polish]: run_in_executor wrapping on run_enrichment() mirrors existing daily_ingestion pattern
 
 ### Pending Todos
 
@@ -156,6 +160,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T21:04:22.576Z
-Stopped at: Completed 08-pipeline-data-cleanup-02-PLAN.md
+Last session: 2026-03-24T21:22:39.379Z
+Stopped at: Completed 09-api-feature-polish-02-PLAN.md
 Resume file: None
