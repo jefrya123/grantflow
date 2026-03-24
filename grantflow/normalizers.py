@@ -32,6 +32,27 @@ ELIGIBILITY_CODE_MAP: dict[str, str] = {
 }
 
 
+# ─── Category code mapping (Grants.gov opportunity category codes) ────────────
+
+CATEGORY_CODE_MAP: dict[str, str] = {
+    "D": "Discretionary",
+    "M": "Mandatory",
+    "C": "Continuation",
+    "E": "Earmark",
+    "O": "Other",
+}
+
+
+# ─── Funding instrument code mapping (Grants.gov funding instrument codes) ────
+
+FUNDING_INSTRUMENT_MAP: dict[str, str] = {
+    "G": "Grant",
+    "CA": "Cooperative Agreement",
+    "PC": "Procurement Contract",
+    "O": "Other",
+}
+
+
 # ─── Agency name canonical mapping ────────────────────────────────────────────
 
 AGENCY_NAME_MAP: dict[str, str] = {
@@ -231,3 +252,35 @@ def normalize_agency_name(name: str | None) -> str | None:
 
     # Apply canonical mapping
     return AGENCY_NAME_MAP.get(name, name)
+
+
+def normalize_category(code: str | None) -> str | None:
+    """Map a raw Grants.gov category code to a human-readable label.
+
+    - Returns None for None or empty/whitespace-only input
+    - Strips leading/trailing whitespace before lookup
+    - Returns mapped label if found in CATEGORY_CODE_MAP
+    - Returns raw value (stripped) if code not found (pass-through)
+    """
+    if code is None:
+        return None
+    code = code.strip()
+    if not code:
+        return None
+    return CATEGORY_CODE_MAP.get(code, code)
+
+
+def normalize_funding_instrument(code: str | None) -> str | None:
+    """Map a raw Grants.gov funding instrument code to a human-readable label.
+
+    - Returns None for None or empty/whitespace-only input
+    - Strips leading/trailing whitespace before lookup
+    - Returns mapped label if found in FUNDING_INSTRUMENT_MAP
+    - Returns raw value (stripped) if code not found (pass-through)
+    """
+    if code is None:
+        return None
+    code = code.strip()
+    if not code:
+        return None
+    return FUNDING_INSTRUMENT_MAP.get(code, code)

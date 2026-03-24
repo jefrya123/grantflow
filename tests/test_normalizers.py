@@ -8,6 +8,8 @@ from grantflow.normalizers import (
     normalize_eligibility_codes,
     normalize_agency_name,
     validate_award_amounts,
+    normalize_category,
+    normalize_funding_instrument,
 )
 
 
@@ -217,3 +219,68 @@ class TestNormalizeDateTimezoneOffset:
     def test_normalize_date_iso_with_utc_z(self):
         """ISO 8601 with Z suffix (UTC) must return date portion only (Python 3.11+)."""
         assert normalize_date("2024-03-15T00:00:00Z") == "2024-03-15"
+
+
+# ─── normalize_category ────────────────────────────────────────────────────────
+
+class TestNormalizeCategory:
+    def test_d_returns_discretionary(self):
+        assert normalize_category("D") == "Discretionary"
+
+    def test_m_returns_mandatory(self):
+        assert normalize_category("M") == "Mandatory"
+
+    def test_c_returns_continuation(self):
+        assert normalize_category("C") == "Continuation"
+
+    def test_e_returns_earmark(self):
+        assert normalize_category("E") == "Earmark"
+
+    def test_o_returns_other(self):
+        assert normalize_category("O") == "Other"
+
+    def test_unknown_code_passthrough(self):
+        assert normalize_category("unknown") == "unknown"
+
+    def test_none_returns_none(self):
+        assert normalize_category(None) is None
+
+    def test_empty_string_returns_none(self):
+        assert normalize_category("") is None
+
+    def test_whitespace_only_returns_none(self):
+        assert normalize_category("   ") is None
+
+    def test_strips_whitespace_before_lookup(self):
+        assert normalize_category("  D  ") == "Discretionary"
+
+
+# ─── normalize_funding_instrument ──────────────────────────────────────────────
+
+class TestNormalizeFundingInstrument:
+    def test_g_returns_grant(self):
+        assert normalize_funding_instrument("G") == "Grant"
+
+    def test_ca_returns_cooperative_agreement(self):
+        assert normalize_funding_instrument("CA") == "Cooperative Agreement"
+
+    def test_pc_returns_procurement_contract(self):
+        assert normalize_funding_instrument("PC") == "Procurement Contract"
+
+    def test_o_returns_other(self):
+        assert normalize_funding_instrument("O") == "Other"
+
+    def test_none_returns_none(self):
+        assert normalize_funding_instrument(None) is None
+
+    def test_empty_string_returns_none(self):
+        assert normalize_funding_instrument("") is None
+
+    def test_whitespace_only_returns_none(self):
+        assert normalize_funding_instrument("   ") is None
+
+    def test_unknown_code_passthrough(self):
+        assert normalize_funding_instrument("unknown") == "unknown"
+
+    def test_strips_whitespace_before_lookup(self):
+        assert normalize_funding_instrument("  CA  ") == "Cooperative Agreement"

@@ -13,6 +13,8 @@ from grantflow.normalizers import (
     normalize_date,
     normalize_eligibility_codes,
     normalize_agency_name,
+    normalize_category,
+    normalize_funding_instrument,
     validate_award_amounts,
 )
 from grantflow.models import Opportunity, IngestionLog, PipelineRun
@@ -171,6 +173,9 @@ def ingest_sam_gov() -> dict:
                     opp_data.get("eligible_applicants")
                 )
                 opp_data["agency_name"] = normalize_agency_name(opp_data.get("agency_name"))
+                opp_data["funding_instrument"] = normalize_funding_instrument(
+                    opp_data.get("funding_instrument")
+                )
                 floor, ceiling = validate_award_amounts(
                     opp_data.get("award_floor"), opp_data.get("award_ceiling")
                 )

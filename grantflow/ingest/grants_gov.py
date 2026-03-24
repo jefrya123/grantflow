@@ -22,6 +22,8 @@ from grantflow.normalizers import (
     normalize_date,
     normalize_eligibility_codes,
     normalize_agency_name,
+    normalize_category,
+    normalize_funding_instrument,
     validate_award_amounts,
 )
 
@@ -201,6 +203,10 @@ def _ingest_via_rest(session) -> dict | None:
                 record.get("eligible_applicants")
             )
             record["agency_name"] = normalize_agency_name(record.get("agency_name"))
+            record["category"] = normalize_category(record.get("category"))
+            record["funding_instrument"] = normalize_funding_instrument(
+                record.get("funding_instrument")
+            )
             floor, ceiling = validate_award_amounts(
                 record.get("award_floor"), record.get("award_ceiling")
             )
@@ -343,6 +349,10 @@ def _parse_element(elem: ET.Element) -> dict:
         record.get("eligible_applicants")
     )
     record["agency_name"] = normalize_agency_name(record.get("agency_name"))
+    record["category"] = normalize_category(record.get("category"))
+    record["funding_instrument"] = normalize_funding_instrument(
+        record.get("funding_instrument")
+    )
     floor, ceiling = validate_award_amounts(
         record.get("award_floor"), record.get("award_ceiling")
     )
