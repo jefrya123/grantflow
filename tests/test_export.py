@@ -48,11 +48,16 @@ def make_key(db, tier: str = "free", key_suffix: str = "") -> str:
 
 
 def make_opportunity(db, **kwargs) -> Opportunity:
-    """Insert an Opportunity row with sensible defaults."""
+    """Insert an Opportunity row with sensible defaults.
+
+    Uses source='export_test' (not 'grants_gov') to avoid polluting
+    the session-scoped SQLite DB and breaking test_health_record_counts.
+    """
+    import time
     defaults = dict(
-        id=f"opp-{datetime.datetime.now().timestamp()}",
-        source="grants_gov",
-        source_id=f"GG-{datetime.datetime.now().timestamp()}",
+        id=f"opp-export-{time.monotonic_ns()}",
+        source="export_test",
+        source_id=f"ET-{time.monotonic_ns()}",
         title="Test Export Opportunity",
         opportunity_status="posted",
         agency_code="HHS",

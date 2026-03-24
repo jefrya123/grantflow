@@ -1,4 +1,8 @@
+import csv
+import io
+
 from fastapi import APIRouter, Depends, Query, HTTPException, Request
+from fastapi.responses import StreamingResponse, JSONResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import func, case, and_
 from datetime import datetime, timedelta, timezone
@@ -8,6 +12,7 @@ from grantflow.database import get_db
 from grantflow.config import DATABASE_URL as _DB_URL
 from grantflow.pipeline.monitor import get_freshness_report
 from grantflow.api.auth import get_api_key
+from grantflow.api.query import build_opportunity_query
 from grantflow.api.schemas import (
     OpportunityResponse,
     OpportunityDetailResponse,
@@ -41,43 +46,19 @@ def search_opportunities(
     db: Session = Depends(get_db),
     api_key: ApiKey = Depends(get_api_key),
 ) -> SearchResponse:
-    if q:
-        if _DB_URL.startswith("postgresql") or _DB_URL.startswith("postgres"):
-            # PostgreSQL: use tsvector GIN index
-            query = db.query(Opportunity).filter(
-                Opportunity.search_vector.op("@@")(
-                    func.to_tsquery("english", q)
-                )
-            )
-        else:
-            # SQLite fallback: LIKE search (no GIN index, dev-only)
-            query = db.query(Opportunity).filter(
-                Opportunity.title.ilike(f"%{q}%")
-                | Opportunity.description.ilike(f"%{q}%")
-                | Opportunity.agency_name.ilike(f"%{q}%")
-            )
-    else:
-        query = db.query(Opportunity)
-
-    # Apply filters
-    if status:
-        query = query.filter(Opportunity.opportunity_status == status)
-    if agency:
-        query = query.filter(Opportunity.agency_code.ilike(f"%{agency}%"))
-    if eligible:
-        query = query.filter(Opportunity.eligible_applicants.ilike(f"%{eligible}%"))
-    if category:
-        query = query.filter(Opportunity.category == category)
-    if source:
-        query = query.filter(Opportunity.source == source)
-    if min_award is not None:
-        query = query.filter(Opportunity.award_floor >= min_award)
-    if max_award is not None:
-        query = query.filter(Opportunity.award_ceiling <= max_award)
-    if closing_after:
-        query = query.filter(Opportunity.close_date >= closing_after)
-    if closing_before:
-        query = query.filter(Opportunity.close_date <= closing_before)
+    query = build_opportunity_query(
+        db,
+        q=q,
+        status=status,
+        agency=agency,
+        eligible=eligible,
+        category=category,
+        source=source,
+        min_award=min_award,
+        max_award=max_award,
+        closing_after=closing_after,
+        closing_before=closing_before,
+    )
 
     # Count total before pagination
     total = query.count()
@@ -108,6 +89,73 @@ def search_opportunities(
         page=page,
         per_page=per_page,
         pages=pages,
+    )
+
+
+_EXPORT_CSV_COLUMNS = [
+    "id", "title", "agency_name", "source", "opportunity_status",
+    "opportunity_number", "cfda_numbers", "post_date", "close_date",
+    "award_floor", "award_ceiling", "source_url",
+]
+
+
+@router.get("/opportunities/export", tags=["opportunities"])
+@limiter.limit("100/day")
+def export_opportunities(
+    request: Request,
+    format: str = Query(default="csv", pattern="^(csv|json)$"),
+    q: str | None = None,
+    status: str | None = None,
+    agency: str | None = None,
+    eligible: str | None = None,
+    category: str | None = None,
+    source: str | None = None,
+    min_award: float | None = None,
+    max_award: float | None = None,
+    closing_after: str | None = None,
+    closing_before: str | None = None,
+    db: Session = Depends(get_db),
+    api_key: ApiKey = Depends(get_api_key),
+):
+    """Bulk export of opportunities (max 10,000 rows). Requires API key."""
+    query = build_opportunity_query(
+        db,
+        q=q,
+        status=status,
+        agency=agency,
+        eligible=eligible,
+        category=category,
+        source=source,
+        min_award=min_award,
+        max_award=max_award,
+        closing_after=closing_after,
+        closing_before=closing_before,
+    )
+    results = query.limit(10_000).all()
+
+    if format == "json":
+        return JSONResponse(content={
+            "results": [OpportunityResponse.model_validate(o).model_dump() for o in results],
+            "total": len(results),
+        })
+
+    # CSV via streaming generator
+    def csv_generator():
+        buf = io.StringIO()
+        writer = csv.writer(buf)
+        writer.writerow(_EXPORT_CSV_COLUMNS)
+        yield buf.getvalue()
+
+        for opp in results:
+            buf = io.StringIO()
+            writer = csv.writer(buf)
+            writer.writerow([getattr(opp, col, None) for col in _EXPORT_CSV_COLUMNS])
+            yield buf.getvalue()
+
+    return StreamingResponse(
+        csv_generator(),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=opportunities.csv"},
     )
 
 
