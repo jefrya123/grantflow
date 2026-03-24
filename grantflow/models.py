@@ -106,3 +106,20 @@ class IngestionLog(Base):
     records_updated = Column(Integer, default=0)
     status = Column(Text, default="running")
     error = Column(Text)
+
+
+class PipelineRun(Base):
+    __tablename__ = "pipeline_runs"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    source = Column(Text, nullable=False)  # e.g. "grants_gov", "usaspending", "sbir", "sam_gov"
+    run_type = Column(Text, default="full")  # "full" | "incremental"
+    status = Column(Text, nullable=False)  # "running" | "success" | "error" | "partial"
+    started_at = Column(Text, nullable=False)  # ISO 8601 UTC
+    completed_at = Column(Text)
+    records_processed = Column(Integer, default=0)
+    records_added = Column(Integer, default=0)
+    records_updated = Column(Integer, default=0)
+    records_failed = Column(Integer, default=0)
+    error_message = Column(Text)  # full error text, not truncated
+    extra = Column(Text)  # JSON blob for source-specific metadata
