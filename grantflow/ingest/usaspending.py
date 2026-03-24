@@ -10,6 +10,7 @@ import httpx
 from grantflow.config import USASPENDING_API_BASE
 from grantflow.database import SessionLocal
 from grantflow.models import Award, Agency, IngestionLog, PipelineRun
+from grantflow.normalizers import normalize_date, normalize_agency_name
 from grantflow.pipeline.logging import bind_source_logger
 
 logger = bind_source_logger("usaspending")
@@ -83,14 +84,14 @@ def _parse_award(row: dict) -> dict:
         "award_id": award_id_raw,
         "title": row.get("Description", ""),
         "description": row.get("Description", ""),
-        "agency_name": row.get("Awarding Agency", ""),
+        "agency_name": normalize_agency_name(row.get("Awarding Agency", "")),
         "agency_code": row.get("Awarding Sub Agency", ""),
         "cfda_numbers": row.get("CFDA Number", ""),
         "recipient_name": row.get("Recipient Name", ""),
         "award_amount": amount,
-        "start_date": row.get("Start Date"),
-        "end_date": row.get("End Date"),
-        "award_date": row.get("Start Date"),
+        "start_date": normalize_date(row.get("Start Date")),
+        "end_date": normalize_date(row.get("End Date")),
+        "award_date": normalize_date(row.get("Start Date")),
         "place_state": row.get("Place of Performance State Code", ""),
         "place_city": row.get("Place of Performance City Name", ""),
         "award_type": row.get("Award Type", ""),
@@ -209,7 +210,7 @@ def ingest_usaspending() -> dict:
 
         # Upsert agencies
         for agency_name, sub_agency in agencies_seen.items():
-            code = re.sub(r"[^A-Z0-9]", "_", agency_name.upper())[:50]
+            code = re.sub(r"[^a-z0-9]+", "_", agency_name.lower()).strip("_")[:50]
             existing = session.get(Agency, code)
             if not existing:
                 session.add(Agency(

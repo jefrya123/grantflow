@@ -18,6 +18,12 @@ from grantflow.config import (
 )
 from grantflow.database import SessionLocal, engine
 from grantflow.models import Opportunity, IngestionLog
+from grantflow.normalizers import (
+    normalize_date,
+    normalize_eligibility_codes,
+    normalize_agency_name,
+    validate_award_amounts,
+)
 
 from grantflow.pipeline.logging import bind_source_logger
 
@@ -83,18 +89,6 @@ BOOL_FIELDS = {"CostSharingOrMatchingRequirement"}
 
 
 # ─── Shared helpers ────────────────────────────────────────────────────────────
-
-
-def _normalize_date(value: str | None) -> str | None:
-    """Convert MM/DD/YYYY to YYYY-MM-DD."""
-    if not value:
-        return None
-    for fmt in ("%m%d%Y", "%m/%d/%Y", "%Y-%m-%d"):
-        try:
-            return datetime.strptime(value.strip(), fmt).strftime("%Y-%m-%d")
-        except ValueError:
-            continue
-    return value
 
 
 def _upsert_batch(session, batch: list[dict], stats: dict) -> None:
@@ -190,7 +184,7 @@ def _ingest_via_rest(session) -> dict | None:
             for rest_key, model_key in REST_FIELD_MAP.items():
                 raw_val = opp.get(rest_key)
                 if model_key in ("post_date", "close_date"):
-                    raw_val = _normalize_date(str(raw_val) if raw_val else None)
+                    raw_val = normalize_date(str(raw_val) if raw_val else None)
                 elif model_key in ("award_ceiling", "award_floor"):
                     try:
                         raw_val = float(raw_val) if raw_val is not None else None
@@ -201,6 +195,17 @@ def _ingest_via_rest(session) -> dict | None:
             # CFDA numbers: REST returns a list
             cfda_list = opp.get("cfdaList", [])
             record["cfda_numbers"] = ", ".join(cfda_list) if cfda_list else None
+
+            # Apply normalizers
+            record["eligible_applicants"] = normalize_eligibility_codes(
+                record.get("eligible_applicants")
+            )
+            record["agency_name"] = normalize_agency_name(record.get("agency_name"))
+            floor, ceiling = validate_award_amounts(
+                record.get("award_floor"), record.get("award_ceiling")
+            )
+            record["award_floor"] = floor
+            record["award_ceiling"] = ceiling
 
             # Composite id — same format as XML path for deduplication
             record["id"] = f"grants_gov_{raw_id}"
@@ -310,7 +315,7 @@ def _parse_element(elem: ET.Element) -> dict:
         raw[tag] = value
 
         if tag in DATE_FIELDS:
-            value = _normalize_date(value)
+            value = normalize_date(value)
         elif tag in FLOAT_FIELDS:
             try:
                 value = float(value) if value else None
@@ -332,6 +337,18 @@ def _parse_element(elem: ET.Element) -> dict:
             record[mapped] = value
 
     record["raw_data"] = json.dumps(raw)
+
+    # Apply normalizers to cooked fields
+    record["eligible_applicants"] = normalize_eligibility_codes(
+        record.get("eligible_applicants")
+    )
+    record["agency_name"] = normalize_agency_name(record.get("agency_name"))
+    floor, ceiling = validate_award_amounts(
+        record.get("award_floor"), record.get("award_ceiling")
+    )
+    record["award_floor"] = floor
+    record["award_ceiling"] = ceiling
+
     return record
 
 

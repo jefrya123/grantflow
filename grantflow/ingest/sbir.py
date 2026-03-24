@@ -14,6 +14,12 @@ import httpx
 from grantflow.config import DATA_DIR, SBIR_AWARDS_CSV_URL, SBIR_SOLICITATIONS_API
 from grantflow.database import SessionLocal
 from grantflow.models import Award, Opportunity, IngestionLog
+from grantflow.normalizers import (
+    normalize_date,
+    normalize_eligibility_codes,
+    normalize_agency_name,
+    validate_award_amounts,
+)
 from grantflow.pipeline.logging import bind_source_logger
 
 logger = bind_source_logger("sbir")
@@ -33,19 +39,6 @@ CSV_FIELD_MAP = {
     "city": "place_city",
     "abstract": "description",
 }
-
-
-def _parse_date(value: str | None) -> str | None:
-    """Try parsing various date formats to ISO 8601."""
-    if not value:
-        return None
-    value = value.strip()
-    for fmt in ("%Y-%m-%d", "%m/%d/%Y", "%Y-%m-%dT%H:%M:%S", "%m/%d/%y"):
-        try:
-            return datetime.strptime(value, fmt).strftime("%Y-%m-%d")
-        except ValueError:
-            continue
-    return value
 
 
 def _make_award_key(row: dict) -> str:
@@ -106,7 +99,7 @@ def _ingest_awards(session, stats: dict) -> None:
                     continue
             except (ValueError, TypeError):
                 # Try extracting year from date
-                parsed = _parse_date(proposal_date)
+                parsed = normalize_date(proposal_date)
                 if parsed:
                     try:
                         year = int(parsed[:4])
@@ -134,10 +127,10 @@ def _ingest_awards(session, stats: dict) -> None:
                 "award_id": key,
                 "title": row.get("award_title", ""),
                 "description": row.get("abstract", ""),
-                "agency_name": row.get("agency", ""),
+                "agency_name": normalize_agency_name(row.get("agency", "")),
                 "recipient_name": row.get("firm", ""),
                 "award_amount": amount,
-                "award_date": _parse_date(proposal_date),
+                "award_date": normalize_date(proposal_date),
                 "place_state": row.get("state", ""),
                 "place_city": row.get("city", ""),
                 "award_type": row.get("phase", ""),
@@ -214,20 +207,23 @@ def _ingest_solicitations(session, stats: dict) -> None:
         sol_id = str(sol_id).strip()
         opp_id = f"sbir_{sol_id}"
 
-        close_date = _parse_date(item.get("close_date") or item.get("application_due_date"))
-        open_date = _parse_date(item.get("open_date") or item.get("post_date"))
+        close_date = normalize_date(item.get("close_date") or item.get("application_due_date"))
+        open_date = normalize_date(item.get("open_date") or item.get("post_date"))
 
         today = datetime.now(timezone.utc).date().isoformat()
         opportunity_status = "closed" if (close_date and close_date < today) else "posted"
 
+        raw_agency = item.get("agency") or ""
+        raw_eligible = item.get("eligible_applicants") or item.get("eligibility", "")
         record = {
             "id": opp_id,
             "source": "sbir",
             "source_id": sol_id,
             "title": item.get("solicitation_title") or item.get("title", ""),
             "description": item.get("description") or item.get("abstract", ""),
-            "agency_name": item.get("agency") or "",
-            "agency_code": item.get("agency") or "",
+            "agency_name": normalize_agency_name(raw_agency),
+            "agency_code": raw_agency,
+            "eligible_applicants": normalize_eligibility_codes(raw_eligible),
             "close_date": close_date,
             "post_date": open_date,
             "opportunity_status": opportunity_status,
