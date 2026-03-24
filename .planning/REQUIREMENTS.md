@@ -26,12 +26,12 @@
 
 ### Data Quality
 
-- [ ] **QUAL-01**: Eligibility codes normalized to human-readable categories
-- [ ] **QUAL-02**: Agency names/codes normalized across all sources
+- [x] **QUAL-01**: Eligibility codes normalized to human-readable categories
+- [x] **QUAL-02**: Agency names/codes normalized across all sources
 - [ ] **QUAL-03**: Duplicate opportunities detected and merged across sources
 - [ ] **QUAL-04**: LLM-powered categorization tags opportunities by topic/sector
-- [ ] **QUAL-05**: Date fields consistently ISO 8601 across all sources
-- [ ] **QUAL-06**: Award amounts validated (floor <= ceiling, no negative values)
+- [x] **QUAL-05**: Date fields consistently ISO 8601 across all sources
+- [x] **QUAL-06**: Award amounts validated (floor <= ceiling, no negative values)
 
 ### State Data
 
