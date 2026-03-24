@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 07-gtm-enrichment-01-PLAN.md
-last_updated: "2026-03-24T20:35:45.291Z"
+stopped_at: Completed 08-pipeline-data-cleanup-01-PLAN.md
+last_updated: "2026-03-24T21:01:15.937Z"
 last_activity: 2026-03-24 — Roadmap created, ready to begin Phase 1 planning
 progress:
-  total_phases: 7
+  total_phases: 9
   completed_phases: 7
-  total_plans: 20
-  completed_plans: 20
+  total_plans: 22
+  completed_plans: 21
   percent: 33
 ---
 
@@ -70,6 +70,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 06-advanced-api-web-ui P01 | 4 | 2 tasks | 6 files |
 | Phase 07-gtm-enrichment P02 | 3 | 1 tasks | 12 files |
 | Phase 07-gtm-enrichment P01 | 4 | 2 tasks | 12 files |
+| Phase 08-pipeline-data-cleanup P01 | 8 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -136,6 +137,8 @@ Recent decisions affecting current work:
 - [Phase 07-gtm-enrichment]: Analytics middleware uses SessionLocal() directly in BackgroundTask (not get_db Depends) — avoids FastAPI dependency injection complexity in background context
 - [Phase 07-gtm-enrichment]: GET / replaced with landing page (not redirect) — product now has a public homepage
 - [Phase 07-gtm-enrichment]: Pricing page is display-only with no Stripe integration — per project decision to skip billing until demand validated
+- [Phase 08-pipeline-data-cleanup]: fromisoformat pre-pass added before strptime loop in normalize_date() — handles full ISO 8601 (TZ offsets, Z suffix) without changing behavior for non-ISO formats
+- [Phase 08-pipeline-data-cleanup]: sbir.py comment rephrased to avoid containing the dead symbol name — avoids false positive in text-search smoke test
 
 ### Pending Todos
 
@@ -150,6 +153,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T20:32:48.074Z
-Stopped at: Completed 07-gtm-enrichment-01-PLAN.md
+Last session: 2026-03-24T21:01:15.934Z
+Stopped at: Completed 08-pipeline-data-cleanup-01-PLAN.md
 Resume file: None
