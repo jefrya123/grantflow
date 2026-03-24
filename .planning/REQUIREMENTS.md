@@ -7,9 +7,9 @@
 
 ### Foundation
 
-- [ ] **FOUND-01**: Database migrated from SQLite to PostgreSQL with Alembic migrations
+- [x] **FOUND-01**: Database migrated from SQLite to PostgreSQL with Alembic migrations
 - [ ] **FOUND-02**: Full-text search uses PostgreSQL tsvector + GIN index (replacing FTS5)
-- [ ] **FOUND-03**: Environment config supports production PostgreSQL connection
+- [x] **FOUND-03**: Environment config supports production PostgreSQL connection
 - [ ] **FOUND-04**: Health endpoint returns pipeline freshness and record counts
 
 ### Pipeline
