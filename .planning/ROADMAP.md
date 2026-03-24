@@ -9,6 +9,7 @@ GrantFlow hardens an existing MVP (81K opportunities, working API, search UI) in
 - Wave 2 (Phases 2, 3, 4): Pipeline + API keys + Data quality — all depend only on Wave 1, run in parallel
 - Wave 3 (Phases 5, 6): State scraper build-out + advanced API/Web — depend on Wave 2
 - Wave 4 (Phase 7): GTM launch + LLM enrichment — depends on Wave 3
+- Wave 5 (Phases 8, 9): Gap closure — pipeline/data cleanup + API/feature polish (parallel)
 
 **Phase Numbering:**
 - Integer phases (1, 2, 3): Planned milestone work
@@ -25,6 +26,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 5: State Data** - Build and operate scrapers for 5+ state grant portals (the competitive moat) [WAVE 3 — parallel] (completed 2026-03-24)
 - [ ] **Phase 6: Advanced API + Web UI** - Full-featured search UI, opportunity detail, bulk export, and developer experience polish [WAVE 3 — parallel]
 - [x] **Phase 7: GTM + Enrichment** - Launch landing page, pricing, API playground, usage analytics, and LLM categorization [WAVE 4] (completed 2026-03-24)
+- [ ] **Phase 8: Pipeline & Data Cleanup** - Remove FTS5 remnants, wire SAM.gov normalizers, clean dead code [WAVE 5 — gap closure]
+- [ ] **Phase 9: API & Feature Polish** - Tier-aware rate limits, export topic filter, canonical_id exposure, enrichment scheduler [WAVE 5 — gap closure]
 
 ## Phase Details
 
@@ -155,6 +158,31 @@ Plans:
 - [ ] 07-01-PLAN.md — GTM pages (landing, pricing, playground), usage analytics middleware with api_events table, demo key seed script
 - [ ] 07-02-PLAN.md — LLM topic tagging with instructor + OpenAI, topic_tags column, API/web search filter integration
 
+### Phase 8: Pipeline & Data Cleanup
+**Goal**: Remove FTS5 write path remnants, wire SAM.gov ingestor through the normalization layer, and clean up dead code — eliminating crash risks and ensuring all data sources produce consistent normalized output
+**Depends on**: Phase 7
+**Wave**: 5 (gap closure)
+**Gap Closure:** Closes gaps from v1.0 audit
+**Requirements**: FOUND-02, QUAL-01, QUAL-02, QUAL-05, QUAL-06
+**Success Criteria** (what must be TRUE):
+  1. No FTS5 virtual table references remain in application code — ingestion runs cleanly on PostgreSQL
+  2. SAM.gov records have normalized dates (ISO 8601), agency names, eligibility codes, and validated award amounts
+  3. No unused normalizer imports exist in any ingestor file
+**Plans**: TBD
+
+### Phase 9: API & Feature Polish
+**Goal**: Complete the API contract (tier-aware rate limits, topic filter on export, canonical_id in responses) and wire LLM enrichment into the scheduler so topic tags populate automatically
+**Depends on**: Phase 8
+**Wave**: 5 (gap closure, parallel with Phase 8)
+**Gap Closure:** Closes gaps from v1.0 audit
+**Requirements**: API-02, API-05, QUAL-03, QUAL-04
+**Success Criteria** (what must be TRUE):
+  1. Rate limits vary by API key tier (free=1000, starter=10000, growth=100000 per day)
+  2. Bulk export endpoint supports ?topic= filter matching the search endpoint
+  3. canonical_id is included in OpportunityResponse API schema
+  4. LLM enrichment runs on a daily APScheduler job (gated on OPENAI_API_KEY)
+**Plans**: TBD
+
 ## Progress
 
 **Execution Order (wave-parallel):**
@@ -167,14 +195,18 @@ Wave 2:  Phase 2 ║ Phase 3 ║ Phase 4   (all depend only on Phase 1)
 Wave 3:  Phase 5 (needs 2+4) ║ Phase 6 (needs 3+4)
                   ↓
 Wave 4:  Phase 7 (needs 5+6)
+                  ↓
+Wave 5:  Phase 8 ║ Phase 9   (gap closure — parallel)
 ```
 
 | Phase | Wave | Depends On | Plans Complete | Status | Completed |
 |-------|------|------------|----------------|--------|-----------|
-| 1. Foundation | 3/3 | Complete   | 2026-03-24 | Not started | - |
-| 2. Pipeline Hardening | 4/5 | In Progress|  | Not started | - |
-| 3. API Key Infrastructure | 3/3 | Complete   | 2026-03-24 | Not started | - |
-| 4. Data Quality | 1/2 | In Progress|  | Not started | - |
-| 5. State Data | 3/3 | Complete   | 2026-03-24 | Not started | - |
-| 6. Advanced API + Web UI | 1/2 | In Progress|  | Not started | - |
-| 7. GTM + Enrichment | 2/2 | Complete   | 2026-03-24 | Not started | - |
+| 1. Foundation | 3/3 | Complete   | 2026-03-24 | Complete | 2026-03-24 |
+| 2. Pipeline Hardening | 5/5 | Complete   | 2026-03-24 | Complete | 2026-03-24 |
+| 3. API Key Infrastructure | 3/3 | Complete   | 2026-03-24 | Complete | 2026-03-24 |
+| 4. Data Quality | 2/2 | Complete   | 2026-03-24 | Complete | 2026-03-24 |
+| 5. State Data | 3/3 | Complete   | 2026-03-24 | Complete | 2026-03-24 |
+| 6. Advanced API + Web UI | 2/2 | Complete   | 2026-03-24 | Complete | 2026-03-24 |
+| 7. GTM + Enrichment | 2/2 | Complete   | 2026-03-24 | Complete | 2026-03-24 |
+| 8. Pipeline & Data Cleanup | 5 | Phase 7 | 0/TBD | Not started | - |
+| 9. API & Feature Polish | 5 | Phase 8 | 0/TBD | Not started | - |
