@@ -168,7 +168,11 @@ Plans:
   1. No FTS5 virtual table references remain in application code — ingestion runs cleanly on PostgreSQL
   2. SAM.gov records have normalized dates (ISO 8601), agency names, eligibility codes, and validated award amounts
   3. No unused normalizer imports exist in any ingestor file
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 08-01-PLAN.md — Fix normalize_date() timezone gap, remove sbir.py dead import, verify FTS5 cleanup
+- [ ] 08-02-PLAN.md — Wire SAM.gov ingestor through shared normalization layer, remove _parse_sam_date()
 
 ### Phase 9: API & Feature Polish
 **Goal**: Complete the API contract (tier-aware rate limits, topic filter on export, canonical_id in responses) and wire LLM enrichment into the scheduler so topic tags populate automatically
@@ -208,5 +212,5 @@ Wave 5:  Phase 8 ║ Phase 9   (gap closure — parallel)
 | 5. State Data | 3/3 | Complete   | 2026-03-24 | Complete | 2026-03-24 |
 | 6. Advanced API + Web UI | 2/2 | Complete   | 2026-03-24 | Complete | 2026-03-24 |
 | 7. GTM + Enrichment | 2/2 | Complete   | 2026-03-24 | Complete | 2026-03-24 |
-| 8. Pipeline & Data Cleanup | 5 | Phase 7 | 0/TBD | Not started | - |
+| 8. Pipeline & Data Cleanup | 5 | Phase 7 | 0/2 | Not started | - |
 | 9. API & Feature Polish | 5 | Phase 8 | 0/TBD | Not started | - |
