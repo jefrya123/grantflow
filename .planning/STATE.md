@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 09-api-feature-polish-01-PLAN.md
-last_updated: "2026-03-24T21:26:27.703Z"
+stopped_at: Completed 10-data-population-validation-01-PLAN.md
+last_updated: "2026-03-24T22:47:43.772Z"
 last_activity: 2026-03-24 — Roadmap created, ready to begin Phase 1 planning
 progress:
-  total_phases: 9
+  total_phases: 10
   completed_phases: 9
-  total_plans: 24
-  completed_plans: 24
+  total_plans: 28
+  completed_plans: 25
   percent: 33
 ---
 
@@ -74,6 +74,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 08-pipeline-data-cleanup P02 | 2 | 2 tasks | 2 files |
 | Phase 09-api-feature-polish P02 | 2 | 2 tasks | 4 files |
 | Phase 09-api-feature-polish P01 | 2 | 2 tasks | 4 files |
+| Phase 10-data-population-validation P01 | 3 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -149,6 +150,8 @@ Recent decisions affecting current work:
 - [Phase 09-api-feature-polish]: run_in_executor wrapping on run_enrichment() mirrors existing daily_ingestion pattern
 - [Phase 09-api-feature-polish]: _session_factory module-level var in auth.py allows tests to monkeypatch the session factory used by _tier_limit without changing the callable signature
 - [Phase 09-api-feature-polish]: Export rate limit maintains 10:1 ratio per tier (free=100, starter=1000, growth=10000/day)
+- [Phase 10-data-population-validation]: Raw SQL SELECT used in backfill script (not ORM) — Opportunity ORM includes search_vector which does not exist in SQLite schema; same pattern as assign_canonical_ids
+- [Phase 10-data-population-validation]: CATEGORY_CODE_MAP and FUNDING_INSTRUMENT_MAP added as module-level constants in normalizers.py — no DB reads, matches ELIGIBILITY_CODE_MAP pattern
 
 ### Pending Todos
 
@@ -167,6 +170,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T21:23:43.652Z
-Stopped at: Completed 09-api-feature-polish-01-PLAN.md
+Last session: 2026-03-24T22:47:43.769Z
+Stopped at: Completed 10-data-population-validation-01-PLAN.md
 Resume file: None
