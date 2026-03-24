@@ -103,3 +103,56 @@ def test_missing_key_header_returns_none(client, db_session):
     assert exc is not None
     assert exc.status_code == 401
     assert exc.detail["error_code"] == "MISSING_API_KEY"
+
+
+# ---------------------------------------------------------------------------
+# Integration tests: auth wired to endpoints (Task 2)
+# ---------------------------------------------------------------------------
+
+def test_protected_endpoint_without_key(client):
+    """GET /api/v1/opportunities/search without X-API-Key → 401."""
+    resp = client.get("/api/v1/opportunities/search")
+    assert resp.status_code == 401
+    data = resp.json()
+    assert data["detail"]["error_code"] == "MISSING_API_KEY"
+
+
+def test_protected_endpoint_with_valid_key(client, db_session):
+    """GET /api/v1/opportunities/search with valid key → 200."""
+    plaintext = make_key(db_session, tier="free", key_suffix="_integ")
+    resp = client.get(
+        "/api/v1/opportunities/search",
+        headers={"X-API-Key": plaintext},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "results" in data
+    assert "total" in data
+
+
+def test_health_remains_public(client):
+    """GET /api/v1/health without X-API-Key → 200 (public endpoint)."""
+    resp = client.get("/api/v1/health")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "status" in data
+
+
+def test_docs_remain_public(client):
+    """GET /docs without X-API-Key → 200 (OpenAPI docs are public)."""
+    resp = client.get("/docs")
+    assert resp.status_code == 200
+
+
+def test_stats_endpoint_requires_key(client):
+    """GET /api/v1/stats without key → 401."""
+    resp = client.get("/api/v1/stats")
+    assert resp.status_code == 401
+    assert resp.json()["detail"]["error_code"] == "MISSING_API_KEY"
+
+
+def test_agencies_endpoint_requires_key(client):
+    """GET /api/v1/agencies without key → 401."""
+    resp = client.get("/api/v1/agencies")
+    assert resp.status_code == 401
+    assert resp.json()["detail"]["error_code"] == "MISSING_API_KEY"
