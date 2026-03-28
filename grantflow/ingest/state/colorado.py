@@ -116,6 +116,52 @@ class ColoradoScraper(BaseStateScraper):
         log.info("colorado_fetch_complete", total_records=len(records), html_length=raw_html_len)
         return records
 
+    _DEGRADED_THRESHOLD = 3
+
+    def run(self, session=None) -> dict:  # type: ignore[override]
+        """Run ingestion with low-record detection.
+
+        If fetch_records() returns fewer than _DEGRADED_THRESHOLD records,
+        return status='degraded' immediately instead of treating sparse data
+        as a successful run.
+        """
+        log = bind_source_logger(self.source_name)
+
+        try:
+            raw_records = self.fetch_records()
+        except Exception as exc:
+            log.error("fetch_records_failed", error=str(exc))
+            return {
+                "source": self.source_name,
+                "status": "error",
+                "records_processed": 0,
+                "records_added": 0,
+                "records_updated": 0,
+                "records_failed": 0,
+                "error": str(exc),
+            }
+
+        count = len(raw_records)
+        if count < self._DEGRADED_THRESHOLD:
+            log.warning(
+                "colorado_too_few_records",
+                count=count,
+                threshold=self._DEGRADED_THRESHOLD,
+                message="Portal structure may have changed — marking run as degraded",
+            )
+            return {
+                "source": self.source_name,
+                "status": "degraded",
+                "records_processed": count,
+                "records_added": 0,
+                "records_updated": 0,
+                "records_failed": 0,
+                "error": f"Too few records ({count}) — portal structure may have changed",
+            }
+
+        # Delegate to base class for normal processing
+        return super().run(session=session)
+
     def normalize_record(self, raw: dict) -> dict | None:
         title = (raw.get("title") or "").strip()
         if not title:

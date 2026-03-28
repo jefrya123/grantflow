@@ -63,3 +63,26 @@ def test_colorado_normalize_record_returns_expected_keys() -> None:
     assert result["title"] == "Test Grant"
     assert result["source"] == "state_colorado"
     assert result["id"].startswith("state_co_")
+
+
+def test_colorado_run_returns_degraded_on_too_few_records(monkeypatch) -> None:
+    """ColoradoScraper.run() returns status='degraded' when < 3 real records found."""
+    from grantflow.ingest.state.colorado import ColoradoScraper
+
+    scraper = ColoradoScraper()
+    # Simulate fetch_records returning 1 item (portal broken)
+    monkeypatch.setattr(scraper, "fetch_records", lambda: [
+        {"title": "Only Grant", "agency": "CO", "deadline": "", "url": ""}
+    ])
+    result = scraper.run()
+    assert result["status"] == "degraded"
+    assert result.get("records_processed", 0) <= 2
+
+
+def test_colorado_normalize_record_returns_none_on_empty_title() -> None:
+    """normalize_record returns None when title is empty/missing."""
+    from grantflow.ingest.state.colorado import ColoradoScraper
+
+    scraper = ColoradoScraper()
+    assert scraper.normalize_record({"title": "", "agency": "CO"}) is None
+    assert scraper.normalize_record({"agency": "CO"}) is None
