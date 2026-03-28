@@ -1,6 +1,30 @@
 {% extends "base.html" %}
 {% block title %}{{ opp.title }} - GrantFlow{% endblock %}
 
+{% block head_extra %}
+<meta name="description" content="{{ opp.description[:160] if opp.description else opp.title }} - Federal grant opportunity on GrantFlow">
+<meta property="og:title" content="{{ opp.title }} - GrantFlow">
+<meta property="og:description" content="{{ opp.description[:200] if opp.description else 'Federal grant opportunity' }}">
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{ request.url }}">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="{{ opp.title }} - GrantFlow">
+<meta name="twitter:description" content="{{ opp.description[:200] if opp.description else 'Federal grant opportunity' }}">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "GovernmentService",
+  "name": "{{ opp.title | e }}"{% if opp.description %},
+  "description": "{{ opp.description[:500] | e }}"{% endif %}{% if opp.agency_name %},
+  "serviceOperator": {
+    "@type": "GovernmentOrganization",
+    "name": "{{ opp.agency_name | e }}"
+  }{% endif %}{% if opp.close_date %},
+  "areaServed": "US"{% endif %}
+}
+</script>
+{% endblock %}
+
 {% block content %}
 <div class="detail-page">
     <a href="/search" class="back-link">&larr; Back to search</a>
