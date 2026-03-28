@@ -16,7 +16,7 @@ from grantflow.config import (
     GRANTS_GOV_REST_API_BASE,
     GRANTS_GOV_USE_REST,
 )
-from grantflow.database import SessionLocal, engine
+from grantflow.database import SessionLocal
 from grantflow.models import Opportunity, IngestionLog
 from grantflow.normalizers import (
     normalize_date,

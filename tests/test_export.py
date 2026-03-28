@@ -13,11 +13,7 @@ import hashlib
 import io
 import datetime
 
-import pytest
-from fastapi.testclient import TestClient
 
-from grantflow.app import app
-from grantflow.database import get_db
 from grantflow.models import ApiKey, Opportunity
 
 

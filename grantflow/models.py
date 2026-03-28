@@ -1,6 +1,6 @@
-from sqlalchemy import Column, Text, Float, Integer, Boolean, Index
+from sqlalchemy import Column, Text, Float, Integer, Boolean
 from sqlalchemy.engine.interfaces import Dialect
-from sqlalchemy.types import TypeDecorator, UserDefinedType
+from sqlalchemy.types import TypeDecorator
 from sqlalchemy.orm import DeclarativeBase
 from datetime import datetime, timezone
 

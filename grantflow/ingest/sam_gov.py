@@ -1,7 +1,6 @@
 """Incremental ingest of SAM.gov contract/grant opportunities."""
 
 import json
-import logging
 import time
 from datetime import datetime, timezone, timedelta
 
@@ -13,7 +12,6 @@ from grantflow.normalizers import (
     normalize_date,
     normalize_eligibility_codes,
     normalize_agency_name,
-    normalize_category,
     normalize_funding_instrument,
     validate_award_amounts,
 )

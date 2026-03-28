@@ -1,7 +1,6 @@
 """Unit tests for grantflow.dedup — canonical ID generation and duplicate detection."""
 
-import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from grantflow.dedup import make_canonical_id, find_duplicate_groups, assign_canonical_ids
 

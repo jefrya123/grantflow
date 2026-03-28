@@ -3,7 +3,6 @@ import time
 from datetime import datetime, timezone
 
 from fastapi import FastAPI
-from fastapi.background import BackgroundTasks
 from starlette.background import BackgroundTask
 from starlette.requests import Request
 from starlette.responses import Response

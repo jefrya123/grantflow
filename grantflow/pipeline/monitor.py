@@ -2,7 +2,7 @@
 
 import os
 import smtplib
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from email.mime.text import MIMEText
 
 from sqlalchemy import func

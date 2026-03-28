@@ -5,7 +5,6 @@ Covers STATE-04 requirements:
   - Per-source stale thresholds (240h for weekly state sources, 48h for federal)
 """
 
-import pytest
 from datetime import datetime, timezone, timedelta
 
 from grantflow.models import PipelineRun

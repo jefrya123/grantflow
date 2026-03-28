@@ -54,7 +54,6 @@ def test_normalize_date_empty():
 
 def test_sam_gov_normalizes_eligibility():
     """sam_gov.py imports and uses normalize_eligibility_codes from normalizers."""
-    import inspect
     source = open(sam_gov_module.__file__).read()
     assert "normalize_eligibility_codes" in source, (
         "sam_gov.py must call normalize_eligibility_codes() from grantflow.normalizers"

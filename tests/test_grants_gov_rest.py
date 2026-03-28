@@ -4,7 +4,6 @@ import json
 from unittest.mock import MagicMock, patch
 
 import httpx
-import pytest
 
 from grantflow.ingest.grants_gov import (
     MIN_REST_THRESHOLD,

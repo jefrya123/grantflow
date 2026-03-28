@@ -5,7 +5,6 @@ Uses instructor + OpenAI gpt-4o-mini to classify opportunities into
 predefined topic/sector buckets. All calls are async for batch efficiency.
 """
 import asyncio
-from typing import Any
 
 import instructor
 from pydantic import BaseModel

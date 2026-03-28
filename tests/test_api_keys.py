@@ -1,11 +1,7 @@
 """Tests for POST /api/v1/keys endpoint."""
 import hashlib
 
-import pytest
-from fastapi.testclient import TestClient
 
-from grantflow.app import app
-from grantflow.database import get_db
 from grantflow.models import ApiKey
 
 

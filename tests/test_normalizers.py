@@ -1,7 +1,6 @@
 """Unit tests for grantflow.normalizers — all normalization utility functions."""
 
 import json
-import pytest
 
 from grantflow.normalizers import (
     normalize_date,

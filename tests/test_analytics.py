@@ -1,5 +1,4 @@
 """Tests for analytics middleware — api_events recording."""
-import pytest
 from fastapi.testclient import TestClient
 
 from grantflow.models import ApiEvent

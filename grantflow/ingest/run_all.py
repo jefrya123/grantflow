@@ -3,12 +3,10 @@
 import json
 import logging  # noqa: F401 — kept for any stdlib callers
 import os
-import sys
 from datetime import datetime, timezone
 
-from sqlalchemy import text
 
-from grantflow.database import init_db, engine, SessionLocal
+from grantflow.database import init_db, SessionLocal
 from grantflow.ingest.grants_gov import ingest_grants_gov
 from grantflow.ingest.usaspending import ingest_usaspending
 from grantflow.ingest.sbir import ingest_sbir

@@ -6,11 +6,8 @@ All tests use mocked LLM — no real OpenAI API calls.
 import asyncio
 import datetime
 import hashlib
-import json
-import os
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
 
 from grantflow.models import ApiKey, Opportunity
 

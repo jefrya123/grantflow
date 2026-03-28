@@ -1,6 +1,5 @@
 """Tests for pipeline staleness monitor."""
 
-import pytest
 from datetime import datetime, timezone, timedelta
 
 from grantflow.models import PipelineRun

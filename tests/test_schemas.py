@@ -5,7 +5,6 @@ Verifies that Pydantic response models enforce the stable API contract.
 import datetime
 import hashlib
 
-import pytest
 from grantflow.api.schemas import (
     OpportunityResponse,
     AwardResponse,

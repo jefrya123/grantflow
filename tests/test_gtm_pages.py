@@ -1,5 +1,4 @@
 """Tests for GTM web pages: landing, pricing, playground."""
-import pytest
 from fastapi.testclient import TestClient
 
 

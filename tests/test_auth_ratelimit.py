@@ -1,11 +1,8 @@
 """Tests for API key authentication and rate limiting (Plan 03-02)."""
 import hashlib
 import pytest
-from fastapi.testclient import TestClient
 
-from grantflow.app import app
-from grantflow.database import get_db
-from grantflow.models import ApiKey, Base
+from grantflow.models import ApiKey
 
 
 def _hash(key: str) -> str:
@@ -38,7 +35,6 @@ def make_key(db, tier: str = "free", key_suffix: str = "") -> str:
 def test_missing_key(client):
     """No X-API-Key header → 401 MISSING_API_KEY."""
     from grantflow.api.auth import get_api_key
-    from fastapi import Header
     import inspect
 
     # Call via endpoint to test the full FastAPI dependency chain
@@ -166,7 +162,6 @@ def test_agencies_endpoint_requires_key(client):
 def patched_session_factory(db_session, monkeypatch):
     """Redirect auth._session_factory to the test DB so _tier_limit queries it."""
     import grantflow.api.auth as auth_mod
-    from sqlalchemy.orm import sessionmaker
 
     # Build a factory that returns the same test session (wraps it so close() is no-op)
     class _BoundSession:

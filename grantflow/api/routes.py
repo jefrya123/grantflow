@@ -4,12 +4,11 @@ import io
 from fastapi import APIRouter, Depends, Query, HTTPException, Request
 from fastapi.responses import StreamingResponse, JSONResponse
 from sqlalchemy.orm import Session
-from sqlalchemy import func, case, and_
+from sqlalchemy import func
 from datetime import datetime, timedelta, timezone
 
-from grantflow.models import Opportunity, Award, Agency, IngestionLog, ApiKey
+from grantflow.models import Opportunity, Award, IngestionLog, ApiKey
 from grantflow.database import get_db
-from grantflow.config import DATABASE_URL as _DB_URL
 from grantflow.pipeline.monitor import get_freshness_report
 from grantflow.api.auth import get_api_key, _tier_limit, _tier_export_limit
 from grantflow.api.query import build_opportunity_query

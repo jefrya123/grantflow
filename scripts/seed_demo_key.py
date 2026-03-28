@@ -31,7 +31,7 @@ def seed_demo_key() -> str | None:
         ).first()
 
         if existing:
-            print(f"Demo key already exists.")
+            print("Demo key already exists.")
             print(f"  prefix: {existing.key_prefix}...")
             print(f"  tier:   {existing.tier}")
             print(f"  active: {existing.is_active}")
@@ -61,7 +61,7 @@ def seed_demo_key() -> str | None:
         print(f"  prefix: {key_prefix}...")
         print(f"  tier:   {DEMO_KEY_TIER}")
         print()
-        print(f"Plaintext key (shown once — store securely):")
+        print("Plaintext key (shown once — store securely):")
         print(f"  {plaintext_key}")
         print()
         print("Export for playground use:")

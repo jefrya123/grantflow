@@ -1,6 +1,5 @@
 """Tests for CFDA normalization and opportunity-to-award linking."""
 
-import pytest
 
 from grantflow.models import Opportunity, Award
 from grantflow.pipeline.cfda_link import normalize_cfda, link_opportunities_to_awards
