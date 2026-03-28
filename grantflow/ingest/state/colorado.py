@@ -94,7 +94,7 @@ class ColoradoScraper(BaseStateScraper):
                 href = link_el[0].attrib.get("href", "") if link_el else ""
                 title_text = (
                     (link_el[0].text.strip() if link_el else "")
-                    or item.css("h2, h3, h4, strong")[0].text.strip() if item.css("h2, h3, h4, strong") else ""
+                    or (item.css("h2, h3, h4, strong")[0].text.strip() if item.css("h2, h3, h4, strong") else "")
                     or item.text.strip()
                 )
                 record = {
