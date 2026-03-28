@@ -25,7 +25,9 @@ from grantflow.app import limiter
 router = APIRouter(prefix="/api/v1")
 
 
-@router.get("/opportunities/search", response_model=SearchResponse, tags=["opportunities"])
+@router.get(
+    "/opportunities/search", response_model=SearchResponse, tags=["opportunities"]
+)
 @limiter.limit(_tier_limit)
 def search_opportunities(
     request: Request,
@@ -95,9 +97,19 @@ def search_opportunities(
 
 
 _EXPORT_CSV_COLUMNS = [
-    "id", "title", "agency_name", "source", "opportunity_status",
-    "opportunity_number", "cfda_numbers", "post_date", "close_date",
-    "award_floor", "award_ceiling", "source_url", "topic_tags",
+    "id",
+    "title",
+    "agency_name",
+    "source",
+    "opportunity_status",
+    "opportunity_number",
+    "cfda_numbers",
+    "post_date",
+    "close_date",
+    "award_floor",
+    "award_ceiling",
+    "source_url",
+    "topic_tags",
 ]
 
 
@@ -138,10 +150,14 @@ def export_opportunities(
     results = query.limit(10_000).all()
 
     if format == "json":
-        return JSONResponse(content={
-            "results": [OpportunityResponse.model_validate(o).model_dump() for o in results],
-            "total": len(results),
-        })
+        return JSONResponse(
+            content={
+                "results": [
+                    OpportunityResponse.model_validate(o).model_dump() for o in results
+                ],
+                "total": len(results),
+            }
+        )
 
     # CSV via streaming generator
     def csv_generator():
@@ -163,7 +179,11 @@ def export_opportunities(
     )
 
 
-@router.get("/opportunities/{opportunity_id}", response_model=OpportunityDetailResponse, tags=["opportunities"])
+@router.get(
+    "/opportunities/{opportunity_id}",
+    response_model=OpportunityDetailResponse,
+    tags=["opportunities"],
+)
 @limiter.limit(_tier_limit)
 def get_opportunity(
     request: Request,
@@ -180,13 +200,17 @@ def get_opportunity(
     # Find linked awards by opportunity_number or cfda_numbers
     awards = []
     if opp.opportunity_number:
-        awards = db.query(Award).filter(
-            Award.opportunity_number == opp.opportunity_number
-        ).all()
+        awards = (
+            db.query(Award)
+            .filter(Award.opportunity_number == opp.opportunity_number)
+            .all()
+        )
     if not awards and opp.cfda_numbers:
-        awards = db.query(Award).filter(
-            Award.cfda_numbers.ilike(f"%{opp.cfda_numbers}%")
-        ).all()
+        awards = (
+            db.query(Award)
+            .filter(Award.cfda_numbers.ilike(f"%{opp.cfda_numbers}%"))
+            .all()
+        )
 
     result.awards = [AwardResponse.model_validate(a) for a in awards]
     return result
@@ -202,15 +226,19 @@ def get_stats(
     total_opportunities = db.query(func.count(Opportunity.id)).scalar() or 0
 
     # By source
-    by_source_rows = db.query(
-        Opportunity.source, func.count(Opportunity.id)
-    ).group_by(Opportunity.source).all()
+    by_source_rows = (
+        db.query(Opportunity.source, func.count(Opportunity.id))
+        .group_by(Opportunity.source)
+        .all()
+    )
     by_source = {row[0]: row[1] for row in by_source_rows}
 
     # By status
-    by_status_rows = db.query(
-        Opportunity.opportunity_status, func.count(Opportunity.id)
-    ).group_by(Opportunity.opportunity_status).all()
+    by_status_rows = (
+        db.query(Opportunity.opportunity_status, func.count(Opportunity.id))
+        .group_by(Opportunity.opportunity_status)
+        .all()
+    )
     by_status = {(row[0] or "unknown"): row[1] for row in by_status_rows}
 
     # Awards
@@ -220,17 +248,24 @@ def get_stats(
     # Closing soon (next 30 days)
     today = datetime.utcnow().strftime("%Y-%m-%d")
     thirty_days = (datetime.utcnow() + timedelta(days=30)).strftime("%Y-%m-%d")
-    closing_soon = db.query(func.count(Opportunity.id)).filter(
-        Opportunity.close_date >= today,
-        Opportunity.close_date <= thirty_days,
-    ).scalar() or 0
+    closing_soon = (
+        db.query(func.count(Opportunity.id))
+        .filter(
+            Opportunity.close_date >= today,
+            Opportunity.close_date <= thirty_days,
+        )
+        .scalar()
+        or 0
+    )
 
     # Top agencies
-    top_agencies_rows = db.query(
-        Opportunity.agency_name, func.count(Opportunity.id).label("count")
-    ).group_by(Opportunity.agency_name).order_by(
-        func.count(Opportunity.id).desc()
-    ).limit(10).all()
+    top_agencies_rows = (
+        db.query(Opportunity.agency_name, func.count(Opportunity.id).label("count"))
+        .group_by(Opportunity.agency_name)
+        .order_by(func.count(Opportunity.id).desc())
+        .limit(10)
+        .all()
+    )
     top_agencies = [{"agency": row[0], "count": row[1]} for row in top_agencies_rows]
 
     return StatsResponse(
@@ -251,19 +286,19 @@ def get_agencies(
     db: Session = Depends(get_db),
     api_key: ApiKey = Depends(get_api_key),
 ):
-    rows = db.query(
-        Opportunity.agency_code,
-        Opportunity.agency_name,
-        func.count(Opportunity.id).label("count"),
-    ).group_by(
-        Opportunity.agency_code, Opportunity.agency_name
-    ).order_by(
-        func.count(Opportunity.id).desc()
-    ).all()
+    rows = (
+        db.query(
+            Opportunity.agency_code,
+            Opportunity.agency_name,
+            func.count(Opportunity.id).label("count"),
+        )
+        .group_by(Opportunity.agency_code, Opportunity.agency_name)
+        .order_by(func.count(Opportunity.id).desc())
+        .all()
+    )
 
     return [
-        {"code": row[0], "name": row[1], "opportunity_count": row[2]}
-        for row in rows
+        {"code": row[0], "name": row[1], "opportunity_count": row[2]} for row in rows
     ]
 
 
@@ -275,14 +310,12 @@ def health_check(db: Session = Depends(get_db)):
 
     # Most recent IngestionLog per source (highest id = most recent row)
     from sqlalchemy import select
-    latest_ids_stmt = (
-        select(func.max(IngestionLog.id).label("max_id"))
-        .group_by(IngestionLog.source)
+
+    latest_ids_stmt = select(func.max(IngestionLog.id).label("max_id")).group_by(
+        IngestionLog.source
     )
     latest_logs = (
-        db.query(IngestionLog)
-        .filter(IngestionLog.id.in_(latest_ids_stmt))
-        .all()
+        db.query(IngestionLog).filter(IngestionLog.id.in_(latest_ids_stmt)).all()
     )
 
     # Record counts per source
@@ -300,7 +333,9 @@ def health_check(db: Session = Depends(get_db)):
         is_stale = False
         if log.completed_at and log.status == "success":
             try:
-                completed = datetime.fromisoformat(log.completed_at.replace("Z", "+00:00"))
+                completed = datetime.fromisoformat(
+                    log.completed_at.replace("Z", "+00:00")
+                )
                 if completed.tzinfo is None:
                     completed = completed.replace(tzinfo=timezone.utc)
                 if completed < stale_threshold:

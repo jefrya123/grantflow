@@ -1,4 +1,5 @@
 """API key issuance endpoint."""
+
 import hashlib
 import secrets
 from datetime import datetime, timezone
@@ -16,7 +17,9 @@ VALID_TIERS = {"free", "starter", "growth"}
 
 
 @router.post("/keys", response_model=KeyCreateResponse)
-def create_api_key(body: dict | None = None, db: Session = Depends(get_db)) -> KeyCreateResponse:
+def create_api_key(
+    body: dict | None = None, db: Session = Depends(get_db)
+) -> KeyCreateResponse:
     """Generate a new API key. The plaintext key is returned exactly once and never stored."""
     body = body or {}
     tier = body.get("tier", "free")

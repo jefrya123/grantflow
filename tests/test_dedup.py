@@ -2,10 +2,15 @@
 
 from unittest.mock import MagicMock
 
-from grantflow.dedup import make_canonical_id, find_duplicate_groups, assign_canonical_ids
+from grantflow.dedup import (
+    make_canonical_id,
+    find_duplicate_groups,
+    assign_canonical_ids,
+)
 
 
 # ─── make_canonical_id ─────────────────────────────────────────────────────────
+
 
 class TestMakeCanonicalId:
     def test_returns_string_with_canon_prefix(self):
@@ -15,7 +20,7 @@ class TestMakeCanonicalId:
 
     def test_returns_16_char_hex_after_prefix(self):
         result = make_canonical_id({"opportunity_number": "DE-FOA-0002345"})
-        hex_part = result[len("canon_"):]
+        hex_part = result[len("canon_") :]
         assert len(hex_part) == 16
         # must be valid hex
         int(hex_part, 16)
@@ -121,7 +126,7 @@ class TestMakeCanonicalId:
         r2 = {
             "opportunity_number": "DE-FOA-0001",
             "cfda_numbers": "99.999",  # different CFDA
-            "agency_code": "NASA",     # different agency
+            "agency_code": "NASA",  # different agency
             "close_date": "2025-01-01",  # different date
         }
         # Same opportunity_number → same canonical_id regardless of other fields
@@ -135,6 +140,7 @@ class TestMakeCanonicalId:
 
 
 # ─── find_duplicate_groups ─────────────────────────────────────────────────────
+
 
 class TestFindDuplicateGroups:
     def test_returns_list(self):
@@ -186,6 +192,7 @@ class TestFindDuplicateGroups:
 
 
 # ─── assign_canonical_ids ──────────────────────────────────────────────────────
+
 
 class TestAssignCanonicalIds:
     def test_returns_dict_with_assigned_and_already_set(self):

@@ -80,7 +80,9 @@ class NorthCarolinaScraper(BaseStateScraper):
             return records
 
         except httpx.HTTPStatusError as exc:
-            log.error("nc_osbm_http_error", status=exc.response.status_code, error=str(exc))
+            log.error(
+                "nc_osbm_http_error", status=exc.response.status_code, error=str(exc)
+            )
             raise
         except httpx.RequestError as exc:
             log.error("nc_osbm_request_error", error=str(exc))
@@ -96,10 +98,14 @@ class NorthCarolinaScraper(BaseStateScraper):
 
         county = (raw.get("County") or "").strip()
         agency_abbrev = (raw.get("Administering Agency") or "").strip()
-        agency_name = normalize_agency_name(_expand_nc_agency(agency_abbrev)) or agency_abbrev
+        agency_name = (
+            normalize_agency_name(_expand_nc_agency(agency_abbrev)) or agency_abbrev
+        )
         agency_slug = ""
         if agency_name:
-            agency_slug = re.sub(r"[^a-z0-9]+", "_", agency_name.lower()).strip("_")[:50]
+            agency_slug = re.sub(r"[^a-z0-9]+", "_", agency_name.lower()).strip("_")[
+                :50
+            ]
 
         # Title: include county to make records searchable by county
         if county:

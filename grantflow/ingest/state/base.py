@@ -125,7 +125,7 @@ class BaseStateScraper(abc.ABC):
                 if not normalized.get("source_id"):
                     prefix = f"state_{self.state_code}_"
                     normalized["source_id"] = (
-                        opp_id[len(prefix):] if opp_id.startswith(prefix) else opp_id
+                        opp_id[len(prefix) :] if opp_id.startswith(prefix) else opp_id
                     )
 
                 # Use raw SQL for upsert — avoids ORM loading search_vector
@@ -143,7 +143,9 @@ class BaseStateScraper(abc.ABC):
                     cols = ", ".join(normalized.keys())
                     placeholders = ", ".join(f":{k}" for k in normalized.keys())
                     session.execute(
-                        text(f"INSERT INTO opportunities ({cols}) VALUES ({placeholders})"),
+                        text(
+                            f"INSERT INTO opportunities ({cols}) VALUES ({placeholders})"
+                        ),
                         normalized,
                     )
                     stats["records_added"] += 1

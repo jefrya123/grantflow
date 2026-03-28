@@ -10,6 +10,7 @@ from grantflow.normalizers import normalize_date
 # Concrete test double — controlled data for base class tests
 # ---------------------------------------------------------------------------
 
+
 class ConcreteTestScraper(BaseStateScraper):
     source_name = "state_test"
     state_code = "test"
@@ -40,17 +41,24 @@ class ConcreteTestScraper(BaseStateScraper):
 # Base class tests (expected GREEN once base.py exists)
 # ---------------------------------------------------------------------------
 
+
 def test_base_scraper_stats_shape(db_session):
     """run() returns a dict with the correct 7 keys matching ingestor contract."""
     scraper = ConcreteTestScraper()
     stats = scraper.run(session=db_session)
 
     required_keys = {
-        "source", "status", "records_processed",
-        "records_added", "records_updated",
-        "records_failed", "error",
+        "source",
+        "status",
+        "records_processed",
+        "records_added",
+        "records_updated",
+        "records_failed",
+        "error",
     }
-    assert required_keys == set(stats.keys()), f"Missing keys: {required_keys - set(stats.keys())}"
+    assert required_keys == set(stats.keys()), (
+        f"Missing keys: {required_keys - set(stats.keys())}"
+    )
 
 
 def test_opportunity_id_prefix():
@@ -74,7 +82,10 @@ def test_normalize_record_skip_empty_title(db_session):
 # CA normalization test — xfail until Plan 02 creates california.py
 # ---------------------------------------------------------------------------
 
-@pytest.mark.xfail(reason="CaliforniaScraper not yet implemented (Plan 02)", strict=False)
+
+@pytest.mark.xfail(
+    reason="CaliforniaScraper not yet implemented (Plan 02)", strict=False
+)
 def test_normalize_ca_record():
     """Given a raw CA CKAN dict, normalized output maps fields correctly."""
     from grantflow.ingest.state.california import CaliforniaScraper  # noqa: PLC0415
@@ -99,6 +110,7 @@ def test_normalize_ca_record():
 # ---------------------------------------------------------------------------
 # Scheduler test — weekly_state_ingestion job registered
 # ---------------------------------------------------------------------------
+
 
 def test_scheduler_weekly_job():
     """Scheduler registration code produces a 'weekly_state_ingestion' job at Sunday 03:00 UTC."""

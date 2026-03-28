@@ -12,7 +12,9 @@ from grantflow.ingest.state.base import BaseStateScraper
 from grantflow.normalizers import normalize_agency_name, normalize_date
 from grantflow.pipeline.logging import bind_source_logger
 
-DEFAULT_PORTAL_URL = "https://choosecolorado.com/doing-business/support-services/grants/"
+DEFAULT_PORTAL_URL = (
+    "https://choosecolorado.com/doing-business/support-services/grants/"
+)
 
 
 class ColoradoScraper(BaseStateScraper):
@@ -50,7 +52,9 @@ class ColoradoScraper(BaseStateScraper):
             log.error("colorado_fetch_failed", error=str(exc))
             raise
 
-        raw_html_len = len(page.html_content) if hasattr(page, "html_content") else len(str(page))
+        raw_html_len = (
+            len(page.html_content) if hasattr(page, "html_content") else len(str(page))
+        )
         log.debug("colorado_html_fetched", html_length=raw_html_len)
 
         records: list[dict] = []
@@ -89,12 +93,16 @@ class ColoradoScraper(BaseStateScraper):
                 or page.css(".entry-content li", auto_save=True)
             )
             log.debug("colorado_list_items_found", count=len(items) if items else 0)
-            for item in (items or []):
+            for item in items or []:
                 link_el = item.css("a")
                 href = link_el[0].attrib.get("href", "") if link_el else ""
                 title_text = (
                     (link_el[0].text.strip() if link_el else "")
-                    or (item.css("h2, h3, h4, strong")[0].text.strip() if item.css("h2, h3, h4, strong") else "")
+                    or (
+                        item.css("h2, h3, h4, strong")[0].text.strip()
+                        if item.css("h2, h3, h4, strong")
+                        else ""
+                    )
                     or item.text.strip()
                 )
                 record = {
@@ -113,7 +121,11 @@ class ColoradoScraper(BaseStateScraper):
                 message="No grant records extracted — portal structure may have changed",
             )
 
-        log.info("colorado_fetch_complete", total_records=len(records), html_length=raw_html_len)
+        log.info(
+            "colorado_fetch_complete",
+            total_records=len(records),
+            html_length=raw_html_len,
+        )
         return records
 
     _DEGRADED_THRESHOLD = 3
@@ -171,7 +183,9 @@ class ColoradoScraper(BaseStateScraper):
         agency_name = normalize_agency_name(raw_agency)
         agency_slug = ""
         if agency_name:
-            agency_slug = re.sub(r"[^a-z0-9]+", "_", agency_name.lower()).strip("_")[:50]
+            agency_slug = re.sub(r"[^a-z0-9]+", "_", agency_name.lower()).strip("_")[
+                :50
+            ]
 
         # Use title as source_id since Colorado portal lacks stable numeric IDs
         source_id = re.sub(r"[^a-z0-9]+", "_", title.lower()).strip("_")[:80]

@@ -5,6 +5,7 @@ Revises:
 Create Date: 2026-03-24
 
 """
+
 from typing import Sequence, Union
 
 from alembic import op
@@ -62,8 +63,12 @@ def upgrade() -> None:
     )
     op.create_index("ix_opportunities_source", "opportunities", ["source"])
     op.create_index("ix_opportunities_agency_code", "opportunities", ["agency_code"])
-    op.create_index("ix_opportunities_opportunity_number", "opportunities", ["opportunity_number"])
-    op.create_index("ix_opportunities_opportunity_status", "opportunities", ["opportunity_status"])
+    op.create_index(
+        "ix_opportunities_opportunity_number", "opportunities", ["opportunity_number"]
+    )
+    op.create_index(
+        "ix_opportunities_opportunity_status", "opportunities", ["opportunity_status"]
+    )
     op.create_index("ix_opportunities_post_date", "opportunities", ["post_date"])
     op.create_index("ix_opportunities_close_date", "opportunities", ["close_date"])
 

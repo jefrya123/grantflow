@@ -3,6 +3,7 @@ Tests for LLM topic enrichment (Plan 07-02).
 
 All tests use mocked LLM — no real OpenAI API calls.
 """
+
 import asyncio
 import datetime
 import hashlib
@@ -15,6 +16,7 @@ from grantflow.models import ApiKey, Opportunity
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_api_key(db_session, suffix: str = "") -> str:
     plaintext = f"enrichment_test_key{suffix}"
@@ -32,7 +34,9 @@ def _make_api_key(db_session, suffix: str = "") -> str:
     return plaintext
 
 
-def _make_opportunity(db_session, opp_id: str, topic_tags: str | None = None) -> Opportunity:
+def _make_opportunity(
+    db_session, opp_id: str, topic_tags: str | None = None
+) -> Opportunity:
     opp = Opportunity(
         id=opp_id,
         source="test",
@@ -50,6 +54,7 @@ def _make_opportunity(db_session, opp_id: str, topic_tags: str | None = None) ->
 # ---------------------------------------------------------------------------
 # test_tag_opportunity_mock
 # ---------------------------------------------------------------------------
+
 
 def test_tag_opportunity_mock():
     """tag_single() returns a (opp_id, TopicTags) tuple using mocked OpenAI."""
@@ -76,6 +81,7 @@ def test_tag_opportunity_mock():
 # test_topic_filter
 # ---------------------------------------------------------------------------
 
+
 def test_topic_filter(client, db_session):
     """Opportunity with topic_tags='["health","research"]' appears when ?topic=health."""
     key = _make_api_key(db_session, suffix="_filter")
@@ -94,6 +100,7 @@ def test_topic_filter(client, db_session):
 # ---------------------------------------------------------------------------
 # test_topic_filter_excludes
 # ---------------------------------------------------------------------------
+
 
 def test_topic_filter_excludes(client, db_session):
     """Opportunity with topic_tags='["education"]' does NOT appear when ?topic=health."""
@@ -114,6 +121,7 @@ def test_topic_filter_excludes(client, db_session):
 # test_enrichment_skips_without_key
 # ---------------------------------------------------------------------------
 
+
 def test_enrichment_skips_without_key(monkeypatch):
     """run_enrichment() returns early (no error) when OPENAI_API_KEY is unset."""
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
@@ -127,6 +135,7 @@ def test_enrichment_skips_without_key(monkeypatch):
 # ---------------------------------------------------------------------------
 # test_enrichment_batch_limit
 # ---------------------------------------------------------------------------
+
 
 def test_enrichment_batch_limit(db_session, monkeypatch):
     """run_enrichment() queries at most ENRICHMENT_BATCH_SIZE records."""
@@ -158,9 +167,12 @@ def test_enrichment_batch_limit(db_session, monkeypatch):
 
     mock_session_local = MagicMock(return_value=db_session)
 
-    with patch("grantflow.enrichment.run_enrichment.tag_batch", mock_tag_batch), \
-         patch("grantflow.enrichment.run_enrichment.SessionLocal", mock_session_local):
+    with (
+        patch("grantflow.enrichment.run_enrichment.tag_batch", mock_tag_batch),
+        patch("grantflow.enrichment.run_enrichment.SessionLocal", mock_session_local),
+    ):
         from grantflow.enrichment.run_enrichment import run_enrichment
+
         run_enrichment()
 
     assert len(processed_ids) <= 2
@@ -169,6 +181,7 @@ def test_enrichment_batch_limit(db_session, monkeypatch):
 # ---------------------------------------------------------------------------
 # Scheduler registration tests (Plan 09-02)
 # ---------------------------------------------------------------------------
+
 
 def test_enrichment_scheduler_job_registered(client):
     """APScheduler registers a job with id='daily_enrichment' during lifespan startup."""

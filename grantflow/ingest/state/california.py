@@ -80,7 +80,9 @@ class CaliforniaScraper(BaseStateScraper):
             return records
 
         except httpx.HTTPStatusError as exc:
-            log.error("ckan_http_error", status=exc.response.status_code, error=str(exc))
+            log.error(
+                "ckan_http_error", status=exc.response.status_code, error=str(exc)
+            )
             raise
         except httpx.RequestError as exc:
             log.error("ckan_request_error", error=str(exc))
@@ -97,7 +99,9 @@ class CaliforniaScraper(BaseStateScraper):
         agency_name = normalize_agency_name(raw_agency)
         agency_slug = ""
         if agency_name:
-            agency_slug = re.sub(r"[^a-z0-9]+", "_", agency_name.lower()).strip("_")[:50]
+            agency_slug = re.sub(r"[^a-z0-9]+", "_", agency_name.lower()).strip("_")[
+                :50
+            ]
 
         source_id = str(raw.get("_id") or raw.get("id") or "")
 
@@ -111,9 +115,7 @@ class CaliforniaScraper(BaseStateScraper):
             "close_date": normalize_date(
                 raw.get("Application_Due_Date") or raw.get("deadline")
             ),
-            "post_date": normalize_date(
-                raw.get("Posted_Date") or raw.get("open_date")
-            ),
+            "post_date": normalize_date(raw.get("Posted_Date") or raw.get("open_date")),
             "source_url": raw.get("URL") or raw.get("url") or "",
             "category": "State Grant",
             "opportunity_status": "posted",

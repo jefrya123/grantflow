@@ -7,6 +7,7 @@ APScheduler integration is explicitly deferred to a future phase.
 Usage:
     uv run python -m grantflow.enrichment.run_enrichment
 """
+
 import asyncio
 import json
 import logging
@@ -49,7 +50,11 @@ def run_enrichment() -> None:
             return
 
         records = [
-            {"id": opp.id, "title": opp.title or "", "description": opp.description or ""}
+            {
+                "id": opp.id,
+                "title": opp.title or "",
+                "description": opp.description or "",
+            }
             for opp in rows
         ]
 

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 
-
 def test_run_all_imports_and_is_callable() -> None:
     """run_all.py imports cleanly and run_all_ingestion is callable."""
     from grantflow.ingest.run_all import run_all_ingestion
@@ -71,9 +70,11 @@ def test_colorado_run_returns_degraded_on_too_few_records(monkeypatch) -> None:
 
     scraper = ColoradoScraper()
     # Simulate fetch_records returning 1 item (portal broken)
-    monkeypatch.setattr(scraper, "fetch_records", lambda: [
-        {"title": "Only Grant", "agency": "CO", "deadline": "", "url": ""}
-    ])
+    monkeypatch.setattr(
+        scraper,
+        "fetch_records",
+        lambda: [{"title": "Only Grant", "agency": "CO", "deadline": "", "url": ""}],
+    )
     result = scraper.run()
     assert result["status"] == "degraded"
     assert result.get("records_processed", 0) <= 2

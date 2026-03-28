@@ -61,7 +61,9 @@ class IllinoisScraper(BaseStateScraper):
             return records
 
         except httpx.HTTPStatusError as exc:
-            log.error("socrata_http_error", status=exc.response.status_code, error=str(exc))
+            log.error(
+                "socrata_http_error", status=exc.response.status_code, error=str(exc)
+            )
             raise
         except httpx.RequestError as exc:
             log.error("socrata_request_error", error=str(exc))
@@ -94,18 +96,17 @@ class IllinoisScraper(BaseStateScraper):
         agency_name = normalize_agency_name(raw_agency)
         agency_slug = ""
         if agency_name:
-            agency_slug = re.sub(r"[^a-z0-9]+", "_", agency_name.lower()).strip("_")[:50]
+            agency_slug = re.sub(r"[^a-z0-9]+", "_", agency_name.lower()).strip("_")[
+                :50
+            ]
 
-        source_id = str(
-            raw.get(":id")
-            or raw.get("_id")
-            or raw.get("id")
-            or ""
-        )
+        source_id = str(raw.get(":id") or raw.get("_id") or raw.get("id") or "")
         # Fall back to a composite key if no explicit ID
         if not source_id:
             applicant = (raw.get("applicant_applicant_name") or "").lower()
-            program = (raw.get("grant_program") or raw.get("program_name") or "").lower()
+            program = (
+                raw.get("grant_program") or raw.get("program_name") or ""
+            ).lower()
             fy = raw.get("fiscal_year") or raw.get("fy") or ""
             raw_key = f"{fy}_{applicant}_{program}"
             source_id = re.sub(r"[^a-z0-9]+", "_", raw_key).strip("_")[:80]

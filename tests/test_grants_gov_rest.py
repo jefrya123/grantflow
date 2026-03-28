@@ -84,7 +84,9 @@ def test_rest_returns_none_below_threshold():
     with patch("httpx.post", return_value=_mock_response(200, body)):
         result = _ingest_via_rest(session)
 
-    assert result is None, f"Expected None when records ({len(hits)}) < MIN_REST_THRESHOLD ({MIN_REST_THRESHOLD})"
+    assert result is None, (
+        f"Expected None when records ({len(hits)}) < MIN_REST_THRESHOLD ({MIN_REST_THRESHOLD})"
+    )
 
 
 # ─── Test: REST success path ──────────────────────────────────────────────────
@@ -149,8 +151,12 @@ def test_grants_gov_uses_xml_when_rest_fails():
     }
 
     with (
-        patch("grantflow.ingest.grants_gov._ingest_via_rest", return_value=None) as mock_rest,
-        patch("grantflow.ingest.grants_gov._ingest_via_xml", return_value=xml_stats) as mock_xml,
+        patch(
+            "grantflow.ingest.grants_gov._ingest_via_rest", return_value=None
+        ) as mock_rest,
+        patch(
+            "grantflow.ingest.grants_gov._ingest_via_xml", return_value=xml_stats
+        ) as mock_xml,
         patch("grantflow.ingest.grants_gov.SessionLocal") as mock_session_local,
         patch("grantflow.ingest.grants_gov.GRANTS_GOV_USE_REST", False),
     ):

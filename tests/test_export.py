@@ -8,6 +8,7 @@ Covers:
   - Hard cap at 10,000 rows
   - Invalid format returns 422
 """
+
 import csv
 import hashlib
 import io
@@ -20,6 +21,7 @@ from grantflow.models import ApiKey, Opportunity
 # ---------------------------------------------------------------------------
 # Helper
 # ---------------------------------------------------------------------------
+
 
 def _hash(key: str) -> str:
     return hashlib.sha256(key.encode()).hexdigest()
@@ -50,6 +52,7 @@ def make_opportunity(db, **kwargs) -> Opportunity:
     the session-scoped SQLite DB and breaking test_health_record_counts.
     """
     import time
+
     defaults = dict(
         id=f"opp-export-{time.monotonic_ns()}",
         source="export_test",
@@ -70,6 +73,7 @@ def make_opportunity(db, **kwargs) -> Opportunity:
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
+
 
 def test_export_csv_valid_key(client, db_session):
     """GET /opportunities/export?format=csv with valid key returns 200 CSV."""
@@ -191,6 +195,7 @@ def test_export_invalid_format(client, db_session):
 # ---------------------------------------------------------------------------
 # Topic filter tests (Plan 09-01)
 # ---------------------------------------------------------------------------
+
 
 def test_export_topic_filter(client, db_session):
     """GET /export?format=json&topic=health returns only rows with matching topic_tags."""

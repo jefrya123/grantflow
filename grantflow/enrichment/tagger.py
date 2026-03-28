@@ -4,6 +4,7 @@ LLM-powered topic tagging for grant opportunities.
 Uses instructor + OpenAI gpt-4o-mini to classify opportunities into
 predefined topic/sector buckets. All calls are async for batch efficiency.
 """
+
 import asyncio
 
 import instructor
@@ -39,7 +40,9 @@ class TopicTags(BaseModel):
     sector: str
 
 
-async def tag_single(opp_id: str, title: str, description: str) -> tuple[str, TopicTags]:
+async def tag_single(
+    opp_id: str, title: str, description: str
+) -> tuple[str, TopicTags]:
     """
     Classify a single opportunity using gpt-4o-mini via instructor.
 

@@ -17,8 +17,9 @@ from grantflow.pipeline.logging import configure_structlog, bind_source_logger
 logger = bind_source_logger("pipeline")
 
 
-
-def _write_pipeline_run(source_name: str, result: dict, source_started: datetime) -> None:
+def _write_pipeline_run(
+    source_name: str, result: dict, source_started: datetime
+) -> None:
     """Write a PipelineRun row for a completed source ingest."""
     try:
         with SessionLocal() as session:
@@ -123,7 +124,11 @@ def run_all_ingestion() -> dict:
     total_processed = sum(r.get("records_processed", 0) for r in results.values())
     total_added = sum(r.get("records_added", 0) for r in results.values())
     total_updated = sum(r.get("records_updated", 0) for r in results.values())
-    failures = [name for name, r in results.items() if r.get("status") not in ("success", "skipped")]
+    failures = [
+        name
+        for name, r in results.items()
+        if r.get("status") not in ("success", "skipped")
+    ]
 
     summary["total_processed"] = total_processed
     summary["total_added"] = total_added
@@ -141,6 +146,7 @@ def run_all_ingestion() -> dict:
 
     # 7. Staleness check — alert if any source missed its window
     from grantflow.pipeline.monitor import check_staleness, check_zero_records
+
     stale_sources = check_staleness()
     if stale_sources:
         summary["stale_sources"] = stale_sources
@@ -156,12 +162,14 @@ def run_all_ingestion() -> dict:
 
     # 8. CFDA normalization and cross-reference linking
     from grantflow.pipeline.cfda_link import link_opportunities_to_awards
+
     link_stats = link_opportunities_to_awards()
     summary["cfda_link"] = link_stats
     logger.info("cfda_linking_complete", **link_stats)
 
     # 9. Assign canonical IDs for cross-source deduplication
     from grantflow.dedup import assign_canonical_ids
+
     dedup_session = SessionLocal()
     try:
         dedup_stats = assign_canonical_ids(dedup_session)
@@ -197,10 +205,12 @@ def main():
 
     for source, result in summary["sources"].items():
         status_icon = "OK" if result.get("status") == "success" else "FAIL"
-        print(f"  {source:15s} [{status_icon}] "
-              f"{result.get('records_processed', 0)} processed, "
-              f"{result.get('records_added', 0)} added, "
-              f"{result.get('records_updated', 0)} updated")
+        print(
+            f"  {source:15s} [{status_icon}] "
+            f"{result.get('records_processed', 0)} processed, "
+            f"{result.get('records_added', 0)} added, "
+            f"{result.get('records_updated', 0)} updated"
+        )
         if result.get("error"):
             print(f"    Error: {result['error'][:100]}")
 

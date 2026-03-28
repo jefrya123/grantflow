@@ -3,7 +3,9 @@ from sqlalchemy.orm import sessionmaker
 from grantflow.config import DATABASE_URL
 
 # Determine dialect
-_is_postgres = DATABASE_URL.startswith("postgresql") or DATABASE_URL.startswith("postgres")
+_is_postgres = DATABASE_URL.startswith("postgresql") or DATABASE_URL.startswith(
+    "postgres"
+)
 
 if _is_postgres:
     # PostgreSQL: use psycopg2 for sync ORM (asyncpg is for async; routes stay sync for now)
@@ -44,4 +46,5 @@ def get_db():
 def init_db():
     """Create tables if they do not exist. For PostgreSQL, prefer 'alembic upgrade head'."""
     from grantflow.models import Base
+
     Base.metadata.create_all(bind=engine)

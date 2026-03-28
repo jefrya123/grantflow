@@ -1,4 +1,5 @@
 """Tests for GTM web pages: landing, pricing, playground."""
+
 from fastapi.testclient import TestClient
 
 

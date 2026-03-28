@@ -14,6 +14,7 @@ from grantflow.normalizers import (
 
 # ─── normalize_date ────────────────────────────────────────────────────────────
 
+
 class TestNormalizeDate:
     def test_none_returns_none(self):
         assert normalize_date(None) is None
@@ -59,6 +60,7 @@ class TestNormalizeDate:
 
 # ─── validate_award_amounts ────────────────────────────────────────────────────
 
+
 class TestValidateAwardAmounts:
     def test_both_none_returns_none_none(self):
         assert validate_award_amounts(None, None) == (None, None)
@@ -98,6 +100,7 @@ class TestValidateAwardAmounts:
 
 # ─── normalize_eligibility_codes ───────────────────────────────────────────────
 
+
 class TestNormalizeEligibilityCodes:
     def test_none_returns_empty_json_array(self):
         assert normalize_eligibility_codes(None) == "[]"
@@ -111,7 +114,9 @@ class TestNormalizeEligibilityCodes:
     def test_json_string_of_codes(self):
         result = normalize_eligibility_codes('["12", "25"]')
         parsed = json.loads(result)
-        assert "Nonprofits (other than higher education) with 501(c)(3) status" in parsed
+        assert (
+            "Nonprofits (other than higher education) with 501(c)(3) status" in parsed
+        )
         assert "Others (see agency eligibility text)" in parsed
 
     def test_list_of_codes(self):
@@ -133,7 +138,25 @@ class TestNormalizeEligibilityCodes:
         json.loads(result)  # should not raise
 
     def test_all_known_codes_mapped(self):
-        all_codes = ["00","01","02","04","05","06","07","08","11","12","13","20","21","22","23","25","99"]
+        all_codes = [
+            "00",
+            "01",
+            "02",
+            "04",
+            "05",
+            "06",
+            "07",
+            "08",
+            "11",
+            "12",
+            "13",
+            "20",
+            "21",
+            "22",
+            "23",
+            "25",
+            "99",
+        ]
         result = normalize_eligibility_codes(all_codes)
         parsed = json.loads(result)
         assert len(parsed) == 17
@@ -145,7 +168,9 @@ class TestNormalizeEligibilityCodes:
         # A bare string like "12" (not a JSON array) should be treated as a single code
         result = normalize_eligibility_codes("12")
         parsed = json.loads(result)
-        assert "Nonprofits (other than higher education) with 501(c)(3) status" in parsed
+        assert (
+            "Nonprofits (other than higher education) with 501(c)(3) status" in parsed
+        )
 
     def test_code_00_state_governments(self):
         result = normalize_eligibility_codes(["00"])
@@ -153,10 +178,14 @@ class TestNormalizeEligibilityCodes:
 
     def test_code_06_higher_ed(self):
         result = normalize_eligibility_codes(["06"])
-        assert "Public and State controlled institutions of higher education" in json.loads(result)
+        assert (
+            "Public and State controlled institutions of higher education"
+            in json.loads(result)
+        )
 
 
 # ─── normalize_agency_name ─────────────────────────────────────────────────────
+
 
 class TestNormalizeAgencyName:
     def test_none_returns_none(self):
@@ -169,7 +198,10 @@ class TestNormalizeAgencyName:
         assert normalize_agency_name("   ") is None
 
     def test_strips_leading_trailing_whitespace(self):
-        assert normalize_agency_name("  National Science Foundation  ") == "National Science Foundation"
+        assert (
+            normalize_agency_name("  National Science Foundation  ")
+            == "National Science Foundation"
+        )
 
     def test_collapses_internal_spaces(self):
         assert normalize_agency_name("Department  of  Energy") == "Department of Energy"
@@ -178,10 +210,16 @@ class TestNormalizeAgencyName:
         assert normalize_agency_name("HHS") == "Department of Health and Human Services"
 
     def test_dept_dot_of_hhs(self):
-        assert normalize_agency_name("Dept. of Health and Human Services") == "Department of Health and Human Services"
+        assert (
+            normalize_agency_name("Dept. of Health and Human Services")
+            == "Department of Health and Human Services"
+        )
 
     def test_dept_no_dot_hhs(self):
-        assert normalize_agency_name("Dept of Health and Human Services") == "Department of Health and Human Services"
+        assert (
+            normalize_agency_name("Dept of Health and Human Services")
+            == "Department of Health and Human Services"
+        )
 
     def test_doe_abbreviation(self):
         assert normalize_agency_name("DOE") == "Department of Energy"
@@ -205,10 +243,14 @@ class TestNormalizeAgencyName:
 
     def test_known_name_unchanged(self):
         # Already-canonical names should pass through unchanged
-        assert normalize_agency_name("National Science Foundation") == "National Science Foundation"
+        assert (
+            normalize_agency_name("National Science Foundation")
+            == "National Science Foundation"
+        )
 
 
 # ─── normalize_date — timezone offset edge cases (QUAL-05) ────────────────────
+
 
 class TestNormalizeDateTimezoneOffset:
     def test_normalize_date_iso_with_tz_offset(self):
@@ -221,6 +263,7 @@ class TestNormalizeDateTimezoneOffset:
 
 
 # ─── normalize_category ────────────────────────────────────────────────────────
+
 
 class TestNormalizeCategory:
     def test_d_returns_discretionary(self):
@@ -255,6 +298,7 @@ class TestNormalizeCategory:
 
 
 # ─── normalize_funding_instrument ──────────────────────────────────────────────
+
 
 class TestNormalizeFundingInstrument:
     def test_g_returns_grant(self):

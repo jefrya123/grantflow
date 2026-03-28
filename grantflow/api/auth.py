@@ -1,4 +1,5 @@
 """API key authentication dependency for FastAPI endpoints."""
+
 import hashlib
 from datetime import datetime, timezone
 

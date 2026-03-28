@@ -21,9 +21,9 @@ from grantflow.pipeline.logging import bind_source_logger
 logger = bind_source_logger("sam_gov")
 
 SEARCH_ENDPOINT = f"{SAM_GOV_API_BASE}/search"
-PAGE_SIZE = 10           # conservative — 10 records per API call
-MAX_PAGES = 50           # hard cap: 50 pages × 10 records = 500 records max per run
-RATE_LIMIT_PAUSE = 1.0   # seconds between requests
+PAGE_SIZE = 10  # conservative — 10 records per API call
+MAX_PAGES = 50  # hard cap: 50 pages × 10 records = 500 records max per run
+RATE_LIMIT_PAUSE = 1.0  # seconds between requests
 
 
 def ingest_sam_gov() -> dict:
@@ -45,7 +45,10 @@ def ingest_sam_gov() -> dict:
 
     # Guard: skip if no API key configured
     if not SAM_GOV_API_KEY:
-        logger.warning("sam_gov_api_key_missing", msg="SAM_GOV_API_KEY not set — skipping SAM.gov ingestion")
+        logger.warning(
+            "sam_gov_api_key_missing",
+            msg="SAM_GOV_API_KEY not set — skipping SAM.gov ingestion",
+        )
         stats["status"] = "skipped"
         return stats
 
@@ -106,7 +109,7 @@ def ingest_sam_gov() -> dict:
             "api_key": SAM_GOV_API_KEY,
             "postedFrom": modified_since.strftime("%m/%d/%Y"),
             "postedTo": datetime.now(timezone.utc).strftime("%m/%d/%Y"),
-            "ptype": "o",   # solicitations/contracts
+            "ptype": "o",  # solicitations/contracts
             "limit": PAGE_SIZE,
             "offset": 0,
         }
@@ -157,7 +160,9 @@ def ingest_sam_gov() -> dict:
                     "agency_code": record.get("organizationCode", ""),
                     "post_date": normalize_date(record.get("postedDate")),
                     "close_date": normalize_date(record.get("responseDeadLine")),
-                    "opportunity_status": "posted" if record.get("active") == "Yes" else "closed",
+                    "opportunity_status": "posted"
+                    if record.get("active") == "Yes"
+                    else "closed",
                     "description": record.get("description", ""),
                     "funding_instrument": record.get("type", ""),
                     "cfda_numbers": record.get("naicsCode", ""),
@@ -170,7 +175,9 @@ def ingest_sam_gov() -> dict:
                 opp_data["eligible_applicants"] = normalize_eligibility_codes(
                     opp_data.get("eligible_applicants")
                 )
-                opp_data["agency_name"] = normalize_agency_name(opp_data.get("agency_name"))
+                opp_data["agency_name"] = normalize_agency_name(
+                    opp_data.get("agency_name")
+                )
                 opp_data["funding_instrument"] = normalize_funding_instrument(
                     opp_data.get("funding_instrument")
                 )

@@ -1,4 +1,5 @@
 """Tests for API key authentication and rate limiting (Plan 03-02)."""
+
 import hashlib
 import pytest
 
@@ -12,6 +13,7 @@ def _hash(key: str) -> str:
 def make_key(db, tier: str = "free", key_suffix: str = "") -> str:
     """Create an ApiKey row in the test DB and return the plaintext key."""
     import datetime
+
     plaintext = f"testkey_{tier}{key_suffix}"
     row = ApiKey(
         key_hash=_hash(plaintext),
@@ -31,6 +33,7 @@ def make_key(db, tier: str = "free", key_suffix: str = "") -> str:
 # ---------------------------------------------------------------------------
 # Unit-level tests for get_api_key() dependency
 # ---------------------------------------------------------------------------
+
 
 def test_missing_key(client):
     """No X-API-Key header → 401 MISSING_API_KEY."""
@@ -105,6 +108,7 @@ def test_missing_key_header_returns_none(client, db_session):
 # Integration tests: auth wired to endpoints (Task 2)
 # ---------------------------------------------------------------------------
 
+
 def test_protected_endpoint_without_key(client):
     """GET /api/v1/opportunities/search without X-API-Key → 401."""
     resp = client.get("/api/v1/opportunities/search")
@@ -158,6 +162,7 @@ def test_agencies_endpoint_requires_key(client):
 # Tier-aware rate limit callable tests (Plan 09-01)
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture()
 def patched_session_factory(db_session, monkeypatch):
     """Redirect auth._session_factory to the test DB so _tier_limit queries it."""
@@ -166,6 +171,7 @@ def patched_session_factory(db_session, monkeypatch):
     # Build a factory that returns the same test session (wraps it so close() is no-op)
     class _BoundSession:
         """Proxy that delegates to db_session but ignores close() to avoid teardown."""
+
         def __init__(self, session):
             self._s = session
 
@@ -195,7 +201,9 @@ def test_tier_limit_starter(patched_session_factory):
     """_tier_limit() returns '10000/day' for a starter-tier API key."""
     from grantflow.api.auth import _tier_limit
 
-    plaintext = make_key(patched_session_factory, tier="starter", key_suffix="_tl_starter")
+    plaintext = make_key(
+        patched_session_factory, tier="starter", key_suffix="_tl_starter"
+    )
     result = _tier_limit(plaintext)
     assert result == "10000/day"
 
@@ -204,7 +212,9 @@ def test_tier_limit_growth(patched_session_factory):
     """_tier_limit() returns '100000/day' for a growth-tier API key."""
     from grantflow.api.auth import _tier_limit
 
-    plaintext = make_key(patched_session_factory, tier="growth", key_suffix="_tl_growth")
+    plaintext = make_key(
+        patched_session_factory, tier="growth", key_suffix="_tl_growth"
+    )
     result = _tier_limit(plaintext)
     assert result == "100000/day"
 
@@ -230,6 +240,8 @@ def test_tier_export_limit_growth(patched_session_factory):
     """_tier_export_limit() returns '10000/day' for a growth-tier key."""
     from grantflow.api.auth import _tier_export_limit
 
-    plaintext = make_key(patched_session_factory, tier="growth", key_suffix="_tel_growth")
+    plaintext = make_key(
+        patched_session_factory, tier="growth", key_suffix="_tel_growth"
+    )
     result = _tier_export_limit(plaintext)
     assert result == "10000/day"

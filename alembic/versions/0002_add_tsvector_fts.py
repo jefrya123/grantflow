@@ -4,12 +4,13 @@ Revision ID: 0002
 Revises: 0001
 Create Date: 2026-03-24
 """
+
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
-revision = '0002'
-down_revision = '0001'
+revision = "0002"
+down_revision = "0001"
 branch_labels = None
 depends_on = None
 
@@ -17,16 +18,16 @@ depends_on = None
 def upgrade():
     # Add the tsvector column
     op.add_column(
-        'opportunities',
-        sa.Column('search_vector', postgresql.TSVECTOR(), nullable=True)
+        "opportunities",
+        sa.Column("search_vector", postgresql.TSVECTOR(), nullable=True),
     )
 
     # Create GIN index for fast FTS queries
     op.create_index(
-        'ix_opportunities_search_vector',
-        'opportunities',
-        ['search_vector'],
-        postgresql_using='gin'
+        "ix_opportunities_search_vector",
+        "opportunities",
+        ["search_vector"],
+        postgresql_using="gin",
     )
 
     # Create trigger function
@@ -69,7 +70,9 @@ def upgrade():
 
 
 def downgrade():
-    op.execute("DROP TRIGGER IF EXISTS opportunities_search_vector_trigger ON opportunities")
+    op.execute(
+        "DROP TRIGGER IF EXISTS opportunities_search_vector_trigger ON opportunities"
+    )
     op.execute("DROP FUNCTION IF EXISTS opportunities_search_vector_update()")
-    op.drop_index('ix_opportunities_search_vector', table_name='opportunities')
-    op.drop_column('opportunities', 'search_vector')
+    op.drop_index("ix_opportunities_search_vector", table_name="opportunities")
+    op.drop_column("opportunities", "search_vector")

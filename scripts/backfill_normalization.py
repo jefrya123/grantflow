@@ -112,14 +112,14 @@ def backfill_normalization() -> dict:
             offset += batch_size
 
             if total_scanned % 5000 == 0 or len(rows) < batch_size:
-                print(
-                    f"  Progress: scanned={total_scanned} updated={total_updated}"
-                )
+                print(f"  Progress: scanned={total_scanned} updated={total_updated}")
 
     finally:
         session.close()
 
-    print(f"\nBackfill complete: total_scanned={total_scanned} total_updated={total_updated}")
+    print(
+        f"\nBackfill complete: total_scanned={total_scanned} total_updated={total_updated}"
+    )
     return {"total_scanned": total_scanned, "total_updated": total_updated}
 
 

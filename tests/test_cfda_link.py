@@ -1,6 +1,5 @@
 """Tests for CFDA normalization and opportunity-to-award linking."""
 
-
 from grantflow.models import Opportunity, Award
 from grantflow.pipeline.cfda_link import normalize_cfda, link_opportunities_to_awards
 
@@ -8,6 +7,7 @@ from grantflow.pipeline.cfda_link import normalize_cfda, link_opportunities_to_a
 # ---------------------------------------------------------------------------
 # normalize_cfda unit tests (no DB required)
 # ---------------------------------------------------------------------------
+
 
 def test_normalize_cfda_standard():
     """Already-canonical input passes through unchanged."""
@@ -53,6 +53,7 @@ def test_normalize_cfda_two_digit_suffix():
 # ---------------------------------------------------------------------------
 # link_opportunities_to_awards integration tests (requires DB session)
 # ---------------------------------------------------------------------------
+
 
 def _make_opportunity(session, opp_id: str, cfda: str | None) -> Opportunity:
     opp = Opportunity(

@@ -115,14 +115,14 @@ AGENCY_NAME_MAP: dict[str, str] = {
 # ─── Date parsing formats (in priority order) ─────────────────────────────────
 
 _DATE_FORMATS = (
-    "%Y-%m-%d",   # ISO 8601 — most common, try first
-    "%m/%d/%Y",   # MM/DD/YYYY (Grants.gov XML)
-    "%Y%m%d",     # YYYYMMDD compact
-    "%m%d%Y",     # MMDDYYYY compact (Grants.gov)
-    "%b %d %Y",   # Jan 15 2024
-    "%B %d %Y",   # January 15 2024
+    "%Y-%m-%d",  # ISO 8601 — most common, try first
+    "%m/%d/%Y",  # MM/DD/YYYY (Grants.gov XML)
+    "%Y%m%d",  # YYYYMMDD compact
+    "%m%d%Y",  # MMDDYYYY compact (Grants.gov)
+    "%b %d %Y",  # Jan 15 2024
+    "%B %d %Y",  # January 15 2024
     "%Y-%m-%dT%H:%M:%S",  # ISO with time (SBIR)
-    "%m/%d/%y",   # MM/DD/YY two-digit year
+    "%m/%d/%y",  # MM/DD/YY two-digit year
 )
 
 

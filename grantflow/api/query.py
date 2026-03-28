@@ -4,6 +4,7 @@ Shared query builder for Opportunity filtering.
 Extracted from search_opportunities to eliminate duplication between
 the search and export endpoints.
 """
+
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
@@ -38,9 +39,7 @@ def build_opportunity_query(
         if _DB_URL.startswith("postgresql") or _DB_URL.startswith("postgres"):
             # PostgreSQL: use tsvector GIN index
             query = db.query(Opportunity).filter(
-                Opportunity.search_vector.op("@@")(
-                    func.to_tsquery("english", q)
-                )
+                Opportunity.search_vector.op("@@")(func.to_tsquery("english", q))
             )
         else:
             # SQLite fallback: LIKE search (no GIN index, dev/test only)

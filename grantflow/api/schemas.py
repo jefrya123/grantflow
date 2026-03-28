@@ -6,6 +6,7 @@ when internal ORM model fields change (stable contract per API-03).
 All ORM-backed models use ConfigDict(from_attributes=True) so that
 .model_validate(orm_obj) works directly on SQLAlchemy objects.
 """
+
 from __future__ import annotations
 
 from typing import Optional
@@ -16,6 +17,7 @@ from pydantic import BaseModel, ConfigDict
 # ---------------------------------------------------------------------------
 # Award
 # ---------------------------------------------------------------------------
+
 
 class AwardResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -34,6 +36,7 @@ class AwardResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # Opportunity (list / search results)
 # ---------------------------------------------------------------------------
+
 
 class OpportunityResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -72,6 +75,7 @@ class OpportunityResponse(BaseModel):
 # Opportunity detail (single record — includes awards)
 # ---------------------------------------------------------------------------
 
+
 class OpportunityDetailResponse(OpportunityResponse):
     awards: list[AwardResponse] = []
 
@@ -79,6 +83,7 @@ class OpportunityDetailResponse(OpportunityResponse):
 # ---------------------------------------------------------------------------
 # Paginated search response
 # ---------------------------------------------------------------------------
+
 
 class SearchResponse(BaseModel):
     results: list[OpportunityResponse]
@@ -92,6 +97,7 @@ class SearchResponse(BaseModel):
 # Key creation response (used by keys.py / Plan 01)
 # ---------------------------------------------------------------------------
 
+
 class KeyCreateResponse(BaseModel):
     key: str
     key_prefix: str
@@ -103,6 +109,7 @@ class KeyCreateResponse(BaseModel):
 # Agency response (API-08)
 # ---------------------------------------------------------------------------
 
+
 class AgencyResponse(BaseModel):
     code: Optional[str] = None
     name: Optional[str] = None
@@ -112,6 +119,7 @@ class AgencyResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # Stats response
 # ---------------------------------------------------------------------------
+
 
 class StatsResponse(BaseModel):
     total_opportunities: int

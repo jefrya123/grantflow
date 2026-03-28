@@ -15,10 +15,13 @@ PORT = int(os.getenv("GRANTFLOW_PORT", "8001"))
 
 GRANTS_GOV_XML_URL = "https://www.grants.gov/xml-extract"
 GRANTS_GOV_REST_API_BASE = os.getenv(
-    "GRANTS_GOV_REST_API_BASE",
-    "https://api.grants.gov/v1/api"
+    "GRANTS_GOV_REST_API_BASE", "https://api.grants.gov/v1/api"
 )
-GRANTS_GOV_USE_REST = os.getenv("GRANTS_GOV_USE_REST", "").lower() in ("1", "true", "yes")
+GRANTS_GOV_USE_REST = os.getenv("GRANTS_GOV_USE_REST", "").lower() in (
+    "1",
+    "true",
+    "yes",
+)
 USASPENDING_API_BASE = "https://api.usaspending.gov/api/v2"
 SBIR_AWARDS_CSV_URL = "https://data.www.sbir.gov/awarddatapublic/award_data.csv"
 SBIR_SOLICITATIONS_API = "https://api.www.sbir.gov/public/api/solicitations"

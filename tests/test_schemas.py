@@ -2,6 +2,7 @@
 Schema contract tests — field presence and types.
 Verifies that Pydantic response models enforce the stable API contract.
 """
+
 import datetime
 import hashlib
 
@@ -19,6 +20,7 @@ from grantflow.models import Opportunity, Award, ApiKey
 # ---------------------------------------------------------------------------
 # Helpers (used by linked-awards integration test)
 # ---------------------------------------------------------------------------
+
 
 def _hash(key: str) -> str:
     return hashlib.sha256(key.encode()).hexdigest()
@@ -89,6 +91,7 @@ AWARD_DICT = {
 # OpportunityResponse tests
 # ---------------------------------------------------------------------------
 
+
 def test_opportunity_response_from_dict():
     """OpportunityResponse can be instantiated from a dict with all expected keys."""
     opp = OpportunityResponse.model_validate(OPPORTUNITY_DICT)
@@ -110,7 +113,12 @@ def test_opportunity_response_required_fields_present():
 
 def test_opportunity_response_optional_fields_default_to_none():
     """Missing optional fields default to None — no KeyError."""
-    minimal = {"id": "x1", "source": "grants_gov", "source_id": "GG-X1", "title": "Minimal"}
+    minimal = {
+        "id": "x1",
+        "source": "grants_gov",
+        "source_id": "GG-X1",
+        "title": "Minimal",
+    }
     opp = OpportunityResponse.model_validate(minimal)
     assert opp.description is None
     assert opp.agency_code is None
@@ -124,12 +132,31 @@ def test_opportunity_response_preserves_exact_field_names():
     opp = OpportunityResponse(**OPPORTUNITY_DICT)
     serialized = opp.model_dump()
     expected_keys = {
-        "id", "source", "source_id", "title", "description", "agency_code",
-        "agency_name", "opportunity_number", "opportunity_status", "funding_instrument",
-        "category", "cfda_numbers", "eligible_applicants", "post_date", "close_date",
-        "last_updated", "award_floor", "award_ceiling", "estimated_total_funding",
-        "expected_number_of_awards", "cost_sharing_required", "contact_email",
-        "contact_text", "additional_info_url", "source_url",
+        "id",
+        "source",
+        "source_id",
+        "title",
+        "description",
+        "agency_code",
+        "agency_name",
+        "opportunity_number",
+        "opportunity_status",
+        "funding_instrument",
+        "category",
+        "cfda_numbers",
+        "eligible_applicants",
+        "post_date",
+        "close_date",
+        "last_updated",
+        "award_floor",
+        "award_ceiling",
+        "estimated_total_funding",
+        "expected_number_of_awards",
+        "cost_sharing_required",
+        "contact_email",
+        "contact_text",
+        "additional_info_url",
+        "source_url",
         "topic_tags",
         "canonical_id",
     }
@@ -139,6 +166,7 @@ def test_opportunity_response_preserves_exact_field_names():
 # ---------------------------------------------------------------------------
 # canonical_id integration test
 # ---------------------------------------------------------------------------
+
 
 def test_canonical_id_in_api_response(client, db_session):
     """GET /search response JSON includes canonical_id field (null or populated)."""
@@ -175,6 +203,7 @@ def test_canonical_id_in_api_response(client, db_session):
 # AwardResponse tests
 # ---------------------------------------------------------------------------
 
+
 def test_award_response_from_dict():
     """AwardResponse can be instantiated from a dict."""
     award = AwardResponse.model_validate(AWARD_DICT)
@@ -185,6 +214,7 @@ def test_award_response_from_dict():
 
 def test_award_response_from_attributes_enabled():
     """AwardResponse model_config enables from_attributes=True (ORM usage)."""
+
     # Simulate an ORM-like object with attributes
     class FakeAward:
         id = "awd-789"
@@ -215,6 +245,7 @@ def test_award_response_optional_fields_default_to_none():
 # OpportunityDetailResponse tests
 # ---------------------------------------------------------------------------
 
+
 def test_opportunity_detail_response_includes_awards():
     """OpportunityDetailResponse extends OpportunityResponse with awards list."""
     detail = OpportunityDetailResponse.model_validate(OPPORTUNITY_DICT)
@@ -234,6 +265,7 @@ def test_opportunity_detail_response_with_awards():
 # ---------------------------------------------------------------------------
 # SearchResponse tests
 # ---------------------------------------------------------------------------
+
 
 def test_search_response_serializes_correctly():
     """SearchResponse serializes to the correct JSON shape."""
@@ -265,6 +297,7 @@ def test_search_response_empty_results():
 # KeyCreateResponse tests
 # ---------------------------------------------------------------------------
 
+
 def test_key_create_response_fields():
     """KeyCreateResponse has key, key_prefix, tier, created_at fields."""
     resp = KeyCreateResponse(
@@ -282,6 +315,7 @@ def test_key_create_response_fields():
 # ---------------------------------------------------------------------------
 # StatsResponse tests
 # ---------------------------------------------------------------------------
+
 
 def test_stats_response_fields():
     """StatsResponse has all required stats fields."""
@@ -303,6 +337,7 @@ def test_stats_response_fields():
 # ---------------------------------------------------------------------------
 # Linked awards integration test (API-06)
 # ---------------------------------------------------------------------------
+
 
 def test_opportunity_detail_awards(client, db_session):
     """GET /api/v1/opportunities/{id} returns non-empty awards list with AwardResponse fields."""

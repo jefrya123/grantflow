@@ -28,7 +28,9 @@ class TestFts5Absence:
             text = py_file.read_text(encoding="utf-8")
             for pattern in _FTS5_PATTERNS:
                 if pattern in text:
-                    matches.append(f"{py_file.relative_to(GRANTFLOW_SRC.parent)}: '{pattern}'")
+                    matches.append(
+                        f"{py_file.relative_to(GRANTFLOW_SRC.parent)}: '{pattern}'"
+                    )
 
         assert matches == [], (
             "FTS5 virtual table references found in grantflow/ source:\n"

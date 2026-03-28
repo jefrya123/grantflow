@@ -18,6 +18,7 @@ from grantflow.normalizers import (
     normalize_eligibility_codes,
     normalize_agency_name,
 )
+
 # Note: award amount validation is not imported — SBIR records do not have
 # award_floor or award_ceiling fields (QUAL-06).
 from grantflow.pipeline.logging import bind_source_logger
@@ -32,14 +33,14 @@ MIN_AWARD_YEAR = datetime.now(timezone.utc).year - 3
 # _normalize_row() converts them to lowercase-underscore before this map is used.
 CSV_FIELD_MAP = {
     "company": "recipient_name",  # CSV: 'Company'
-    "award_title": "title",       # CSV: 'Award Title'
+    "award_title": "title",  # CSV: 'Award Title'
     "award_amount": "award_amount",  # CSV: 'Award Amount'
-    "agency": "agency_name",      # CSV: 'Agency'
-    "phase": "award_type",        # CSV: 'Phase'
+    "agency": "agency_name",  # CSV: 'Agency'
+    "phase": "award_type",  # CSV: 'Phase'
     "proposal_award_date": "award_date",  # CSV: 'Proposal Award Date'
-    "state": "place_state",       # CSV: 'State'
-    "city": "place_city",         # CSV: 'City'
-    "abstract": "description",    # CSV: 'Abstract'
+    "state": "place_state",  # CSV: 'State'
+    "city": "place_city",  # CSV: 'City'
+    "abstract": "description",  # CSV: 'Abstract'
 }
 
 
@@ -73,7 +74,9 @@ def _download_csv() -> Path:
             return filepath
 
     logger.info("Downloading SBIR awards CSV (this may take a while) ...")
-    with httpx.stream("GET", SBIR_AWARDS_CSV_URL, follow_redirects=True, timeout=600) as resp:
+    with httpx.stream(
+        "GET", SBIR_AWARDS_CSV_URL, follow_redirects=True, timeout=600
+    ) as resp:
         resp.raise_for_status()
         with open(filepath, "wb") as f:
             for chunk in resp.iter_bytes(chunk_size=1024 * 256):
@@ -154,7 +157,8 @@ def _ingest_awards(session, stats: dict) -> None:
                 "title": row.get("award_title", ""),
                 "description": row.get("abstract", ""),
                 "agency_name": normalize_agency_name(row.get("agency", "")),
-                "recipient_name": row.get("company", "") or row.get("firm", ""),  # CSV: 'Company' -> 'company'
+                "recipient_name": row.get("company", "")
+                or row.get("firm", ""),  # CSV: 'Company' -> 'company'
                 "award_amount": amount,
                 "award_date": normalize_date(proposal_date),
                 "place_state": row.get("state", ""),
@@ -179,7 +183,9 @@ def _ingest_awards(session, stats: dict) -> None:
             batch_count += 1
             if batch_count % 1000 == 0:
                 session.flush()
-                logger.info("SBIR awards: %d processed so far ...", stats["records_processed"])
+                logger.info(
+                    "SBIR awards: %d processed so far ...", stats["records_processed"]
+                )
 
     session.flush()
 
@@ -202,9 +208,11 @@ def _ingest_solicitations(session, stats: dict) -> None:
             break
         except (httpx.HTTPStatusError, httpx.RequestError) as e:
             last_exc = e
-            logger.warning("sbir_solicitations_fetch_retry", attempt=attempt + 1, error=str(e))
+            logger.warning(
+                "sbir_solicitations_fetch_retry", attempt=attempt + 1, error=str(e)
+            )
             if attempt < 2:
-                time.sleep(2 ** attempt)
+                time.sleep(2**attempt)
     else:
         logger.error("sbir_solicitations_fetch_failed", error=str(last_exc))
         return
@@ -233,11 +241,15 @@ def _ingest_solicitations(session, stats: dict) -> None:
         sol_id = str(sol_id).strip()
         opp_id = f"sbir_{sol_id}"
 
-        close_date = normalize_date(item.get("close_date") or item.get("application_due_date"))
+        close_date = normalize_date(
+            item.get("close_date") or item.get("application_due_date")
+        )
         open_date = normalize_date(item.get("open_date") or item.get("post_date"))
 
         today = datetime.now(timezone.utc).date().isoformat()
-        opportunity_status = "closed" if (close_date and close_date < today) else "posted"
+        opportunity_status = (
+            "closed" if (close_date and close_date < today) else "posted"
+        )
 
         raw_agency = item.get("agency") or ""
         raw_eligible = item.get("eligible_applicants") or item.get("eligibility", "")

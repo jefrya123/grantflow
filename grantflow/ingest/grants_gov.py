@@ -34,9 +34,9 @@ logger = bind_source_logger("grants_gov")
 # ─── REST API constants ────────────────────────────────────────────────────────
 
 SEARCH2_ENDPOINT = f"{GRANTS_GOV_REST_API_BASE}/search2"
-REST_PAGE_SIZE = 25        # API maximum per page
-MIN_REST_THRESHOLD = 100   # fewer records than this = treat REST as unreliable
-MAX_REST_PAGES = 200       # 200 × 25 = 5,000 record cap; prevent infinite pagination
+REST_PAGE_SIZE = 25  # API maximum per page
+MIN_REST_THRESHOLD = 100  # fewer records than this = treat REST as unreliable
+MAX_REST_PAGES = 200  # 200 × 25 = 5,000 record cap; prevent infinite pagination
 
 # Field mapping for REST oppHit → Opportunity columns
 REST_FIELD_MAP = {
@@ -161,7 +161,9 @@ def _ingest_via_rest(session) -> dict | None:
             return None
 
         if resp.status_code >= 400:
-            logger.warning("rest_client_error", status=resp.status_code, body=resp.text[:200])
+            logger.warning(
+                "rest_client_error", status=resp.status_code, body=resp.text[:200]
+            )
             return None
 
         try:
@@ -216,7 +218,9 @@ def _ingest_via_rest(session) -> dict | None:
             # Composite id — same format as XML path for deduplication
             record["id"] = f"grants_gov_{raw_id}"
             record["source"] = "grants_gov"
-            record["source_url"] = f"https://www.grants.gov/search-results-detail/{raw_id}"
+            record["source_url"] = (
+                f"https://www.grants.gov/search-results-detail/{raw_id}"
+            )
             record["updated_at"] = now_iso
             record["raw_data"] = json.dumps({k: opp.get(k) for k in opp})
 
@@ -269,7 +273,9 @@ def _find_extract_url() -> str:
         for version in ("v2", "v1", ""):
             suffix = version if version else ""
             filename = f"GrantsDBExtract{date_str}{suffix}.zip"
-            url = f"https://prod-grants-gov-chatbot.s3.amazonaws.com/extracts/{filename}"
+            url = (
+                f"https://prod-grants-gov-chatbot.s3.amazonaws.com/extracts/{filename}"
+            )
             try:
                 resp = httpx.head(url, follow_redirects=True, timeout=10)
                 if resp.status_code == 200:
@@ -421,7 +427,9 @@ def _ingest_via_xml(session) -> dict | None:
             opp_id = f"grants_gov_{source_id}"
             record["id"] = opp_id
             record["source"] = "grants_gov"
-            record["source_url"] = f"https://www.grants.gov/search-results-detail/{source_id}"
+            record["source_url"] = (
+                f"https://www.grants.gov/search-results-detail/{source_id}"
+            )
             record["updated_at"] = now_iso
 
             batch.append(record)
@@ -505,7 +513,9 @@ def ingest_grants_gov() -> dict:
                 stats.update(rest_stats)
             else:
                 # REST unavailable or returned too few records — fall back to XML
-                logger.info("rest_fallback", reason="REST returned None, using XML extract")
+                logger.info(
+                    "rest_fallback", reason="REST returned None, using XML extract"
+                )
                 xml_stats = _ingest_via_xml(session)
                 if xml_stats is not None:
                     stats.update(xml_stats)

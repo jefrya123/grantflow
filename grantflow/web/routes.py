@@ -16,9 +16,13 @@ templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 @router.get("/")
 def index(request: Request, db: Session = Depends(get_db)):
     total_opps = db.query(func.count(Opportunity.id)).scalar() or 0
-    return templates.TemplateResponse(request, "landing.html", context={
-        "total_opps": total_opps,
-    })
+    return templates.TemplateResponse(
+        request,
+        "landing.html",
+        context={
+            "total_opps": total_opps,
+        },
+    )
 
 
 @router.get("/pricing")
@@ -29,9 +33,13 @@ def pricing_page(request: Request):
 @router.get("/playground")
 def playground_page(request: Request):
     demo_api_key = os.getenv("GRANTFLOW_DEMO_API_KEY", "")
-    return templates.TemplateResponse(request, "playground.html", context={
-        "demo_api_key": demo_api_key,
-    })
+    return templates.TemplateResponse(
+        request,
+        "playground.html",
+        context={
+            "demo_api_key": demo_api_key,
+        },
+    )
 
 
 @router.get("/search")
@@ -58,9 +66,7 @@ def search_page(
         if _DB_URL.startswith("postgresql") or _DB_URL.startswith("postgres"):
             # PostgreSQL: use tsvector GIN index
             query = db.query(Opportunity).filter(
-                Opportunity.search_vector.op("@@")(
-                    func.to_tsquery("english", q)
-                )
+                Opportunity.search_vector.op("@@")(func.to_tsquery("english", q))
             )
         else:
             # SQLite fallback: LIKE search (no GIN index, dev-only)
@@ -112,20 +118,38 @@ def search_page(
     results = query.offset(offset).limit(per_page).all()
 
     today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    closing_soon_str = (datetime.now(timezone.utc) + timedelta(days=30)).strftime("%Y-%m-%d")
+    closing_soon_str = (datetime.now(timezone.utc) + timedelta(days=30)).strftime(
+        "%Y-%m-%d"
+    )
 
-    return templates.TemplateResponse(request, "search.html", context={
-        "results": results,
-        "total": total,
-        "page": page,
-        "per_page": per_page,
-        "pages": pages,
-        "filters": _build_filters(q, status, source, agency, category,
-                                  eligible, min_award, max_award,
-                                  closing_after, closing_before, sort, order, topic),
-        "now_date": today_str,
-        "closing_soon_date": closing_soon_str,
-    })
+    return templates.TemplateResponse(
+        request,
+        "search.html",
+        context={
+            "results": results,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "pages": pages,
+            "filters": _build_filters(
+                q,
+                status,
+                source,
+                agency,
+                category,
+                eligible,
+                min_award,
+                max_award,
+                closing_after,
+                closing_before,
+                sort,
+                order,
+                topic,
+            ),
+            "now_date": today_str,
+            "closing_soon_date": closing_soon_str,
+        },
+    )
 
 
 @router.get("/opportunity/{opportunity_id}")
@@ -140,23 +164,43 @@ def detail_page(
 
     awards = []
     if opp.opportunity_number:
-        awards = db.query(Award).filter(
-            Award.opportunity_number == opp.opportunity_number
-        ).all()
+        awards = (
+            db.query(Award)
+            .filter(Award.opportunity_number == opp.opportunity_number)
+            .all()
+        )
     if not awards and opp.cfda_numbers:
-        awards = db.query(Award).filter(
-            Award.cfda_numbers.ilike(f"%{opp.cfda_numbers}%")
-        ).all()
+        awards = (
+            db.query(Award)
+            .filter(Award.cfda_numbers.ilike(f"%{opp.cfda_numbers}%"))
+            .all()
+        )
 
-    return templates.TemplateResponse(request, "detail.html", context={
-        "opp": opp,
-        "awards": awards,
-    })
+    return templates.TemplateResponse(
+        request,
+        "detail.html",
+        context={
+            "opp": opp,
+            "awards": awards,
+        },
+    )
 
 
-def _build_filters(q, status, source, agency, category, eligible,
-                   min_award, max_award, closing_after, closing_before,
-                   sort, order, topic=None):
+def _build_filters(
+    q,
+    status,
+    source,
+    agency,
+    category,
+    eligible,
+    min_award,
+    max_award,
+    closing_after,
+    closing_before,
+    sort,
+    order,
+    topic=None,
+):
     return {
         "q": q or "",
         "status": status or "",
@@ -197,24 +241,35 @@ def agency_page(
     total = query.count()
     pages = max(1, (total + per_page - 1) // per_page)
     offset = (page - 1) * per_page
-    results = query.order_by(Opportunity.post_date.desc().nullslast()).offset(offset).limit(per_page).all()
+    results = (
+        query.order_by(Opportunity.post_date.desc().nullslast())
+        .offset(offset)
+        .limit(per_page)
+        .all()
+    )
 
-    return templates.TemplateResponse(request, "agency.html", context={
-        "slug": slug,
-        "agency_name": agency_name,
-        "agency_code": agency_code,
-        "results": results,
-        "total": total,
-        "page": page,
-        "per_page": per_page,
-        "pages": pages,
-    })
+    return templates.TemplateResponse(
+        request,
+        "agency.html",
+        context={
+            "slug": slug,
+            "agency_name": agency_name,
+            "agency_code": agency_code,
+            "results": results,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "pages": pages,
+        },
+    )
 
 
 @router.get("/stats")
 def stats_page(request: Request, db: Session = Depends(get_db)):
     today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    closing_soon_str = (datetime.now(timezone.utc) + timedelta(days=30)).strftime("%Y-%m-%d")
+    closing_soon_str = (datetime.now(timezone.utc) + timedelta(days=30)).strftime(
+        "%Y-%m-%d"
+    )
 
     total = db.query(Opportunity).count()
 
@@ -223,7 +278,10 @@ def stats_page(request: Request, db: Session = Depends(get_db)):
         .group_by(Opportunity.source)
         .all()
     )
-    by_source = [{"source": row.source or "unknown", "count": row.count} for row in by_source_rows]
+    by_source = [
+        {"source": row.source or "unknown", "count": row.count}
+        for row in by_source_rows
+    ]
 
     closing_soon = (
         db.query(Opportunity)
@@ -242,11 +300,17 @@ def stats_page(request: Request, db: Session = Depends(get_db)):
         .limit(10)
         .all()
     )
-    top_agencies = [{"agency_name": row.agency_name, "count": row.count} for row in top_agency_rows]
+    top_agencies = [
+        {"agency_name": row.agency_name, "count": row.count} for row in top_agency_rows
+    ]
 
-    return templates.TemplateResponse(request, "stats.html", context={
-        "total": total,
-        "by_source": by_source,
-        "closing_soon": closing_soon,
-        "top_agencies": top_agencies,
-    })
+    return templates.TemplateResponse(
+        request,
+        "stats.html",
+        context={
+            "total": total,
+            "by_source": by_source,
+            "closing_soon": closing_soon,
+            "top_agencies": top_agencies,
+        },
+    )

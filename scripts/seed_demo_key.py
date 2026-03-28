@@ -6,6 +6,7 @@ Prints the plaintext key on first creation; prints existing prefix on subsequent
 Usage:
     uv run python scripts/seed_demo_key.py
 """
+
 import hashlib
 import secrets
 from datetime import datetime, timezone
@@ -26,9 +27,9 @@ def seed_demo_key() -> str | None:
         # Check for existing demo key by prefix that starts with "gf_demo" pattern.
         # We use key_prefix stored in the DB to identify it, combined with a fixed name convention.
         # Since ApiKey has no 'name' column, we use key_prefix starting with "gf_demo" as the marker.
-        existing = session.query(ApiKey).filter(
-            ApiKey.key_prefix == "gf_demo_p"
-        ).first()
+        existing = (
+            session.query(ApiKey).filter(ApiKey.key_prefix == "gf_demo_p").first()
+        )
 
         if existing:
             print("Demo key already exists.")
@@ -36,7 +37,9 @@ def seed_demo_key() -> str | None:
             print(f"  tier:   {existing.tier}")
             print(f"  active: {existing.is_active}")
             print()
-            print("Set GRANTFLOW_DEMO_API_KEY to the full plaintext key (printed on first creation).")
+            print(
+                "Set GRANTFLOW_DEMO_API_KEY to the full plaintext key (printed on first creation)."
+            )
             return None
 
         # Create a new demo key with a recognizable prefix

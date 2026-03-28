@@ -18,6 +18,7 @@ def _get_scrapers():
     from grantflow.ingest.state.illinois import IllinoisScraper  # noqa: PLC0415
     from grantflow.ingest.state.texas import TexasScraper  # noqa: PLC0415
     from grantflow.ingest.state.colorado import ColoradoScraper  # noqa: PLC0415
+
     return [
         CaliforniaScraper(),
         NorthCarolinaScraper(),
@@ -62,6 +63,7 @@ def run_state_ingestion() -> dict:
 
     # Assign canonical IDs for deduplication
     from grantflow.dedup import assign_canonical_ids  # noqa: PLC0415
+
     session = SessionLocal()
     try:
         dedup_stats = assign_canonical_ids(session)
@@ -82,6 +84,7 @@ def run_state_ingestion() -> dict:
 def main():
     """CLI entry point for running state ingestion."""
     import os
+
     configure_structlog(env=os.getenv("GRANTFLOW_ENV", "development"))
     run_state_ingestion()
 

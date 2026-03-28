@@ -1,4 +1,5 @@
 """Tests for analytics middleware — api_events recording."""
+
 from fastapi.testclient import TestClient
 
 from grantflow.models import ApiEvent
@@ -10,9 +11,11 @@ def test_event_recorded(client: TestClient):
     # Count before the request using the same SessionLocal the middleware writes to
     pre_session = SessionLocal()
     try:
-        count_before = pre_session.query(ApiEvent).filter(
-            ApiEvent.path == "/api/v1/opportunities/search"
-        ).count()
+        count_before = (
+            pre_session.query(ApiEvent)
+            .filter(ApiEvent.path == "/api/v1/opportunities/search")
+            .count()
+        )
     finally:
         pre_session.close()
 
@@ -22,11 +25,15 @@ def test_event_recorded(client: TestClient):
     # Background tasks run synchronously in TestClient, so the event should be committed.
     post_session = SessionLocal()
     try:
-        events = post_session.query(ApiEvent).filter(
-            ApiEvent.path == "/api/v1/opportunities/search"
-        ).all()
+        events = (
+            post_session.query(ApiEvent)
+            .filter(ApiEvent.path == "/api/v1/opportunities/search")
+            .all()
+        )
         count_after = len(events)
-        assert count_after > count_before, "Expected a new api_events row for the request"
+        assert count_after > count_before, (
+            "Expected a new api_events row for the request"
+        )
         event = events[-1]
         assert event.path == "/api/v1/opportunities/search"
         assert event.method == "GET"

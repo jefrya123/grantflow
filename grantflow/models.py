@@ -14,6 +14,7 @@ class TSVECTORType(TypeDecorator):
     def load_dialect_impl(self, dialect: Dialect):
         if dialect.name == "postgresql":
             from sqlalchemy.dialects.postgresql import TSVECTOR
+
             return dialect.type_descriptor(TSVECTOR())
         return dialect.type_descriptor(Text())
 
@@ -118,7 +119,9 @@ class PipelineRun(Base):
     __tablename__ = "pipeline_runs"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    source = Column(Text, nullable=False)  # e.g. "grants_gov", "usaspending", "sbir", "sam_gov"
+    source = Column(
+        Text, nullable=False
+    )  # e.g. "grants_gov", "usaspending", "sbir", "sam_gov"
     run_type = Column(Text, default="full")  # "full" | "incremental"
     status = Column(Text, nullable=False)  # "running" | "success" | "error" | "partial"
     started_at = Column(Text, nullable=False)  # ISO 8601 UTC
@@ -135,7 +138,9 @@ class ApiKey(Base):
     __tablename__ = "api_keys"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    key_hash = Column(Text, nullable=False, unique=True, index=True)  # SHA-256(plaintext key)
+    key_hash = Column(
+        Text, nullable=False, unique=True, index=True
+    )  # SHA-256(plaintext key)
     key_prefix = Column(Text, nullable=False)  # first 8 chars of plaintext for display
     tier = Column(Text, nullable=False, default="free")  # "free" | "starter" | "growth"
     is_active = Column(Boolean, nullable=False, default=True, index=True)
@@ -151,7 +156,9 @@ class ApiEvent(Base):
     ts = Column(Text, nullable=False, index=True)  # ISO 8601 UTC timestamp
     path = Column(Text, nullable=False)
     method = Column(Text, nullable=False)
-    api_key_prefix = Column(Text, nullable=True, index=True)  # first 8 chars of X-API-Key
+    api_key_prefix = Column(
+        Text, nullable=True, index=True
+    )  # first 8 chars of X-API-Key
     query_string = Column(Text, nullable=True)
     status_code = Column(Integer, nullable=False)
     duration_ms = Column(Float, nullable=False)

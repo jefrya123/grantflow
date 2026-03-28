@@ -1,4 +1,5 @@
 """Tests for POST /api/v1/keys endpoint."""
+
 import hashlib
 
 

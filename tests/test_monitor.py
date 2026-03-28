@@ -4,11 +4,16 @@ from datetime import datetime, timezone, timedelta
 
 from grantflow.models import PipelineRun
 from grantflow.pipeline.monitor import (
-    get_freshness_report, check_staleness, STALE_THRESHOLD_HOURS, KNOWN_SOURCES
+    get_freshness_report,
+    check_staleness,
+    STALE_THRESHOLD_HOURS,
+    KNOWN_SOURCES,
 )
 
 
-def _make_pipeline_run(source: str, status: str, completed_at: str, session) -> PipelineRun:
+def _make_pipeline_run(
+    source: str, status: str, completed_at: str, session
+) -> PipelineRun:
     run = PipelineRun(
         source=source,
         status=status,

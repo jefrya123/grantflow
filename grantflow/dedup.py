@@ -54,12 +54,14 @@ def find_duplicate_groups(session: Session) -> list[dict]:
     rows = session.execute(sql)
     results = []
     for row in rows:
-        results.append({
-            "canonical_id": row.canonical_id,
-            "count": row.count,
-            "ids": list(row.ids) if row.ids else [],
-            "sources": list(row.sources) if row.sources else [],
-        })
+        results.append(
+            {
+                "canonical_id": row.canonical_id,
+                "count": row.count,
+                "ids": list(row.ids) if row.ids else [],
+                "sources": list(row.sources) if row.sources else [],
+            }
+        )
     return results
 
 
@@ -76,9 +78,12 @@ def assign_canonical_ids(session: Session) -> dict:
     batch_size = 1000
 
     # Count already-set records for stats (raw SQL to avoid ORM schema issues)
-    already_set = session.execute(
-        text("SELECT count(*) FROM opportunities WHERE canonical_id IS NOT NULL")
-    ).scalar() or 0
+    already_set = (
+        session.execute(
+            text("SELECT count(*) FROM opportunities WHERE canonical_id IS NOT NULL")
+        ).scalar()
+        or 0
+    )
 
     # Fetch only the columns needed for canonical ID generation
     null_rows = session.execute(
@@ -92,18 +97,22 @@ def assign_canonical_ids(session: Session) -> dict:
     batch_updates: list[dict] = []
 
     for row in null_rows:
-        canon_id = make_canonical_id({
-            "opportunity_number": row.opportunity_number,
-            "cfda_numbers": row.cfda_numbers,
-            "agency_code": row.agency_code,
-            "close_date": row.close_date,
-        })
+        canon_id = make_canonical_id(
+            {
+                "opportunity_number": row.opportunity_number,
+                "cfda_numbers": row.cfda_numbers,
+                "agency_code": row.agency_code,
+                "close_date": row.close_date,
+            }
+        )
         batch_updates.append({"row_id": row.id, "canon_id": canon_id})
         assigned += 1
 
         if len(batch_updates) >= batch_size:
             session.execute(
-                text("UPDATE opportunities SET canonical_id = :canon_id WHERE id = :row_id"),
+                text(
+                    "UPDATE opportunities SET canonical_id = :canon_id WHERE id = :row_id"
+                ),
                 batch_updates,
             )
             session.commit()
@@ -111,7 +120,9 @@ def assign_canonical_ids(session: Session) -> dict:
 
     if batch_updates:
         session.execute(
-            text("UPDATE opportunities SET canonical_id = :canon_id WHERE id = :row_id"),
+            text(
+                "UPDATE opportunities SET canonical_id = :canon_id WHERE id = :row_id"
+            ),
             batch_updates,
         )
         session.commit()

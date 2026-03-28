@@ -60,7 +60,9 @@ class NewYorkScraper(BaseStateScraper):
             return records
 
         except httpx.HTTPStatusError as exc:
-            log.error("socrata_http_error", status=exc.response.status_code, error=str(exc))
+            log.error(
+                "socrata_http_error", status=exc.response.status_code, error=str(exc)
+            )
             raise
         except httpx.RequestError as exc:
             log.error("socrata_request_error", error=str(exc))
@@ -101,8 +103,10 @@ class NewYorkScraper(BaseStateScraper):
         activity = (raw.get("activity") or raw.get("project_type") or "").strip()
         if activity:
             description_parts.append(f"Activity: {activity}")
-        description = ". ".join(description_parts) if description_parts else (
-            raw.get("description") or raw.get("program_description")
+        description = (
+            ". ".join(description_parts)
+            if description_parts
+            else (raw.get("description") or raw.get("program_description"))
         )
 
         raw_agency = (
@@ -115,7 +119,9 @@ class NewYorkScraper(BaseStateScraper):
         agency_name = normalize_agency_name(raw_agency)
         agency_slug = ""
         if agency_name:
-            agency_slug = re.sub(r"[^a-z0-9]+", "_", agency_name.lower()).strip("_")[:50]
+            agency_slug = re.sub(r"[^a-z0-9]+", "_", agency_name.lower()).strip("_")[
+                :50
+            ]
 
         source_id = str(
             raw.get("project_number")
@@ -139,11 +145,12 @@ class NewYorkScraper(BaseStateScraper):
                 or raw.get("close_date")
             ),
             "post_date": normalize_date(
-                raw.get("open_date")
-                or raw.get("posted_date")
-                or raw.get("start_date")
+                raw.get("open_date") or raw.get("posted_date") or raw.get("start_date")
             ),
-            "source_url": raw.get("url") or raw.get("link") or raw.get("source_url") or "",
+            "source_url": raw.get("url")
+            or raw.get("link")
+            or raw.get("source_url")
+            or "",
             "category": "State Grant",
             "opportunity_status": "posted",
             "raw_data": json.dumps(raw, default=str),

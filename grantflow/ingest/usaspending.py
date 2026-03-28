@@ -135,8 +135,12 @@ def ingest_usaspending() -> dict:
         )
         if last_run and last_run.completed_at:
             try:
-                last_completed = datetime.fromisoformat(last_run.completed_at.replace("Z", "+00:00"))
-                age_hours = (datetime.now(timezone.utc) - last_completed).total_seconds() / 3600
+                last_completed = datetime.fromisoformat(
+                    last_run.completed_at.replace("Z", "+00:00")
+                )
+                age_hours = (
+                    datetime.now(timezone.utc) - last_completed
+                ).total_seconds() / 3600
                 if age_hours < 36:
                     # Subtract 2 days buffer for late-arriving data
                     anchor = last_completed - timedelta(days=2)
@@ -213,11 +217,13 @@ def ingest_usaspending() -> dict:
             code = re.sub(r"[^a-z0-9]+", "_", agency_name.lower()).strip("_")[:50]
             existing = session.get(Agency, code)
             if not existing:
-                session.add(Agency(
-                    code=code,
-                    name=agency_name,
-                    parent_name=sub_agency if sub_agency != agency_name else None,
-                ))
+                session.add(
+                    Agency(
+                        code=code,
+                        name=agency_name,
+                        parent_name=sub_agency if sub_agency != agency_name else None,
+                    )
+                )
 
         session.commit()
         stats["status"] = "success"

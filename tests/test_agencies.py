@@ -6,6 +6,7 @@ Covers:
   - GET /api/v1/agencies returns list with code, name, opportunity_count
   - Response objects conform to AgencyResponse schema
 """
+
 import datetime
 import hashlib
 
@@ -19,6 +20,7 @@ from grantflow.models import ApiKey, Opportunity
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _hash(key: str) -> str:
     return hashlib.sha256(key.encode()).hexdigest()
@@ -40,7 +42,9 @@ def make_key(db, tier: str = "free", key_suffix: str = "") -> str:
     return plaintext
 
 
-def make_opportunity(db, agency_code: str, agency_name: str, idx: int = 0) -> Opportunity:
+def make_opportunity(
+    db, agency_code: str, agency_name: str, idx: int = 0
+) -> Opportunity:
     opp = Opportunity(
         id=f"opp-agency-{agency_code}-{idx}",
         source="agencies_test",
@@ -58,6 +62,7 @@ def make_opportunity(db, agency_code: str, agency_name: str, idx: int = 0) -> Op
 # ---------------------------------------------------------------------------
 # Schema unit tests
 # ---------------------------------------------------------------------------
+
 
 def test_agency_schema_valid():
     """AgencyResponse validates correctly with all fields."""
@@ -88,6 +93,7 @@ def test_agency_schema_opportunity_count_required():
 # ---------------------------------------------------------------------------
 # Endpoint integration tests
 # ---------------------------------------------------------------------------
+
 
 def test_agencies_endpoint_returns_list(client, db_session):
     """GET /api/v1/agencies with valid key returns a non-empty JSON list."""

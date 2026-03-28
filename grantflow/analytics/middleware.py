@@ -1,4 +1,5 @@
 """Non-blocking analytics event recording middleware."""
+
 import time
 from datetime import datetime, timezone
 
@@ -56,7 +57,9 @@ def setup_analytics_middleware(app: FastAPI) -> None:
         duration_ms = (time.monotonic() - start) * 1000.0
 
         ts = datetime.now(timezone.utc).isoformat()
-        raw_key = request.headers.get("x-api-key") or request.headers.get("X-API-Key", "")
+        raw_key = request.headers.get("x-api-key") or request.headers.get(
+            "X-API-Key", ""
+        )
         api_key_prefix = raw_key[:8] if raw_key else None
         query_string = str(request.url.query) or None
 
@@ -77,6 +80,7 @@ def setup_analytics_middleware(app: FastAPI) -> None:
         else:
             # Chain: run existing tasks then our new one
             from starlette.background import BackgroundTasks as StarletteBackgroundTasks
+
             tasks = StarletteBackgroundTasks()
             tasks.add_task(existing_bg)
             tasks.add_task(

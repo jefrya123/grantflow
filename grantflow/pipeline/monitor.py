@@ -34,9 +34,15 @@ STALE_THRESHOLDS: dict[str, int] = {
 }
 
 KNOWN_SOURCES = [
-    "grants_gov", "usaspending", "sbir", "sam_gov",
-    "state_california", "state_new_york", "state_illinois",
-    "state_texas", "state_colorado",
+    "grants_gov",
+    "usaspending",
+    "sbir",
+    "sam_gov",
+    "state_california",
+    "state_new_york",
+    "state_illinois",
+    "state_texas",
+    "state_colorado",
 ]
 
 # Sources that should be checked for zero-record runs
@@ -60,12 +66,14 @@ def get_freshness_report(session: Session | None = None) -> dict:
         now = datetime.now(timezone.utc)
 
         for source in KNOWN_SOURCES:
-            last_success_ts = session.query(
-                func.max(PipelineRun.completed_at)
-            ).filter(
-                PipelineRun.source == source,
-                PipelineRun.status == "success",
-            ).scalar()
+            last_success_ts = (
+                session.query(func.max(PipelineRun.completed_at))
+                .filter(
+                    PipelineRun.source == source,
+                    PipelineRun.status == "success",
+                )
+                .scalar()
+            )
 
             if last_success_ts is None:
                 report[source] = {
@@ -77,7 +85,9 @@ def get_freshness_report(session: Session | None = None) -> dict:
 
             # Parse ISO 8601 — handle both naive and aware timestamps
             try:
-                completed = datetime.fromisoformat(last_success_ts.replace("Z", "+00:00"))
+                completed = datetime.fromisoformat(
+                    last_success_ts.replace("Z", "+00:00")
+                )
                 if completed.tzinfo is None:
                     completed = completed.replace(tzinfo=timezone.utc)
             except (ValueError, AttributeError):
@@ -109,7 +119,9 @@ def get_freshness_report(session: Session | None = None) -> dict:
             session.close()
 
 
-def _send_alert_email(source: str, hours_since: float, last_success: str | None) -> None:
+def _send_alert_email(
+    source: str, hours_since: float, last_success: str | None
+) -> None:
     """Send a plain-text stale-data alert email. Failures are logged, never raised."""
     alert_email = os.environ.get("GRANTFLOW_ALERT_EMAIL")
     if not alert_email:
@@ -163,7 +175,9 @@ def _send_zero_records_alert(source: str) -> None:
     try:
         with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as smtp:
             smtp.sendmail("grantflow@localhost", [alert_email], msg.as_string())
-        logger.info("zero_records_alert_email_sent", source=source, recipient=alert_email)
+        logger.info(
+            "zero_records_alert_email_sent", source=source, recipient=alert_email
+        )
     except Exception as exc:
         logger.error("zero_records_alert_email_failed", source=source, error=str(exc))
 

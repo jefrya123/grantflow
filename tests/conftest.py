@@ -25,7 +25,9 @@ def test_engine():
 @pytest.fixture(scope="function")
 def db_session(test_engine):
     """Each test gets a clean session; rolls back after the test."""
-    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
+    TestingSessionLocal = sessionmaker(
+        autocommit=False, autoflush=False, bind=test_engine
+    )
     session = TestingSessionLocal()
     try:
         yield session
@@ -37,6 +39,7 @@ def db_session(test_engine):
 @pytest.fixture(scope="function")
 def client(db_session):
     """Test client with overridden DB dependency."""
+
     def override_get_db():
         try:
             yield db_session

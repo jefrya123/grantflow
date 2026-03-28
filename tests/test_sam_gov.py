@@ -9,7 +9,9 @@ def test_ingest_sam_gov_skips_without_api_key(monkeypatch):
     """When SAM_GOV_API_KEY is not set, ingest_sam_gov() returns status='skipped'."""
     monkeypatch.setattr(sam_gov_module, "SAM_GOV_API_KEY", "")
     result = ingest_sam_gov()
-    assert result["status"] == "skipped", f"Expected 'skipped', got '{result['status']}'"
+    assert result["status"] == "skipped", (
+        f"Expected 'skipped', got '{result['status']}'"
+    )
     # Should not have processed any records
     assert result["records_processed"] == 0
     assert result["records_added"] == 0
@@ -19,6 +21,7 @@ def test_ingest_sam_gov_skips_without_api_key(monkeypatch):
 # ---------------------------------------------------------------------------
 # normalize_date tests (migrated from _parse_sam_date)
 # ---------------------------------------------------------------------------
+
 
 def test_normalize_date_iso_with_offset():
     """normalize_date handles ISO 8601 with timezone offset."""
@@ -51,6 +54,7 @@ def test_normalize_date_empty():
 # ---------------------------------------------------------------------------
 # Normalization wire tests (verify sam_gov.py uses shared normalizers)
 # ---------------------------------------------------------------------------
+
 
 def test_sam_gov_normalizes_eligibility():
     """sam_gov.py imports and uses normalize_eligibility_codes from normalizers."""
