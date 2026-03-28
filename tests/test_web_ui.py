@@ -5,7 +5,6 @@ WEB-02: Detail page shows historical awards table
 WEB-03: Closing-soon badge on opportunities closing within 30 days
 WEB-04: /stats page with totals, by-source, top agencies, closing-soon count
 """
-import pytest
 from datetime import date, timedelta
 
 from grantflow.models import Opportunity, Award
@@ -174,6 +173,65 @@ def test_stats_page_top_agencies(client, db_session):
     html = response.text
     # Agency section header or the agency name itself should appear
     assert "Agency" in html or "NASA" in html
+
+
+# ---------------------------------------------------------------------------
+# WEB-05: Detail page SEO structured data
+# ---------------------------------------------------------------------------
+
+def test_detail_seo_jsonld(client, db_session):
+    """Detail page includes JSON-LD structured data with GovernmentService type."""
+    _make_opp(db_session, id="seo-opp-1", title="SEO Test Grant",
+              description="A grant for testing SEO structured data",
+              agency_name="Dept of Energy", agency_code="DOE",
+              opportunity_number="SEO-001")
+
+    response = client.get("/opportunity/seo-opp-1")
+    assert response.status_code == 200
+    html = response.text
+    assert 'application/ld+json' in html
+    assert 'GovernmentService' in html
+    assert 'SEO Test Grant' in html
+
+
+def test_detail_seo_og_tags(client, db_session):
+    """Detail page includes Open Graph meta tags."""
+    _make_opp(db_session, id="seo-opp-2", title="OG Test Grant",
+              description="Grant for OG tag testing",
+              opportunity_number="SEO-002")
+
+    response = client.get("/opportunity/seo-opp-2")
+    assert response.status_code == 200
+    html = response.text
+    assert 'og:title' in html
+    assert 'og:description' in html
+    assert 'og:type' in html
+    assert 'OG Test Grant' in html
+
+
+def test_detail_seo_twitter_card(client, db_session):
+    """Detail page includes Twitter Card meta tags."""
+    _make_opp(db_session, id="seo-opp-3", title="Twitter Test Grant",
+              opportunity_number="SEO-003")
+
+    response = client.get("/opportunity/seo-opp-3")
+    assert response.status_code == 200
+    html = response.text
+    assert 'twitter:card' in html
+    assert 'twitter:title' in html
+
+
+def test_detail_seo_includes_agency(client, db_session):
+    """JSON-LD includes agency as serviceOperator when present."""
+    _make_opp(db_session, id="seo-opp-4", title="Agency SEO Grant",
+              agency_name="National Science Foundation",
+              opportunity_number="SEO-004")
+
+    response = client.get("/opportunity/seo-opp-4")
+    assert response.status_code == 200
+    html = response.text
+    assert 'National Science Foundation' in html
+    assert 'GovernmentOrganization' in html
 
 
 # ---------------------------------------------------------------------------
