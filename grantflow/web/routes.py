@@ -1,11 +1,9 @@
 import os
 from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, Query, Request, HTTPException
-from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from pathlib import Path
 
 from grantflow.models import Opportunity, Award
 from grantflow.database import get_db
@@ -174,6 +172,43 @@ def _build_filters(q, status, source, agency, category, eligible,
         "order": order,
         "topic": topic or "",
     }
+
+
+@router.get("/agency/{slug}")
+def agency_page(
+    request: Request,
+    slug: str,
+    page: int = Query(default=1, ge=1),
+    per_page: int = Query(default=20, ge=1, le=100),
+    db: Session = Depends(get_db),
+):
+    # Match by agency_code (case-insensitive) or fall back to agency_name slug
+    query = db.query(Opportunity).filter(
+        func.lower(Opportunity.agency_code) == slug.lower()
+    )
+    # Determine display name and code from first result
+    sample = query.first()
+    if not sample:
+        raise HTTPException(status_code=404, detail="Agency not found")
+
+    agency_name = sample.agency_name or sample.agency_code or slug.upper()
+    agency_code = sample.agency_code
+
+    total = query.count()
+    pages = max(1, (total + per_page - 1) // per_page)
+    offset = (page - 1) * per_page
+    results = query.order_by(Opportunity.post_date.desc().nullslast()).offset(offset).limit(per_page).all()
+
+    return templates.TemplateResponse(request, "agency.html", context={
+        "slug": slug,
+        "agency_name": agency_name,
+        "agency_code": agency_code,
+        "results": results,
+        "total": total,
+        "page": page,
+        "per_page": per_page,
+        "pages": pages,
+    })
 
 
 @router.get("/stats")

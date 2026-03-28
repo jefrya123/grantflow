@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}{{ agency_name }} Grants - GrantFlow{% endblock %}
+
+{% block head_extra %}
+<meta name="description" content="Browse {{ total }} federal grants and contracts from {{ agency_name }}. Find open opportunities, funding amounts, and deadlines.">
+<meta property="og:title" content="{{ agency_name }} Grants - GrantFlow">
+<meta property="og:description" content="{{ total }} grants and contracts from {{ agency_name }}. Explore open opportunities on GrantFlow.">
+<meta property="og:type" content="website">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "GovernmentOrganization",
+  "name": "{{ agency_name }}",
+  {% if agency_code %}"alternateName": "{{ agency_code }}",{% endif %}
+  "description": "Federal agency with {{ total }} grant opportunities listed on GrantFlow"
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="agency-page">
+    <a href="/search" class="back-link">&larr; Back to search</a>
+
+    <div class="detail-header">
+        <h2>{{ agency_name }}</h2>
+        {% if agency_code %}
+        <div class="badges">
+            <span class="badge badge-source">{{ agency_code }}</span>
+        </div>
+        {% endif %}
+        <p class="agency-count">{{ total }} grant opportunit{{ "y" if total == 1 else "ies" }} found</p>
+    </div>
+
+    {% if results %}
+    <div class="results-list">
+        {% for opp in results %}
+        <div class="result-card">
+            <div class="result-header">
+                <a href="/opportunity/{{ opp.id }}" class="result-title">{{ opp.title }}</a>
+                <div class="badges">
+                    {% if opp.opportunity_status %}
+                    <span class="badge badge-{{ opp.opportunity_status }}">{{ opp.opportunity_status }}</span>
+                    {% endif %}
+                    {% if opp.source %}
+                    <span class="badge badge-source">{{ opp.source }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="result-meta">
+                {% if opp.award_ceiling %}
+                <span>Up to ${{ "{:,.0f}".format(opp.award_ceiling) }}</span>
+                {% endif %}
+                {% if opp.close_date %}
+                <span>Closes {{ opp.close_date }}</span>
+                {% endif %}
+                {% if opp.category %}
+                <span>{{ opp.category }}</span>
+                {% endif %}
+            </div>
+            {% if opp.description %}
+            <p class="result-description">{{ opp.description[:200] }}{% if opp.description|length > 200 %}…{% endif %}</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if pages > 1 %}
+    <div class="pagination">
+        {% if page > 1 %}
+        <a href="/agency/{{ slug }}?page={{ page - 1 }}">&laquo; Previous</a>
+        {% endif %}
+        <span>Page {{ page }} of {{ pages }}</span>
+        {% if page < pages %}
+        <a href="/agency/{{ slug }}?page={{ page + 1 }}">Next &raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <p class="no-results">No opportunities found for this agency.</p>
+    {% endif %}
+</div>
+{% endblock %}
