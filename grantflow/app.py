@@ -28,11 +28,15 @@ scheduler = AsyncIOScheduler()
 
 # Rate limiter — keyed on X-API-Key header (falls back to IP for public routes)
 limiter = Limiter(
-    key_func=lambda request: request.headers.get("x-api-key", get_remote_address(request))
+    key_func=lambda request: request.headers.get(
+        "x-api-key", get_remote_address(request)
+    )
 )
 
 
-async def custom_rate_limit_handler(request: Request, exc: RateLimitExceeded) -> JSONResponse:
+async def custom_rate_limit_handler(
+    request: Request, exc: RateLimitExceeded
+) -> JSONResponse:
     """Return consistent {error_code, message} shape with Retry-After header."""
     retry_after = getattr(exc, "retry_after", None)
     headers = {}
@@ -114,7 +118,8 @@ app.add_middleware(
 )
 
 # Analytics middleware — registers after CORS, captures all API requests non-blocking
-from grantflow.analytics.middleware import setup_analytics_middleware
+from grantflow.analytics.middleware import setup_analytics_middleware  # noqa: E402
+
 setup_analytics_middleware(app)
 
 # Static files
@@ -123,9 +128,9 @@ static_dir.mkdir(exist_ok=True)
 app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
 # Routers
-from grantflow.api.routes import router as api_router
-from grantflow.api.keys import router as keys_router
-from grantflow.web.routes import router as web_router
+from grantflow.api.routes import router as api_router  # noqa: E402
+from grantflow.api.keys import router as keys_router  # noqa: E402
+from grantflow.web.routes import router as web_router  # noqa: E402
 
 app.include_router(api_router)
 app.include_router(keys_router)
@@ -134,6 +139,7 @@ app.include_router(web_router)
 
 def main():
     import uvicorn
+
     uvicorn.run("grantflow.app:app", host=HOST, port=PORT, reload=True)
 
 

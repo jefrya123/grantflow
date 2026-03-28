@@ -14,13 +14,20 @@
 {
   "@context": "https://schema.org",
   "@type": "GovernmentService",
-  "name": "{{ opp.title | e }}"{% if opp.description %},
+  "name": "{{ opp.title | e }}",
+  "url": "{{ request.url }}"{% if opp.description %},
   "description": "{{ opp.description[:500] | e }}"{% endif %}{% if opp.agency_name %},
   "serviceOperator": {
     "@type": "GovernmentOrganization",
     "name": "{{ opp.agency_name | e }}"
-  }{% endif %}{% if opp.close_date %},
-  "areaServed": "US"{% endif %}
+  }{% endif %}{% if opp.post_date %},
+  "datePosted": "{{ opp.post_date }}"{% endif %}{% if opp.close_date %},
+  "availableThrough": "{{ opp.close_date }}"{% endif %}{% if opp.award_ceiling is not none %},
+  "offers": {
+    "@type": "Offer",
+    "price": {{ opp.award_ceiling }},
+    "priceCurrency": "USD"
+  }{% endif %}
 }
 </script>
 {% endblock %}
