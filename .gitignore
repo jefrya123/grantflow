@@ -8,3 +8,6 @@ data/
 .venv/
 dist/
 *.egg-info/
+
+# Claude Code worktrees
+.claude/
