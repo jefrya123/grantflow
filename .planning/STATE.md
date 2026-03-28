@@ -173,6 +173,13 @@ None yet.
 
 - Phase 10 added: Data Population & Validation — run all pipelines, fix failures, verify data usefulness
 
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260327-sc1 | Verify data ingestion pipeline works end-to-end | 2026-03-28 | fceb087 | [260327-sc1-verify-data-ingestion-pipeline-works-end](./quick/260327-sc1-verify-data-ingestion-pipeline-works-end/) |
+| 260327-sgb | Fix Colorado scraper degraded-mode detection | 2026-03-27 | 59477d7 | [260327-sgb-verify-and-fix-data-ingestion-pipeline-i](./quick/260327-sgb-verify-and-fix-data-ingestion-pipeline-i/) |
+
 ### Blockers/Concerns
 
 - [Research]: Grants.gov XML bulk extract is being deprecated — dual-source ingest (XML + REST) is mandatory in Phase 2; do not migrate off XML until REST has been stable 30+ days
