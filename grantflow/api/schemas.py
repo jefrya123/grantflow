@@ -132,6 +132,19 @@ class StatsResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Daily feed response (API-09)
+# ---------------------------------------------------------------------------
+
+
+class DailyFeedResponse(BaseModel):
+    date: str
+    new: list[OpportunityResponse]
+    updated: list[OpportunityResponse]
+    total_new: int
+    total_updated: int
+
+
+# ---------------------------------------------------------------------------
 # SavedSearch (email alerts — Phase D)
 # ---------------------------------------------------------------------------
 

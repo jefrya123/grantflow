@@ -14,6 +14,7 @@ from grantflow.api.auth import get_api_key, _tier_limit, _tier_export_limit
 from grantflow.api.query import build_opportunity_query
 from grantflow.api.schemas import (
     AgencyResponse,
+    DailyFeedResponse,
     OpportunityResponse,
     OpportunityDetailResponse,
     AwardResponse,
@@ -594,4 +595,37 @@ def fund_your_fix_api(
 
     return JSONResponse(
         content={"grants": grants, "total": total, "municipality": municipality}
+    )
+
+
+@router.get("/feed/daily", response_model=DailyFeedResponse, tags=["feed"])
+@limiter.limit(_tier_limit)
+def daily_feed(
+    request: Request,
+    date: str = Query(pattern=r"^\d{4}-\d{2}-\d{2}$"),
+    db: Session = Depends(get_db),
+    api_key: ApiKey = Depends(get_api_key),
+) -> DailyFeedResponse:
+    """Return opportunities that are new or updated on the given date."""
+    new_opps = (
+        db.query(Opportunity)
+        .filter(Opportunity.post_date >= date)
+        .all()
+    )
+    updated_opps = (
+        db.query(Opportunity)
+        .filter(
+            Opportunity.last_updated >= date,
+            Opportunity.post_date < date,
+        )
+        .all()
+    )
+    new_list = [OpportunityResponse.model_validate(o) for o in new_opps]
+    updated_list = [OpportunityResponse.model_validate(o) for o in updated_opps]
+    return DailyFeedResponse(
+        date=date,
+        new=new_list,
+        updated=updated_list,
+        total_new=len(new_list),
+        total_updated=len(updated_list),
     )
