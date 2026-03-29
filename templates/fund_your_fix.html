@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}Fund Your Fix — ADA Compliance Grants for Municipalities{% endblock %}
+
+{% block head_extra %}
+<meta name="description" content="Find federal grants to fund ADA compliance and accessibility improvements for your municipality. Browse all available ADA compliance grants sorted by deadline.">
+<meta property="og:title" content="Fund Your Fix — ADA Compliance Grants">
+<meta property="og:description" content="Federal grants to fund ADA compliance and accessibility improvements for municipalities.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Fund Your Fix — ADA Compliance Grants">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "ADA Compliance Grants for Municipalities",
+  "description": "Federal grant opportunities for ADA compliance and accessibility improvements",
+  "numberOfItems": {{ total }},
+  "itemListElement": [
+    {% for opp in results %}
+    {
+      "@type": "ListItem",
+      "position": {{ loop.index + (page - 1) * per_page }},
+      "name": {{ opp.title | tojson }},
+      "url": "/opportunity/{{ opp.id }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="hero-section" style="background: linear-gradient(135deg, #1a3a5c 0%, #2563a8 100%); color: white; padding: 3rem 2rem; border-radius: 8px; margin-bottom: 2rem;">
+    <h2 style="font-size: 2.2rem; margin: 0 0 0.75rem 0;">Fund Your Fix</h2>
+    <p style="font-size: 1.15rem; margin: 0 0 1.5rem 0; opacity: 0.9;">Find grants to fund ADA compliance and accessibility improvements for your municipality</p>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <span style="background: rgba(255,255,255,0.2); padding: 0.4rem 0.9rem; border-radius: 20px; font-size: 0.9rem;">{{ total }} grants available</span>
+        <span style="background: rgba(255,255,255,0.2); padding: 0.4rem 0.9rem; border-radius: 20px; font-size: 0.9rem;">ADA &amp; Accessibility Funding</span>
+    </div>
+</div>
+
+{% if featured %}
+<div class="featured-grant" style="border: 2px solid #e55a00; border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; background: #fff8f5;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <div style="font-size: 0.8rem; font-weight: 700; color: #e55a00; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
+                Most Urgent Deadline
+            </div>
+            <h3 style="margin: 0 0 0.5rem 0; font-size: 1.3rem;">
+                <a href="/opportunity/{{ featured.id }}" style="color: #1a3a5c;">{{ featured.title }}</a>
+            </h3>
+            {% if featured.agency_name %}
+            <div style="color: #555; margin-bottom: 0.5rem;">{{ featured.agency_name }}</div>
+            {% endif %}
+            {% if featured.award_ceiling %}
+            <div style="font-weight: 600; color: #2563a8;">Up to ${{ "{:,.0f}".format(featured.award_ceiling) }}</div>
+            {% endif %}
+        </div>
+        {% if days_until_close is not none %}
+        <div style="text-align: center; background: {% if days_until_close <= 30 %}#e55a00{% else %}#2563a8{% endif %}; color: white; padding: 1rem 1.5rem; border-radius: 8px; min-width: 120px;">
+            <div style="font-size: 2rem; font-weight: 700; line-height: 1;">{{ days_until_close }}</div>
+            <div style="font-size: 0.8rem; opacity: 0.9;">days left</div>
+            <div style="font-size: 0.75rem; margin-top: 0.25rem; opacity: 0.8;">Closes {{ featured.close_date }}</div>
+        </div>
+        {% elif featured.close_date %}
+        <div style="background: #2563a8; color: white; padding: 1rem 1.5rem; border-radius: 8px;">
+            <div style="font-size: 0.85rem;">Closes</div>
+            <div style="font-weight: 600;">{{ featured.close_date }}</div>
+        </div>
+        {% endif %}
+    </div>
+    <div style="margin-top: 1rem;">
+        <a href="/opportunity/{{ featured.id }}" class="btn btn-primary" style="background: #e55a00; border-color: #e55a00;">View Grant Details →</a>
+    </div>
+</div>
+{% endif %}
+
+<div style="margin-bottom: 1rem; color: #555;">
+    {% if total > 0 %}
+    Showing {{ (page - 1) * per_page + 1 }}–{{ [page * per_page, total] | min }} of {{ total }} ADA compliance grants
+    {% else %}
+    No ADA compliance grants found.
+    {% endif %}
+</div>
+
+<div class="results-list">
+    {% if results %}
+        {% for opp in results %}
+        <div class="result-card">
+            <div class="result-header">
+                <h3><a href="/opportunity/{{ opp.id }}">{{ opp.title }}</a></h3>
+                <div class="badges">
+                    {% if opp.opportunity_status %}
+                    <span class="badge badge-{{ opp.opportunity_status }}">{{ opp.opportunity_status }}</span>
+                    {% endif %}
+                    {% if opp.close_date %}
+                    <span class="badge badge-source">Closes {{ opp.close_date }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="result-meta">
+                {% if opp.agency_name %}
+                <span class="meta-item">{{ opp.agency_name }}</span>
+                {% endif %}
+                {% if opp.award_floor or opp.award_ceiling %}
+                <span class="meta-item">
+                    Award:
+                    {% if opp.award_floor %}${{ "{:,.0f}".format(opp.award_floor) }}{% endif %}
+                    {% if opp.award_floor and opp.award_ceiling %} – {% endif %}
+                    {% if opp.award_ceiling %}${{ "{:,.0f}".format(opp.award_ceiling) }}{% endif %}
+                </span>
+                {% endif %}
+            </div>
+            {% if opp.description %}
+            <p class="result-desc">{{ opp.description[:200] }}{% if opp.description|length > 200 %}...{% endif %}</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="no-results">
+            <p>No ADA compliance grants found in the database.</p>
+        </div>
+    {% endif %}
+</div>
+
+{% if pages > 1 %}
+<div class="pagination">
+    {% if page > 1 %}
+    <a href="/fund-your-fix?page={{ page - 1 }}&per_page={{ per_page }}" class="page-link">Previous</a>
+    {% endif %}
+
+    {% for p in range(1, pages + 1) %}
+        {% if p == page %}
+        <span class="page-link current">{{ p }}</span>
+        {% elif p <= 3 or p > pages - 2 or (p >= page - 1 and p <= page + 1) %}
+        <a href="/fund-your-fix?page={{ p }}&per_page={{ per_page }}" class="page-link">{{ p }}</a>
+        {% elif p == 4 or p == pages - 2 %}
+        <span class="page-link">...</span>
+        {% endif %}
+    {% endfor %}
+
+    {% if page < pages %}
+    <a href="/fund-your-fix?page={{ page + 1 }}&per_page={{ per_page }}" class="page-link">Next</a>
+    {% endif %}
+</div>
+{% endif %}
+
+<div style="margin-top: 3rem; padding: 2rem; background: #f0f4ff; border-radius: 8px; text-align: center;">
+    <h3 style="margin: 0 0 0.75rem 0; color: #1a3a5c;">Need a compliance assessment first?</h3>
+    <p style="color: #555; margin: 0 0 1.25rem 0;">Before applying for grants, understand your municipality's ADA compliance status with a detailed audit.</p>
+    <a href="https://compliancegrade.com" target="_blank" rel="noopener noreferrer" class="btn btn-primary">Get a Compliance Assessment →</a>
+</div>
+{% endblock %}

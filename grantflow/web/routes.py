@@ -264,6 +264,53 @@ def agency_page(
     )
 
 
+@router.get("/fund-your-fix")
+def fund_your_fix_page(
+    request: Request,
+    page: int = Query(default=1, ge=1),
+    per_page: int = Query(default=20, ge=1, le=100),
+    db: Session = Depends(get_db),
+):
+    query = db.query(Opportunity).filter(
+        Opportunity.topic_tags.ilike("%ada-compliance%")
+    )
+    total = query.count()
+    pages = max(1, (total + per_page - 1) // per_page)
+    offset = (page - 1) * per_page
+    results = (
+        query.order_by(Opportunity.close_date.asc().nullslast())
+        .offset(offset)
+        .limit(per_page)
+        .all()
+    )
+
+    # Featured grant: soonest closing (first result when sorted asc nullslast)
+    featured = results[0] if results else None
+
+    today = datetime.now(timezone.utc).date()
+    days_until_close = None
+    if featured and featured.close_date:
+        try:
+            close = datetime.strptime(featured.close_date, "%Y-%m-%d").date()
+            days_until_close = (close - today).days
+        except ValueError:
+            pass
+
+    return templates.TemplateResponse(
+        request,
+        "fund_your_fix.html",
+        context={
+            "results": results,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "pages": pages,
+            "featured": featured,
+            "days_until_close": days_until_close,
+        },
+    )
+
+
 @router.get("/stats")
 def stats_page(request: Request, db: Session = Depends(get_db)):
     today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
