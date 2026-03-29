@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 11-ada-compliance-grant-tagging-api-02-PLAN.md
-last_updated: "2026-03-29T00:45:07.878Z"
+stopped_at: Completed 12-fund-your-fix-web-page-seo-01-PLAN.md
+last_updated: "2026-03-29T03:25:21.267Z"
 last_activity: 2026-03-29
 progress:
   total_phases: 12
   completed_phases: 11
-  total_plans: 30
-  completed_plans: 30
+  total_plans: 32
+  completed_plans: 31
   percent: 33
 ---
 
@@ -82,6 +82,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 10-data-population-validation P04 | 5 | 1 tasks | 0 files |
 | Phase 11-ada-compliance-grant-tagging-api P01 | 15 | 1 tasks | 2 files |
 | Phase 11-ada-compliance-grant-tagging-api P02 | 3 | 1 tasks | 3 files |
+| Phase 12 P01 | 2 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -174,6 +175,10 @@ Recent decisions affecting current work:
 - [Phase 11-ada-compliance-grant-tagging-api]: ada-compliance route registered before /{opportunity_id} — FastAPI path resolution requires static segments before path params
 - [Phase 11-ada-compliance-grant-tagging-api]: No api_key dependency on get_ada_compliance_grants — public resource per CONTEXT.md locked decision
 - [Phase 11-ada-compliance-grant-tagging-api]: Municipality filter uses ilike on description + eligible_applicants with fail-open fallback when no match found
+- [Phase 12]: Municipality filter uses fail-open ilike pattern on eligible_applicants and description — mirrors Phase 11 API pattern
+- [Phase 12]: FTA grant pinned as featured by title ilike '%all stations%' — specific enough to avoid false positives
+- [Phase 12]: /fund-your-fix/widget registered before /{opportunity_id} — FastAPI static-before-param ordering
+- [Phase 12]: Widget template is standalone HTML (no extends base.html) for iframe embedding
 
 ### Pending Todos
 
@@ -199,6 +204,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-29T00:40:10.672Z
-Stopped at: Completed 11-ada-compliance-grant-tagging-api-02-PLAN.md
+Last session: 2026-03-29T03:25:21.261Z
+Stopped at: Completed 12-fund-your-fix-web-page-seo-01-PLAN.md
 Resume file: None
