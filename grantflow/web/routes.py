@@ -1,9 +1,10 @@
 import os
 from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, Query, Request, HTTPException
+from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, or_
 
 from grantflow.models import Opportunity, Award
 from grantflow.database import get_db
@@ -264,16 +265,34 @@ def agency_page(
     )
 
 
+@router.get("/ada-grants")
+def ada_grants_redirect():
+    return RedirectResponse("/fund-your-fix", status_code=301)
+
+
 @router.get("/fund-your-fix")
 def fund_your_fix_page(
     request: Request,
     page: int = Query(default=1, ge=1),
     per_page: int = Query(default=20, ge=1, le=100),
+    municipality: str | None = Query(default=None),
     db: Session = Depends(get_db),
 ):
     query = db.query(Opportunity).filter(
         Opportunity.topic_tags.ilike("%ada-compliance%")
     )
+
+    if municipality:
+        slug_term = f"%{municipality}%"
+        muni_query = query.filter(
+            or_(
+                Opportunity.eligible_applicants.ilike(slug_term),
+                Opportunity.description.ilike(slug_term),
+            )
+        )
+        if muni_query.count() > 0:
+            query = muni_query
+
     total = query.count()
     pages = max(1, (total + per_page - 1) // per_page)
     offset = (page - 1) * per_page
@@ -284,8 +303,18 @@ def fund_your_fix_page(
         .all()
     )
 
-    # Featured grant: soonest closing (first result when sorted asc nullslast)
-    featured = results[0] if results else None
+    # Featured grant: pin FTA "All Stations Access" grant when present, else soonest closing
+    fta_grant = (
+        db.query(Opportunity)
+        .filter(
+            Opportunity.topic_tags.ilike('%"ada-compliance"%'),
+            Opportunity.title.ilike("%all stations%"),
+        )
+        .order_by(Opportunity.close_date.asc().nullslast())
+        .first()
+    )
+    featured = fta_grant if fta_grant else (results[0] if results else None)
+    featured_is_fta = fta_grant is not None and featured == fta_grant
 
     today = datetime.now(timezone.utc).date()
     days_until_close = None
@@ -307,7 +336,28 @@ def fund_your_fix_page(
             "pages": pages,
             "featured": featured,
             "days_until_close": days_until_close,
+            "municipality": municipality,
+            "featured_is_fta": featured_is_fta,
         },
+    )
+
+
+@router.get("/fund-your-fix/widget")
+def fund_your_fix_widget(
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    results = (
+        db.query(Opportunity)
+        .filter(Opportunity.topic_tags.ilike('%"ada-compliance"%'))
+        .order_by(Opportunity.close_date.asc().nullslast())
+        .limit(5)
+        .all()
+    )
+    return templates.TemplateResponse(
+        request,
+        "fund_your_fix_widget.html",
+        context={"results": results},
     )
 
 
