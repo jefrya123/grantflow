@@ -92,6 +92,7 @@ None yet.
 ### Roadmap Evolution
 
 - Phase 10 added: Data Population & Validation — run all pipelines, fix failures, verify data usefulness
+- Phase 13 added: Stripe Billing Integration — wire Stripe checkout for free→starter ($49/mo) and free→growth ($149/mo) upgrades, replacing mailto: CTAs on pricing page
 
 ### Quick Tasks Completed
 
