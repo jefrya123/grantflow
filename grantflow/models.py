@@ -162,3 +162,25 @@ class ApiEvent(Base):
     query_string = Column(Text, nullable=True)
     status_code = Column(Integer, nullable=False)
     duration_ms = Column(Float, nullable=False)
+
+
+class SavedSearch(Base):
+    __tablename__ = "saved_searches"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    api_key_id = Column(Integer, nullable=False, index=True)  # FK to api_keys.id
+    name = Column(Text, nullable=False)  # user-provided label
+    query = Column(Text, nullable=True)  # keyword search query
+    agency_code = Column(Text, nullable=True)  # filter by agency
+    category = Column(Text, nullable=True)  # filter by category
+    eligible_applicants = Column(Text, nullable=True)  # filter by eligibility
+    min_award = Column(Float, nullable=True)  # minimum award_floor
+    max_award = Column(Float, nullable=True)  # maximum award_ceiling
+    alert_email = Column(Text, nullable=False)  # where to send alerts
+    is_active = Column(Boolean, nullable=False, default=True, index=True)
+    last_alerted_at = Column(
+        Text, nullable=True
+    )  # ISO 8601 UTC — last time alert was sent
+    created_at = Column(
+        Text, nullable=False, default=lambda: datetime.now(timezone.utc).isoformat()
+    )
