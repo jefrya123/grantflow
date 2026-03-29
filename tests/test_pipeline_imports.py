@@ -17,12 +17,12 @@ def test_run_state_imports_and_is_callable() -> None:
     assert callable(run_state_ingestion)
 
 
-def test_get_scrapers_returns_six_instances() -> None:
-    """_get_scrapers() returns exactly 6 state scraper instances."""
+def test_get_scrapers_returns_seven_instances() -> None:
+    """_get_scrapers() returns exactly 7 state scraper instances."""
     from grantflow.ingest.run_state import _get_scrapers
 
     scrapers = _get_scrapers()
-    assert len(scrapers) == 6
+    assert len(scrapers) == 7
 
 
 def test_each_scraper_has_required_attributes() -> None:

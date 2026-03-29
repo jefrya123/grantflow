@@ -237,3 +237,87 @@ def test_colorado_degraded_run_on_empty(db_session):
 
     assert result["status"] == "degraded"
     assert result["records_processed"] == 1
+
+
+# ---------------------------------------------------------------------------
+# Florida scraper unit tests
+# ---------------------------------------------------------------------------
+
+
+def test_florida_normalize_record_fields():
+    """normalize_record maps Florida raw dict to expected output shape."""
+    from grantflow.ingest.state.florida import FloridaScraper
+
+    scraper = FloridaScraper()
+    raw = {
+        "grant_number": "FL-2024-001",
+        "project_description": "Community Health Outreach Program",
+        "agency_name": "Florida Department of Health",
+        "grantee_name": "Miami-Dade County",
+        "county_name": "Miami-Dade",
+        "fiscal_year": "2024",
+        "begin_date": "2024-01-01",
+        "end_date": "2024-12-31",
+        "award_amount": "150000",
+    }
+    result = scraper.normalize_record(raw)
+
+    assert result is not None
+    assert result["id"] == "state_fl_FL-2024-001"
+    assert result["source"] == "state_florida"
+    assert result["title"] == "Community Health Outreach Program"
+    assert result["agency_name"] is not None
+    assert result["category"] == "State Grant"
+    assert result["opportunity_status"] == "posted"
+
+
+def test_florida_normalize_record_skips_empty_title():
+    """normalize_record returns None when no title field is present."""
+    from grantflow.ingest.state.florida import FloridaScraper
+
+    scraper = FloridaScraper()
+    assert (
+        scraper.normalize_record({"grant_number": "FL-001", "agency_name": "DEP"})
+        is None
+    )
+
+
+def test_florida_normalize_record_composite_id():
+    """normalize_record builds a composite source_id when grant_number is absent."""
+    from grantflow.ingest.state.florida import FloridaScraper
+
+    scraper = FloridaScraper()
+    raw = {
+        "project_description": "Rural Broadband Initiative",
+        "agency_name": "Florida DEO",
+        "grantee_name": "Alachua County",
+        "county_name": "Alachua",
+        "fiscal_year": "2025",
+    }
+    result = scraper.normalize_record(raw)
+
+    assert result is not None
+    assert result["id"].startswith("state_fl_")
+    assert "FL-" not in result["id"]  # composite, not a grant number
+
+
+def test_florida_normalize_record_truncates_long_title():
+    """normalize_record truncates project_description longer than 200 chars."""
+    from grantflow.ingest.state.florida import FloridaScraper
+
+    scraper = FloridaScraper()
+    long_desc = "A" * 250
+    raw = {"project_description": long_desc, "grant_number": "FL-LONG-001"}
+    result = scraper.normalize_record(raw)
+
+    assert result is not None
+    assert len(result["title"]) == 200
+    assert result["title"].endswith("...")
+
+
+def test_florida_make_opportunity_id():
+    """make_opportunity_id returns 'state_fl_{source_id}' format."""
+    from grantflow.ingest.state.florida import FloridaScraper
+
+    scraper = FloridaScraper()
+    assert scraper.make_opportunity_id("FL-2024-001") == "state_fl_FL-2024-001"

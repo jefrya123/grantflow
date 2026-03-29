@@ -18,6 +18,7 @@ def _get_scrapers():
     from grantflow.ingest.state.illinois import IllinoisScraper  # noqa: PLC0415
     from grantflow.ingest.state.texas import TexasScraper  # noqa: PLC0415
     from grantflow.ingest.state.colorado import ColoradoScraper  # noqa: PLC0415
+    from grantflow.ingest.state.florida import FloridaScraper  # noqa: PLC0415
 
     return [
         CaliforniaScraper(),
@@ -26,6 +27,7 @@ def _get_scrapers():
         IllinoisScraper(),
         TexasScraper(),
         ColoradoScraper(),
+        FloridaScraper(),
     ]
 
 
