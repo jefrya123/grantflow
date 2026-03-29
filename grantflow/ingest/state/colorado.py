@@ -1,4 +1,4 @@
-"""Colorado state grant scraper — Scrapling HTML (choosecolorado.com)."""
+"""Colorado state grant scraper — httpx HTML (choosecolorado.com/doing-business/incentives/)."""
 
 from __future__ import annotations
 
@@ -6,26 +6,24 @@ import json
 import os
 import re
 
-from scrapling.fetchers import Fetcher
+import httpx
 
 from grantflow.ingest.state.base import BaseStateScraper
 from grantflow.normalizers import normalize_agency_name, normalize_date
 from grantflow.pipeline.logging import bind_source_logger
 
-DEFAULT_PORTAL_URL = (
-    "https://choosecolorado.com/doing-business/support-services/grants/"
-)
+DEFAULT_PORTAL_URL = "https://choosecolorado.com/doing-business/incentives/"
+_BASE_URL = "https://choosecolorado.com"
 
 
 class ColoradoScraper(BaseStateScraper):
-    """Fetch Colorado grant listings from the HTML portal using Scrapling.
+    """Fetch Colorado grant/incentive listings from choosecolorado.com/doing-business/incentives/.
 
     Note: Colorado has no centralized open data portal. This scraper targets
-    the Choose Colorado grants page. Verify ToS/robots.txt before production use
+    the Choose Colorado incentives page. Verify ToS/robots.txt before production use
     (per legal review: CONDITIONAL status).
 
-    Uses Scrapling Fetcher (static HTML only — no StealthyFetcher/DynamicFetcher
-    needed for government portals).
+    Uses httpx for static HTML fetching.
     """
 
     source_name = "state_colorado"
@@ -44,88 +42,88 @@ class ColoradoScraper(BaseStateScraper):
             return []
 
         log.info("colorado_fetch_start", url=portal_url)
-        fetcher = Fetcher(auto_match=True)
 
         try:
-            page = fetcher.get(portal_url, timeout=30)
-        except Exception as exc:
-            log.error("colorado_fetch_failed", error=str(exc))
+            resp = httpx.get(
+                portal_url,
+                timeout=30,
+                follow_redirects=True,
+                headers={"User-Agent": "Mozilla/5.0 (compatible; GrantFlow/1.0)"},
+            )
+            resp.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            log.error(
+                "colorado_fetch_http_error",
+                status=exc.response.status_code,
+                url=portal_url,
+                error=str(exc),
+            )
+            raise
+        except httpx.RequestError as exc:
+            log.error("colorado_fetch_failed", url=portal_url, error=str(exc))
             raise
 
-        raw_html_len = (
-            len(page.html_content) if hasattr(page, "html_content") else len(str(page))
-        )
-        log.debug("colorado_html_fetched", html_length=raw_html_len)
+        html = resp.text
+        log.debug("colorado_html_fetched", html_length=len(html))
 
-        records: list[dict] = []
-
-        # Try table rows first (structured grants table)
-        table_rows = page.css("table tbody tr", auto_save=True)
-        if table_rows:
-            log.debug("colorado_table_rows_found", count=len(table_rows))
-            for row in table_rows:
-                cells = row.css("td")
-                if not cells:
-                    continue
-                cell_texts = [c.text.strip() for c in cells]
-                if not cell_texts:
-                    continue
-
-                # Attempt to extract a link from the first cell
-                link_el = row.css("a")
-                href = link_el[0].attrib.get("href", "") if link_el else ""
-
-                record: dict = {
-                    "title": cell_texts[0] if len(cell_texts) > 0 else "",
-                    "agency": cell_texts[1] if len(cell_texts) > 1 else "",
-                    "deadline": cell_texts[2] if len(cell_texts) > 2 else "",
-                    "url": href,
-                    "_raw_cells": cell_texts,
-                }
-                records.append(record)
-
-        # Fall back to list items or article cards
-        if not records:
-            items = (
-                page.css("ul.grants-list li", auto_save=True)
-                or page.css(".grant-item", auto_save=True)
-                or page.css("article", auto_save=True)
-                or page.css(".entry-content li", auto_save=True)
-            )
-            log.debug("colorado_list_items_found", count=len(items) if items else 0)
-            for item in items or []:
-                link_el = item.css("a")
-                href = link_el[0].attrib.get("href", "") if link_el else ""
-                title_text = (
-                    (link_el[0].text.strip() if link_el else "")
-                    or (
-                        item.css("h2, h3, h4, strong")[0].text.strip()
-                        if item.css("h2, h3, h4, strong")
-                        else ""
-                    )
-                    or item.text.strip()
-                )
-                record = {
-                    "title": title_text,
-                    "agency": "",
-                    "deadline": "",
-                    "url": href,
-                    "_raw_text": item.text.strip()[:500],
-                }
-                records.append(record)
+        records = self._parse_incentives_page(html)
 
         if not records:
             log.warning(
                 "colorado_no_records_found",
-                html_length=raw_html_len,
+                html_length=len(html),
                 message="No grant records extracted — portal structure may have changed",
             )
 
         log.info(
             "colorado_fetch_complete",
             total_records=len(records),
-            html_length=raw_html_len,
+            html_length=len(html),
         )
+        return records
+
+    def _parse_incentives_page(self, html: str) -> list[dict]:
+        """Parse the incentives page structure.
+
+        The page uses: <p><strong><a href="...">Title</a>: </strong>Description</p>
+        """
+        # Pattern: paragraph with a bold link followed by a colon and description
+        pattern = re.compile(
+            r"<p[^>]*>"
+            r"<strong[^>]*>"
+            r'<a[^>]+href=["\']([^"\']+)["\'][^>]*>([^<]+)</a>'
+            r"[^<]*</strong>"
+            r"([^<]*(?:<[^/][^>]*>[^<]*</[^>]+>[^<]*)*)"
+            r"</p>",
+            re.IGNORECASE | re.DOTALL,
+        )
+
+        records = []
+        for match in pattern.finditer(html):
+            href, title, desc_html = match.group(1), match.group(2), match.group(3)
+
+            title = title.strip()
+            if not title:
+                continue
+
+            # Strip any remaining HTML tags from description
+            description = re.sub(r"<[^>]+>", " ", desc_html).strip()
+            description = re.sub(r"\s+", " ", description).lstrip(": ").strip()
+
+            # Resolve relative URLs
+            if href.startswith("/"):
+                href = _BASE_URL + href
+
+            records.append(
+                {
+                    "title": title,
+                    "description": description,
+                    "agency": "Colorado Office of Economic Development and International Trade",
+                    "deadline": "",
+                    "url": href,
+                }
+            )
+
         return records
 
     _DEGRADED_THRESHOLD = 3

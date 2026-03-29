@@ -138,3 +138,102 @@ def test_scheduler_weekly_job():
 
     assert sched.get_job("weekly_state_ingestion") is not None
     assert sched.get_job("daily_ingestion") is not None
+
+
+# ---------------------------------------------------------------------------
+# Colorado scraper unit tests
+# ---------------------------------------------------------------------------
+
+COLORADO_SAMPLE_HTML = """
+<html><body>
+<p><strong><a href="/doing-business/incentives/skill-advance-job-training-grant/">Skill Advance Colorado Job Training Grant</a>: </strong>A customized job training program.</p>
+<p><strong><a href="https://choosecolorado.com/doing-business/incentives/rural-jump-start-tax-credit/">Rural Jump-Start Tax Credit</a>: </strong>This tax credit helps new businesses.</p>
+<p><strong><a href="/doing-business/incentives/enterprise-zone-program/">Enterprise Zone Program</a>:</strong> In designated enterprise zones, businesses are eligible.</p>
+<p>Some other paragraph without a grant link.</p>
+</body></html>
+"""
+
+
+def test_colorado_parse_incentives_page_count():
+    """_parse_incentives_page extracts one record per bold-linked paragraph."""
+    from grantflow.ingest.state.colorado import ColoradoScraper
+
+    scraper = ColoradoScraper()
+    records = scraper._parse_incentives_page(COLORADO_SAMPLE_HTML)
+    assert len(records) == 3
+
+
+def test_colorado_parse_incentives_page_fields():
+    """Extracted records have title, description, url, and agency fields."""
+    from grantflow.ingest.state.colorado import ColoradoScraper
+
+    scraper = ColoradoScraper()
+    records = scraper._parse_incentives_page(COLORADO_SAMPLE_HTML)
+
+    first = records[0]
+    assert first["title"] == "Skill Advance Colorado Job Training Grant"
+    assert "customized job training" in first["description"]
+    assert (
+        first["url"]
+        == "https://choosecolorado.com/doing-business/incentives/skill-advance-job-training-grant/"
+    )
+    assert first["agency"] != ""
+
+
+def test_colorado_parse_relative_url_resolved():
+    """Relative hrefs are resolved to absolute choosecolorado.com URLs."""
+    from grantflow.ingest.state.colorado import ColoradoScraper
+
+    scraper = ColoradoScraper()
+    records = scraper._parse_incentives_page(COLORADO_SAMPLE_HTML)
+    for r in records:
+        assert r["url"].startswith("https://"), f"URL not absolute: {r['url']}"
+
+
+def test_colorado_normalize_record_fields():
+    """normalize_record maps Colorado raw dict to expected output shape."""
+    from grantflow.ingest.state.colorado import ColoradoScraper
+
+    scraper = ColoradoScraper()
+    raw = {
+        "title": "Skill Advance Colorado Job Training Grant",
+        "description": "A customized job training program.",
+        "agency": "Colorado Office of Economic Development and International Trade",
+        "deadline": "",
+        "url": "https://choosecolorado.com/doing-business/skill-advance-job-training-grant/",
+    }
+    result = scraper.normalize_record(raw)
+
+    assert result is not None
+    assert result["source"] == "state_colorado"
+    assert result["title"] == "Skill Advance Colorado Job Training Grant"
+    assert result["source_url"].startswith("https://")
+    assert result["category"] == "State Grant"
+    assert result["opportunity_status"] == "posted"
+
+
+def test_colorado_normalize_record_skips_empty_title():
+    """normalize_record returns None when title is absent."""
+    from grantflow.ingest.state.colorado import ColoradoScraper
+
+    scraper = ColoradoScraper()
+    assert scraper.normalize_record({"title": "", "url": "https://example.com"}) is None
+
+
+def test_colorado_degraded_run_on_empty(db_session):
+    """run() returns status='degraded' when fetch_records yields fewer than threshold."""
+    from unittest.mock import patch
+    from grantflow.ingest.state.colorado import ColoradoScraper
+
+    scraper = ColoradoScraper()
+    with patch.object(
+        scraper,
+        "fetch_records",
+        return_value=[
+            {"title": "One", "url": "", "agency": "", "deadline": "", "description": ""}
+        ],
+    ):
+        result = scraper.run(session=db_session)
+
+    assert result["status"] == "degraded"
+    assert result["records_processed"] == 1
