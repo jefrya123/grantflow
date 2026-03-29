@@ -80,10 +80,13 @@ def test_health_error_log_does_not_crash(client, db_session):
 
 def test_health_record_counts(client, db_session):
     """record_count reflects actual Opportunity row count per source."""
+    # Use a unique source to avoid contamination from other tests that commit
+    # grants_gov records into the session-scoped test database.
+    source = "test_record_count_source"
     for i in range(3):
         opp = Opportunity(
-            id=f"grants_gov_test_{i}",
-            source="grants_gov",
+            id=f"{source}_{i}",
+            source=source,
             source_id=f"test_{i}",
             title=f"Test Opportunity {i}",
         )
@@ -91,7 +94,7 @@ def test_health_record_counts(client, db_session):
     db_session.commit()
 
     log = IngestionLog(
-        source="grants_gov",
+        source=source,
         started_at=datetime.now(timezone.utc).isoformat(),
         completed_at=datetime.now(timezone.utc).isoformat(),
         status="success",
@@ -104,4 +107,4 @@ def test_health_record_counts(client, db_session):
     response = client.get("/api/v1/health")
     assert response.status_code == 200
     data = response.json()
-    assert data["sources"]["grants_gov"]["record_count"] == 3
+    assert data["sources"][source]["record_count"] == 3
