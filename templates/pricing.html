@@ -41,13 +41,13 @@
                 <li>Award history data</li>
                 <li>Priority support</li>
             </ul>
-            <a href="mailto:hello@grantflow.dev" class="btn btn-primary">Get started</a>
+            <button onclick="startCheckout('starter')" class="btn btn-primary">Get started</button>
         </div>
 
         <div class="pricing-card">
             <div class="pricing-card-header">
                 <h3>Growth</h3>
-                <div class="price">$199<span>/month</span></div>
+                <div class="price">$149<span>/month</span></div>
             </div>
             <ul class="pricing-features">
                 <li>All sources (federal + all states)</li>
@@ -57,13 +57,29 @@
                 <li>Webhook change notifications</li>
                 <li>SLA + dedicated support</li>
             </ul>
-            <a href="mailto:hello@grantflow.dev" class="btn btn-outline">Contact us</a>
+            <button onclick="startCheckout('growth')" class="btn btn-outline">Get started</button>
         </div>
 
     </div>
 </section>
 
 <section class="pricing-note">
-    <p>Need higher volume or custom data coverage? <a href="mailto:hello@grantflow.dev">Email us</a> for enterprise plans.</p>
+    <p>Need higher volume or custom data coverage? <a href="/contact">Contact us</a> for enterprise plans.</p>
 </section>
+
+<script>
+async function startCheckout(tier) {
+    const resp = await fetch('/api/v1/billing/checkout', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({tier: tier}),
+    });
+    if (!resp.ok) {
+        alert('Error starting checkout. Please try again.');
+        return;
+    }
+    const data = await resp.json();
+    window.location.href = data.checkout_url;
+}
+</script>
 {% endblock %}

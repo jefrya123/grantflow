@@ -287,3 +287,14 @@ def test_success_page_clears_key(client, db_session, monkeypatch):
     resp2 = client.get("/billing/success?session_id=cs_clear_test")
     assert resp2.status_code == 200
     assert "gf_test_key_clear999" not in resp2.text
+
+
+# ---------------------------------------------------------------------------
+# BILL-10: Pricing page has no mailto: CTAs and has JS checkout function
+# ---------------------------------------------------------------------------
+def test_pricing_page_no_mailto(client):
+    resp = client.get("/pricing")
+    assert resp.status_code == 200
+    assert "mailto:" not in resp.text
+    assert "startCheckout" in resp.text
+    assert "$149" in resp.text
