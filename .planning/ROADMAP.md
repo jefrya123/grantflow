@@ -30,7 +30,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 8: Pipeline & Data Cleanup** - Remove FTS5 remnants, wire SAM.gov normalizers, clean dead code [WAVE 5 — gap closure] (completed 2026-03-24)
 - [x] **Phase 9: API & Feature Polish** - Tier-aware rate limits, export topic filter, canonical_id exposure, enrichment scheduler [WAVE 5 — gap closure] (completed 2026-03-24)
 - [x] **Phase 11: ADA Compliance Grant Tagging & API** - Tag/categorize ADA-related grants and expose via dedicated API endpoint with municipality cross-link support [WAVE 6 — Fund Your Fix] (completed 2026-03-29)
-- [ ] **Phase 12: Fund Your Fix Web Page & SEO** - Public /fund-your-fix page showing ADA grants with deadlines, award amounts, municipality filtering, and full SEO [WAVE 6 — Fund Your Fix]
+- [x] **Phase 12: Fund Your Fix Web Page & SEO** - Public /fund-your-fix page showing ADA grants with deadlines, award amounts, municipality filtering, and full SEO [WAVE 6 — Fund Your Fix] (completed 2026-03-29)
 
 ## Phase Details
 

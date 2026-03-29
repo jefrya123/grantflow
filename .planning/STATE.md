@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 12-fund-your-fix-web-page-seo-01-PLAN.md
-last_updated: "2026-03-29T03:25:21.267Z"
+stopped_at: Completed 12-fund-your-fix-web-page-seo-02-PLAN.md
+last_updated: "2026-03-29T03:36:23.879Z"
 last_activity: 2026-03-29
 progress:
   total_phases: 12
-  completed_phases: 11
+  completed_phases: 12
   total_plans: 32
-  completed_plans: 31
+  completed_plans: 32
   percent: 33
 ---
 
@@ -83,6 +83,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 11-ada-compliance-grant-tagging-api P01 | 15 | 1 tasks | 2 files |
 | Phase 11-ada-compliance-grant-tagging-api P02 | 3 | 1 tasks | 3 files |
 | Phase 12 P01 | 2 | 2 tasks | 3 files |
+| Phase 12-fund-your-fix-web-page-seo P02 | 5 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -179,6 +180,7 @@ Recent decisions affecting current work:
 - [Phase 12]: FTA grant pinned as featured by title ilike '%all stations%' — specific enough to avoid false positives
 - [Phase 12]: /fund-your-fix/widget registered before /{opportunity_id} — FastAPI static-before-param ordering
 - [Phase 12]: Widget template is standalone HTML (no extends base.html) for iframe embedding
+- [Phase 12-fund-your-fix-web-page-seo]: Widget test uses close_date sort to ensure grants appear in top-5 despite accumulated SQLite test data
 
 ### Pending Todos
 
@@ -204,6 +206,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-29T03:25:21.261Z
-Stopped at: Completed 12-fund-your-fix-web-page-seo-01-PLAN.md
+Last session: 2026-03-29T03:36:23.875Z
+Stopped at: Completed 12-fund-your-fix-web-page-seo-02-PLAN.md
 Resume file: None
