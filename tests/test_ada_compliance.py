@@ -1,6 +1,6 @@
 """Unit tests for ADA keyword matching and backfill logic."""
+
 import json
-import pytest
 from sqlalchemy import text
 
 from grantflow.pipeline.ada_tagger import (
@@ -14,44 +14,73 @@ from grantflow.pipeline.ada_tagger import (
 # Keyword matching — True cases
 # ---------------------------------------------------------------------------
 
+
 class TestKeywordMatchingTrue:
     def test_americans_with_disabilities_act_in_title(self):
-        assert _is_ada_match("Americans with Disabilities Act Grant", None, None) is True
+        assert (
+            _is_ada_match("Americans with Disabilities Act Grant", None, None) is True
+        )
 
     def test_ada_compliance_in_title(self):
-        assert _is_ada_match("ADA Compliance Infrastructure Program", None, None) is True
+        assert (
+            _is_ada_match("ADA Compliance Infrastructure Program", None, None) is True
+        )
 
     def test_federal_transit_administration_in_agency(self):
         assert _is_ada_match(None, None, "Federal Transit Administration") is True
 
     def test_paratransit_in_description(self):
-        assert _is_ada_match(None, "This grant funds paratransit services for riders", None) is True
+        assert (
+            _is_ada_match(
+                None, "This grant funds paratransit services for riders", None
+            )
+            is True
+        )
 
     def test_all_stations_accessibility_in_title(self):
         assert _is_ada_match("All Stations Accessibility Program", None, None) is True
 
     def test_section_504_in_description(self):
-        assert _is_ada_match(None, "Compliance with Section 504 of the Rehabilitation Act", None) is True
+        assert (
+            _is_ada_match(
+                None, "Compliance with Section 504 of the Rehabilitation Act", None
+            )
+            is True
+        )
 
     def test_wheelchair_in_title(self):
-        assert _is_ada_match("Wheelchair Accessible Station Improvements", None, None) is True
+        assert (
+            _is_ada_match("Wheelchair Accessible Station Improvements", None, None)
+            is True
+        )
 
     def test_curb_cut_in_description(self):
-        assert _is_ada_match(None, "Funding for curb cut installation at intersections", None) is True
+        assert (
+            _is_ada_match(
+                None, "Funding for curb cut installation at intersections", None
+            )
+            is True
+        )
 
 
 # ---------------------------------------------------------------------------
 # Keyword matching — False cases (false positive prevention)
 # ---------------------------------------------------------------------------
 
+
 class TestKeywordMatchingFalse:
     def test_adaptation_program_bare_ada_substring_in_title(self):
         """'ADAPTATION' contains 'ada' as substring — must NOT match."""
-        assert _is_ada_match("ADAPTATION program for rural communities", None, None) is False
+        assert (
+            _is_ada_match("ADAPTATION program for rural communities", None, None)
+            is False
+        )
 
     def test_adams_county_in_title(self):
         """'Adams' contains 'ada' as substring — must NOT match."""
-        assert _is_ada_match("Adams County Rural Development Grant", None, None) is False
+        assert (
+            _is_ada_match("Adams County Rural Development Grant", None, None) is False
+        )
 
     def test_nadac_pricing_in_title(self):
         """'NADAC' contains 'ada' as substring — must NOT match."""
@@ -59,7 +88,9 @@ class TestKeywordMatchingFalse:
 
     def test_academic_in_description(self):
         """'academic' contains 'ada' as substring — must NOT match."""
-        assert _is_ada_match(None, "Support for academic research programs", None) is False
+        assert (
+            _is_ada_match(None, "Support for academic research programs", None) is False
+        )
 
     def test_empty_strings(self):
         assert _is_ada_match("", "", "") is False
@@ -71,6 +102,7 @@ class TestKeywordMatchingFalse:
 # ---------------------------------------------------------------------------
 # _parse_tags
 # ---------------------------------------------------------------------------
+
 
 class TestParseTags:
     def test_parse_tags_none(self):
@@ -90,8 +122,18 @@ class TestParseTags:
 # Backfill integration tests (use db_session fixture)
 # ---------------------------------------------------------------------------
 
+
 class TestBackfill:
-    def _insert_row(self, db_session, row_id, title, description=None, agency_name=None, topic_tags=None, source="test"):
+    def _insert_row(
+        self,
+        db_session,
+        row_id,
+        title,
+        description=None,
+        agency_name=None,
+        topic_tags=None,
+        source="test",
+    ):
         db_session.execute(
             text(
                 "INSERT INTO opportunities "
@@ -113,7 +155,12 @@ class TestBackfill:
     def test_backfill_tags_matching_records(self, db_session):
         """Exactly 2 of 3 rows should be tagged."""
         self._insert_row(db_session, "back-1", "ADA Compliance Sidewalk Grant")
-        self._insert_row(db_session, "back-2", "Rural Roads Program", agency_name="Federal Transit Administration")
+        self._insert_row(
+            db_session,
+            "back-2",
+            "Rural Roads Program",
+            agency_name="Federal Transit Administration",
+        )
         self._insert_row(db_session, "back-3", "Agricultural Research Initiative")
 
         count = run_ada_backfill(db=db_session)
@@ -131,7 +178,9 @@ class TestBackfill:
 
     def test_backfill_idempotent(self, db_session):
         """Running backfill twice should not duplicate the tag."""
-        self._insert_row(db_session, "idem-1", "Wheelchair Accessible Transit Improvements")
+        self._insert_row(
+            db_session, "idem-1", "Wheelchair Accessible Transit Improvements"
+        )
 
         run_ada_backfill(db=db_session)
         # Reset session state so second call sees committed data
@@ -185,10 +234,20 @@ class TestBackfill:
 # ---------------------------------------------------------------------------
 
 
-def _insert_opportunity(db_session, row_id, title="Test Grant", topic_tags=None,
-                         description=None, close_date=None, award_floor=None,
-                         award_ceiling=None, source="grants_gov", source_url=None,
-                         canonical_id=None, eligible_applicants=None):
+def _insert_opportunity(
+    db_session,
+    row_id,
+    title="Test Grant",
+    topic_tags=None,
+    description=None,
+    close_date=None,
+    award_floor=None,
+    award_ceiling=None,
+    source="grants_gov",
+    source_url=None,
+    canonical_id=None,
+    eligible_applicants=None,
+):
     """Helper to insert a minimal opportunity row for endpoint tests."""
     db_session.execute(
         text(
@@ -217,7 +276,6 @@ def _insert_opportunity(db_session, row_id, title="Test Grant", topic_tags=None,
 
 
 class TestAdaComplianceEndpoint:
-
     def test_endpoint_returns_200(self, client, db_session):
         _insert_opportunity(db_session, "ep-1", topic_tags='["ada-compliance"]')
         response = client.get("/api/v1/opportunities/ada-compliance")
@@ -254,9 +312,21 @@ class TestAdaComplianceEndpoint:
         assert match["canonical_id"] == "canon_abc123"
 
     def test_endpoint_sort_order(self, client, db_session):
-        _insert_opportunity(db_session, "sort-1", topic_tags='["ada-compliance"]', close_date="2026-06-01")
-        _insert_opportunity(db_session, "sort-2", topic_tags='["ada-compliance"]', close_date="2026-05-01")
-        _insert_opportunity(db_session, "sort-3", topic_tags='["ada-compliance"]', close_date=None)
+        _insert_opportunity(
+            db_session,
+            "sort-1",
+            topic_tags='["ada-compliance"]',
+            close_date="2026-06-01",
+        )
+        _insert_opportunity(
+            db_session,
+            "sort-2",
+            topic_tags='["ada-compliance"]',
+            close_date="2026-05-01",
+        )
+        _insert_opportunity(
+            db_session, "sort-3", topic_tags='["ada-compliance"]', close_date=None
+        )
 
         response = client.get("/api/v1/opportunities/ada-compliance")
         assert response.status_code == 200
@@ -275,7 +345,9 @@ class TestAdaComplianceEndpoint:
 
     def test_endpoint_pagination(self, client, db_session):
         for i in range(3):
-            _insert_opportunity(db_session, f"page-{i}", topic_tags='["ada-compliance"]')
+            _insert_opportunity(
+                db_session, f"page-{i}", topic_tags='["ada-compliance"]'
+            )
 
         response = client.get("/api/v1/opportunities/ada-compliance?per_page=2&page=1")
         assert response.status_code == 200
@@ -284,7 +356,7 @@ class TestAdaComplianceEndpoint:
         assert data["total"] >= 3
         assert data["pages"] >= 2
 
-        response2 = client.get(f"/api/v1/opportunities/ada-compliance?per_page=2&page=2")
+        response2 = client.get("/api/v1/opportunities/ada-compliance?per_page=2&page=2")
         assert response2.status_code == 200
         data2 = response2.json()
         assert len(data2["results"]) >= 1
@@ -296,16 +368,20 @@ class TestAdaComplianceEndpoint:
 
     def test_municipality_filter(self, client, db_session):
         _insert_opportunity(
-            db_session, "muni-1",
+            db_session,
+            "muni-1",
             topic_tags='["ada-compliance"]',
-            description="ADA compliance grants for the city of boston area transit"
+            description="ADA compliance grants for the city of boston area transit",
         )
         _insert_opportunity(
-            db_session, "muni-2",
+            db_session,
+            "muni-2",
             topic_tags='["ada-compliance"]',
-            description="General accessible infrastructure funding"
+            description="General accessible infrastructure funding",
         )
-        response = client.get("/api/v1/opportunities/ada-compliance?municipality=boston")
+        response = client.get(
+            "/api/v1/opportunities/ada-compliance?municipality=boston"
+        )
         assert response.status_code == 200
         data = response.json()
         ids = [r["id"] for r in data["results"]]
@@ -315,11 +391,14 @@ class TestAdaComplianceEndpoint:
     def test_municipality_fallback(self, client, db_session):
         """No match for municipality slug — fail-open returns all ADA grants."""
         _insert_opportunity(
-            db_session, "fall-1",
+            db_session,
+            "fall-1",
             topic_tags='["ada-compliance"]',
-            description="general grant for accessibility"
+            description="general grant for accessibility",
         )
-        response = client.get("/api/v1/opportunities/ada-compliance?municipality=nonexistent-city")
+        response = client.get(
+            "/api/v1/opportunities/ada-compliance?municipality=nonexistent-city"
+        )
         assert response.status_code == 200
         data = response.json()
         assert data["total"] >= 1

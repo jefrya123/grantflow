@@ -6,6 +6,7 @@ of the opportunities table with the "ada-compliance" tag.
 Usage:
     uv run python -m grantflow.pipeline.ada_tagger
 """
+
 from __future__ import annotations
 
 import json
@@ -73,6 +74,7 @@ ADA_AGENCY_KEYWORDS: list[str] = [
 # Public helpers
 # ---------------------------------------------------------------------------
 
+
 def _is_ada_match(
     title: Optional[str],
     description: Optional[str],
@@ -123,6 +125,7 @@ def _parse_tags(raw: Optional[str]) -> list[str]:
 # Backfill
 # ---------------------------------------------------------------------------
 
+
 def run_ada_backfill(db: Optional[Session] = None) -> int:
     """Tag all ADA-matching opportunities with "ada-compliance".
 
@@ -159,11 +162,7 @@ def run_ada_backfill(db: Optional[Session] = None) -> int:
             if "ada-compliance" not in tags:
                 tags.append("ada-compliance")
                 db.execute(
-                    text(
-                        "UPDATE opportunities "
-                        "SET topic_tags = :tags "
-                        "WHERE id = :id"
-                    ),
+                    text("UPDATE opportunities SET topic_tags = :tags WHERE id = :id"),
                     {"tags": json.dumps(tags), "id": row_id},
                 )
                 updated += 1
