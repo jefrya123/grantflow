@@ -224,7 +224,11 @@ Plans:
   5. OpenGraph (og:title, og:description, og:image) and Twitter Card meta tags are present
   6. DOT FTA "All Stations Access" grant is featured with its 2026-05-01 deadline prominently highlighted
   7. /ada-grants redirects to /fund-your-fix (or is an alias)
-**Plans**: 0 plans
+**Plans**: 2 plans
+
+Plans:
+- [x] 12-01-PLAN.md — Fund Your Fix page template, web route, municipality filtering, JSON-LD structured data
+- [x] 12-02-PLAN.md — SEO metadata, /ada-grants redirect, featured grant highlighting
 
 ## Progress
 
@@ -232,14 +236,14 @@ Plans:
 
 ```
 Wave 1:  Phase 1
-                  ↓
-Wave 2:  Phase 2 ║ Phase 3 ║ Phase 4   (all depend only on Phase 1)
-                  ↓           ↓
-Wave 3:  Phase 5 (needs 2+4) ║ Phase 6 (needs 3+4)
-                  ↓
+                  |
+Wave 2:  Phase 2 | Phase 3 | Phase 4   (all depend only on Phase 1)
+                  |           |
+Wave 3:  Phase 5 (needs 2+4) | Phase 6 (needs 3+4)
+                  |
 Wave 4:  Phase 7 (needs 5+6)
-                  ↓
-Wave 5:  Phase 8 ║ Phase 9   (gap closure — parallel)
+                  |
+Wave 5:  Phase 8 | Phase 9   (gap closure -- parallel)
 ```
 
 | Phase | Wave | Depends On | Plans Complete | Status | Completed |
@@ -276,3 +280,22 @@ Plans:
 - [ ] 10-02-PLAN.md — Diagnose and fix SBIR crash, configure and run SAM.gov ingestion
 - [ ] 10-03-PLAN.md — Build NC state scraper (with county-level grants), discover dataset IDs, run all state scrapers
 - [ ] 10-04-PLAN.md — Run LLM enrichment, validate all data end-to-end across all sources
+
+### Phase 13: Stripe Billing Integration
+
+**Goal:** Wire Stripe checkout into the existing API key infrastructure so users can upgrade from free to paid tiers, replacing mailto: CTAs on the pricing page with real Stripe checkout flows
+**Depends on:** Phase 12
+**Wave**: 7 (Stripe billing)
+**Requirements**: BILL-01, BILL-02, BILL-03, BILL-04, BILL-05, BILL-06, BILL-07, BILL-08, BILL-09, BILL-10, BILL-11
+**Success Criteria** (what must be TRUE):
+  1. POST /api/v1/billing/checkout creates a Stripe checkout session and returns the checkout URL
+  2. Stripe webhook creates a paid-tier API key on checkout.session.completed
+  3. Webhook deactivates keys on subscription.deleted and invoice.payment_failed
+  4. Success page reveals the plaintext API key exactly once, then clears it
+  5. Pricing page uses JS checkout buttons instead of mailto: links
+  6. Growth tier price is $149/mo (updated from $199)
+**Plans**: 2 plans
+
+Plans:
+- [ ] 13-01-PLAN.md — Install stripe SDK, extend ApiKey model with stripe columns, create billing sub-package (checkout + webhook), wire API router, write tests (BILL-01 through BILL-07, BILL-11)
+- [ ] 13-02-PLAN.md — Success page template + route (one-time key reveal), update pricing page with JS checkout buttons (BILL-08 through BILL-10)
