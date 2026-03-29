@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 10-data-population-validation-04-PLAN.md (Phase 10 complete)
-last_updated: "2026-03-24T23:13:34.360Z"
+stopped_at: Completed 11-ada-compliance-grant-tagging-api-01-PLAN.md
+last_updated: "2026-03-29T00:29:40.872Z"
 last_activity: 2026-03-24 — Roadmap created, ready to begin Phase 1 planning
 progress:
-  total_phases: 10
+  total_phases: 12
   completed_phases: 10
-  total_plans: 28
-  completed_plans: 28
+  total_plans: 30
+  completed_plans: 29
   percent: 33
 ---
 
@@ -35,6 +35,7 @@ Progress: [███░░░░░░░] 33%
 ## Performance Metrics
 
 **Velocity:**
+
 - Total plans completed: 0
 - Average duration: -
 - Total execution time: 0 hours
@@ -46,6 +47,7 @@ Progress: [███░░░░░░░] 33%
 | - | - | - | - |
 
 **Recent Trend:**
+
 - Last 5 plans: none yet
 - Trend: -
 
@@ -78,6 +80,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 10-data-population-validation P02 | 4 | 2 tasks | 1 files |
 | Phase 10-data-population-validation P03 | 8 | 2 tasks | 7 files |
 | Phase 10-data-population-validation P04 | 5 | 1 tasks | 0 files |
+| Phase 11-ada-compliance-grant-tagging-api P01 | 15 | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -164,6 +167,9 @@ Recent decisions affecting current work:
 - [Phase 10-data-population-validation]: NY/IL/TX scrapers have DEFAULT_DATASET_ID fallbacks so they work without env vars; dataset IDs confirmed: NY=4e8n-qriw, IL=q46r-i78b, TX=pp37-5cwt
 - [Phase 10-data-population-validation]: search_vector column added to SQLite via ALTER TABLE — ORM declares it but migration never created it; every API call 500-ed without it
 - [Phase 10-data-population-validation]: API smoke test uses per-source ?source= filter queries — default sort by post_date desc nullslast returns only date-bearing sources (grants_gov + state_illinois) in top results; other state sources have NULL post_dates
+- [Phase 11-ada-compliance-grant-tagging-api]: No bare 'ada' in keyword lists — all entries contextually qualified to prevent false positives on adaptation/Adams/academic/NADAC
+- [Phase 11-ada-compliance-grant-tagging-api]: ADA_AGENCY_KEYWORDS contains only 'federal transit administration' — Office of Special Education excluded per RESEARCH.md to avoid tagging IDEA/education grants
+- [Phase 11-ada-compliance-grant-tagging-api]: run_ada_backfill uses raw SQL (not ORM) — avoids search_vector column absent in SQLite; consistent with Phase 10 pattern
 
 ### Pending Todos
 
@@ -189,6 +195,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T23:09:49.999Z
-Stopped at: Completed 10-data-population-validation-04-PLAN.md (Phase 10 complete)
+Last session: 2026-03-29T00:29:40.867Z
+Stopped at: Completed 11-ada-compliance-grant-tagging-api-01-PLAN.md
 Resume file: None
