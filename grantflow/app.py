@@ -130,10 +130,12 @@ app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 # Routers
 from grantflow.api.routes import router as api_router  # noqa: E402
 from grantflow.api.keys import router as keys_router  # noqa: E402
+from grantflow.api.billing import router as billing_router  # noqa: E402
 from grantflow.web.routes import router as web_router  # noqa: E402
 
 app.include_router(api_router)
 app.include_router(keys_router)
+app.include_router(billing_router)
 app.include_router(web_router)
 
 
