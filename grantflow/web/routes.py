@@ -5,10 +5,11 @@ from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from sqlalchemy import func, or_
+import stripe
 
-from grantflow.models import Opportunity, Award
+from grantflow.models import Opportunity, Award, ApiKey
 from grantflow.database import get_db
-from grantflow.config import BASE_DIR, DATABASE_URL as _DB_URL
+from grantflow.config import BASE_DIR, DATABASE_URL as _DB_URL, STRIPE_SECRET_KEY
 
 router = APIRouter()
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
@@ -29,6 +30,65 @@ def index(request: Request, db: Session = Depends(get_db)):
 @router.get("/pricing")
 def pricing_page(request: Request):
     return templates.TemplateResponse(request, "pricing.html", context={})
+
+
+@router.get("/billing/success")
+def billing_success(request: Request, session_id: str, db: Session = Depends(get_db)):
+    stripe.api_key = STRIPE_SECRET_KEY
+    try:
+        session = stripe.checkout.Session.retrieve(session_id)
+    except stripe.error.InvalidRequestError:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "error_code": "SESSION_NOT_FOUND",
+                "message": "Invalid or expired session",
+            },
+        )
+
+    sub_id = session.get("subscription")
+    if not sub_id:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "error_code": "NO_SUBSCRIPTION",
+                "message": "No subscription found for this session",
+            },
+        )
+
+    api_key = (
+        db.query(ApiKey)
+        .filter_by(stripe_subscription_id=sub_id, is_active=True)
+        .first()
+    )
+    if not api_key:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "error_code": "KEY_NOT_FOUND",
+                "message": "API key not found for this subscription",
+            },
+        )
+
+    # Read and clear the one-time plaintext key
+    plaintext_key = api_key.plaintext_key_once
+    if plaintext_key:
+        api_key.plaintext_key_once = None
+        db.commit()
+
+    email = session.get("customer_email") or ""
+    response = templates.TemplateResponse(
+        request,
+        "billing_success.html",
+        context={
+            "plaintext_key": plaintext_key,
+            "key_prefix": api_key.key_prefix,
+            "tier": api_key.tier,
+            "email": email,
+        },
+    )
+    response.headers["Cache-Control"] = "no-store"
+    return response
 
 
 @router.get("/playground")

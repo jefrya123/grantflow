@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}API Key Created — GrantFlow{% endblock %}
+
+{% block content %}
+<section class="billing-success">
+    <h2>Your API Key is Ready</h2>
+    <p>Your <strong>{{ tier }}</strong> plan is now active. Copy your API key below — it will only be shown once.</p>
+
+    {% if plaintext_key %}
+    <div class="key-display">
+        <code id="api-key">{{ plaintext_key }}</code>
+        <button onclick="navigator.clipboard.writeText(document.getElementById('api-key').textContent)" class="btn btn-outline btn-sm">Copy</button>
+    </div>
+    <p class="key-warning">This key will not be shown again. Store it securely.</p>
+    {% else %}
+    <div class="key-display key-expired">
+        <p>This key has already been revealed. If you lost your key, you'll need to create a new subscription.</p>
+    </div>
+    {% endif %}
+
+    <p>Key prefix: <code>{{ key_prefix }}</code> (use this to identify your key in the dashboard)</p>
+    {% if email %}<p>Receipt sent to: {{ email }}</p>{% endif %}
+
+    <a href="/docs" class="btn btn-primary">View API Docs</a>
+</section>
+{% endblock %}

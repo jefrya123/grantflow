@@ -1,4 +1,4 @@
-"""Tests for billing endpoints — BILL-01 through BILL-07."""
+"""Tests for billing endpoints — BILL-01 through BILL-10."""
 
 from grantflow.models import ApiKey
 
@@ -202,3 +202,99 @@ def test_webhook_bad_signature(client, monkeypatch):
         headers={"stripe-signature": "t=1,v1=bad"},
     )
     assert resp.status_code == 400
+
+
+# ---------------------------------------------------------------------------
+# BILL-08: GET /billing/success?session_id=X returns 200 with plaintext key
+# ---------------------------------------------------------------------------
+def test_success_page(client, db_session, monkeypatch):
+    import hashlib
+    import stripe
+    from datetime import datetime, timezone
+
+    key = ApiKey(
+        key_hash=hashlib.sha256(b"success_key_bill08").hexdigest(),
+        key_prefix="gf_test_",
+        tier="starter",
+        is_active=True,
+        created_at=datetime.now(timezone.utc).isoformat(),
+        request_count=0,
+        stripe_subscription_id="sub_success_test",
+        plaintext_key_once="gf_test_key_abc123",
+    )
+    db_session.add(key)
+    db_session.commit()
+
+    class FakeSession(dict):
+        def get(self, k, default=None):
+            return {
+                "subscription": "sub_success_test",
+                "customer_email": "user@example.com",
+            }.get(k, default)
+
+    monkeypatch.setattr(
+        stripe.checkout.Session, "retrieve", lambda session_id: FakeSession()
+    )
+
+    resp = client.get("/billing/success?session_id=cs_test")
+    assert resp.status_code == 200
+    assert "gf_test_key_abc123" in resp.text
+    assert resp.headers.get("cache-control") == "no-store"
+
+
+# ---------------------------------------------------------------------------
+# BILL-09: After rendering, plaintext_key_once is cleared from the database
+# ---------------------------------------------------------------------------
+def test_success_page_clears_key(client, db_session, monkeypatch):
+    import hashlib
+    import stripe
+    from datetime import datetime, timezone
+
+    key = ApiKey(
+        key_hash=hashlib.sha256(b"success_key_bill09").hexdigest(),
+        key_prefix="gf_test2",
+        tier="starter",
+        is_active=True,
+        created_at=datetime.now(timezone.utc).isoformat(),
+        request_count=0,
+        stripe_subscription_id="sub_success_clear",
+        plaintext_key_once="gf_test_key_clear999",
+    )
+    db_session.add(key)
+    db_session.commit()
+
+    class FakeSession(dict):
+        def get(self, k, default=None):
+            return {
+                "subscription": "sub_success_clear",
+                "customer_email": "user@example.com",
+            }.get(k, default)
+
+    monkeypatch.setattr(
+        stripe.checkout.Session, "retrieve", lambda session_id: FakeSession()
+    )
+
+    # First GET — should show the key
+    resp1 = client.get("/billing/success?session_id=cs_clear_test")
+    assert resp1.status_code == 200
+    assert "gf_test_key_clear999" in resp1.text
+
+    # Verify DB cleared
+    db_session.refresh(key)
+    assert key.plaintext_key_once is None
+
+    # Second GET — key should not appear (already cleared)
+    resp2 = client.get("/billing/success?session_id=cs_clear_test")
+    assert resp2.status_code == 200
+    assert "gf_test_key_clear999" not in resp2.text
+
+
+# ---------------------------------------------------------------------------
+# BILL-10: Pricing page has no mailto: CTAs and has JS checkout function
+# ---------------------------------------------------------------------------
+def test_pricing_page_no_mailto(client):
+    resp = client.get("/pricing")
+    assert resp.status_code == 200
+    assert "mailto:" not in resp.text
+    assert "startCheckout" in resp.text
+    assert "$149" in resp.text
