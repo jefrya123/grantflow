@@ -52,8 +52,8 @@ def search_page(
     agency: str | None = None,
     category: str | None = None,
     eligible: str | None = None,
-    min_award: float | None = None,
-    max_award: float | None = None,
+    min_award: str | None = None,
+    max_award: str | None = None,
     closing_after: str | None = None,
     closing_before: str | None = None,
     topic: str | None = None,
@@ -63,6 +63,14 @@ def search_page(
     per_page: int = Query(default=20, ge=1, le=100),
     db: Session = Depends(get_db),
 ):
+    try:
+        min_award_f = float(min_award) if min_award else None
+    except ValueError:
+        min_award_f = None
+    try:
+        max_award_f = float(max_award) if max_award else None
+    except ValueError:
+        max_award_f = None
     if q:
         if _DB_URL.startswith("postgresql") or _DB_URL.startswith("postgres"):
             # PostgreSQL: use tsvector GIN index
@@ -89,10 +97,10 @@ def search_page(
         query = query.filter(Opportunity.category == category)
     if eligible:
         query = query.filter(Opportunity.eligible_applicants.ilike(f"%{eligible}%"))
-    if min_award is not None:
-        query = query.filter(Opportunity.award_floor >= min_award)
-    if max_award is not None:
-        query = query.filter(Opportunity.award_ceiling <= max_award)
+    if min_award_f is not None:
+        query = query.filter(Opportunity.award_floor >= min_award_f)
+    if max_award_f is not None:
+        query = query.filter(Opportunity.award_ceiling <= max_award_f)
     if closing_after:
         query = query.filter(Opportunity.close_date >= closing_after)
     if closing_before:
@@ -278,8 +286,10 @@ def fund_your_fix_page(
     municipality: str | None = Query(default=None),
     db: Session = Depends(get_db),
 ):
+    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     query = db.query(Opportunity).filter(
-        Opportunity.topic_tags.ilike("%ada-compliance%")
+        Opportunity.topic_tags.ilike("%ada-compliance%"),
+        or_(Opportunity.close_date.is_(None), Opportunity.close_date >= today_str),
     )
 
     if municipality:
@@ -347,9 +357,13 @@ def fund_your_fix_widget(
     request: Request,
     db: Session = Depends(get_db),
 ):
+    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     results = (
         db.query(Opportunity)
-        .filter(Opportunity.topic_tags.ilike('%"ada-compliance"%'))
+        .filter(
+            Opportunity.topic_tags.ilike('%"ada-compliance"%'),
+            or_(Opportunity.close_date.is_(None), Opportunity.close_date >= today_str),
+        )
         .order_by(Opportunity.close_date.asc().nullslast())
         .limit(5)
         .all()
