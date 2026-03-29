@@ -9,7 +9,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from grantflow.database import SessionLocal
-from grantflow.models import PipelineRun
+from grantflow.models import IngestionLog, PipelineRun
 from grantflow.pipeline.logging import bind_source_logger
 
 logger = bind_source_logger("monitor")
@@ -49,6 +49,14 @@ KNOWN_SOURCES = [
 ZERO_RECORD_SOURCES = [s for s in KNOWN_SOURCES if s.startswith("state_")]
 
 
+def _last_success_ts(session: Session, model, source: str) -> str | None:
+    return (
+        session.query(func.max(model.completed_at))
+        .filter(model.source == source, model.status == "success")
+        .scalar()
+    )
+
+
 def get_freshness_report(session: Session | None = None) -> dict:
     """Return per-source freshness status.
 
@@ -66,14 +74,10 @@ def get_freshness_report(session: Session | None = None) -> dict:
         now = datetime.now(timezone.utc)
 
         for source in KNOWN_SOURCES:
-            last_success_ts = (
-                session.query(func.max(PipelineRun.completed_at))
-                .filter(
-                    PipelineRun.source == source,
-                    PipelineRun.status == "success",
-                )
-                .scalar()
-            )
+            last_success_ts = _last_success_ts(session, PipelineRun, source)
+            # Fall back to IngestionLog for sources not yet in PipelineRun
+            if last_success_ts is None:
+                last_success_ts = _last_success_ts(session, IngestionLog, source)
 
             if last_success_ts is None:
                 report[source] = {

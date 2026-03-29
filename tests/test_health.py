@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
 from grantflow.models import IngestionLog, Opportunity
+from grantflow.pipeline.monitor import get_freshness_report
 
 
 def test_health_empty_db(client):
@@ -76,6 +77,27 @@ def test_health_error_log_does_not_crash(client, db_session):
     assert response.status_code == 200
     data = response.json()
     assert "usaspending" in data["sources"]
+
+
+def test_source_freshness_falls_back_to_ingestion_log(db_session):
+    """source_freshness uses IngestionLog when no PipelineRun exists for federal sources."""
+    recent = datetime.now(timezone.utc) - timedelta(hours=2)
+    log = IngestionLog(
+        source="grants_gov",
+        started_at=recent.isoformat(),
+        completed_at=recent.isoformat(),
+        status="success",
+        records_added=81000,
+        records_processed=81000,
+    )
+    db_session.add(log)
+    db_session.commit()
+
+    report = get_freshness_report(db_session)
+
+    assert report["grants_gov"]["status"] == "ok"
+    assert report["grants_gov"]["last_success"] is not None
+    assert report["grants_gov"]["hours_since"] is not None
 
 
 def test_health_record_counts(client, db_session):

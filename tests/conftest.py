@@ -25,16 +25,19 @@ def test_engine():
 
 @pytest.fixture(scope="function")
 def db_session(test_engine):
-    """Each test gets a clean session; rolls back after the test."""
+    """Each test gets a clean session; rolls back all changes (including commits) after the test."""
+    connection = test_engine.connect()
+    transaction = connection.begin()
     TestingSessionLocal = sessionmaker(
-        autocommit=False, autoflush=False, bind=test_engine
+        autocommit=False, autoflush=False, bind=connection
     )
     session = TestingSessionLocal()
     try:
         yield session
     finally:
-        session.rollback()
         session.close()
+        transaction.rollback()
+        connection.close()
 
 
 @pytest.fixture(scope="function")
