@@ -4,7 +4,7 @@ import io
 from fastapi import APIRouter, Depends, Query, HTTPException, Request
 from fastapi.responses import StreamingResponse, JSONResponse
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from datetime import datetime, timedelta, timezone
 
 from grantflow.models import Opportunity, Award, IngestionLog, ApiKey
@@ -176,6 +176,59 @@ def export_opportunities(
         csv_generator(),
         media_type="text/csv",
         headers={"Content-Disposition": "attachment; filename=opportunities.csv"},
+    )
+
+
+@router.get(
+    "/opportunities/ada-compliance",
+    response_model=SearchResponse,
+    tags=["ada-compliance"],
+    summary="ADA compliance and accessibility grants",
+    description="Returns paginated ADA/accessibility grants sorted by deadline proximity. No API key required.",
+)
+@limiter.limit(_tier_limit)
+def get_ada_compliance_grants(
+    request: Request,
+    municipality: str | None = Query(
+        default=None,
+        description="Optional municipality slug (e.g. 'boston-ma'). Falls back to all ADA grants if no match.",
+    ),
+    page: int = Query(default=1, ge=1),
+    per_page: int = Query(default=20, ge=1, le=100),
+    db: Session = Depends(get_db),
+) -> SearchResponse:
+    # Base query: all ada-compliance tagged grants
+    ada_query = db.query(Opportunity).filter(
+        Opportunity.topic_tags.ilike('%"ada-compliance"%')
+    )
+
+    # Municipality filter — fail open per CONTEXT.md decision
+    if municipality:
+        slug_term = f"%{municipality}%"
+        muni_query = ada_query.filter(
+            or_(
+                Opportunity.eligible_applicants.ilike(slug_term),
+                Opportunity.description.ilike(slug_term),
+            )
+        )
+        if muni_query.count() > 0:
+            ada_query = muni_query
+        # else: fall through — return all ADA grants (fail-open)
+
+    # Sort by deadline proximity (earliest deadline first)
+    ada_query = ada_query.order_by(Opportunity.close_date.asc().nullslast())
+
+    total = ada_query.count()
+    pages = max(1, (total + per_page - 1) // per_page)
+    offset = (page - 1) * per_page
+    results = ada_query.offset(offset).limit(per_page).all()
+
+    return SearchResponse(
+        results=[OpportunityResponse.model_validate(o) for o in results],
+        total=total,
+        page=page,
+        per_page=per_page,
+        pages=pages,
     )
 
 
