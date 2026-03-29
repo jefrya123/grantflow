@@ -2,12 +2,13 @@
 
 import json
 import re
-from datetime import date, timedelta
 
 from grantflow.models import Opportunity
 
 
-def _make_ada_opp(db_session, opp_id, title="ADA Test Grant", close_date=None, **kwargs):
+def _make_ada_opp(
+    db_session, opp_id, title="ADA Test Grant", close_date=None, **kwargs
+):
     defaults = dict(
         id=opp_id,
         source_id=f"src-{opp_id}",
