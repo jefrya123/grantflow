@@ -298,4 +298,4 @@ Plans:
 
 Plans:
 - [ ] 13-01-PLAN.md — Install stripe SDK, extend ApiKey model with stripe columns, create billing sub-package (checkout + webhook), wire API router, write tests (BILL-01 through BILL-07, BILL-11)
-- [ ] 13-02-PLAN.md — Success page template + route (one-time key reveal), update pricing page with JS checkout buttons (BILL-08 through BILL-10)
+- [x] 13-02-PLAN.md — Success page template + route (one-time key reveal), update pricing page with JS checkout buttons (BILL-08 through BILL-10)
