@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADA Compliance Grants Widget</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0.75rem; background: #fff; color: #333; font-size: 14px; }
+  .widget-header { font-size: 1rem; font-weight: 700; color: #1a3a5c; margin-bottom: 0.75rem; }
+  .grant-item { border-bottom: 1px solid #eee; padding: 0.5rem 0; }
+  .grant-item:last-child { border-bottom: none; }
+  .grant-title { font-weight: 600; color: #2563a8; text-decoration: none; display: block; margin-bottom: 0.25rem; }
+  .grant-title:hover { text-decoration: underline; }
+  .grant-meta { font-size: 0.8rem; color: #666; }
+  .grant-meta span { margin-right: 0.75rem; }
+  .widget-footer { margin-top: 0.75rem; text-align: center; }
+  .widget-footer a { color: #2563a8; font-weight: 600; text-decoration: none; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+<div class="widget-header">ADA Compliance Grants</div>
+{% for opp in results %}
+<div class="grant-item">
+  <a class="grant-title" href="/fund-your-fix" target="_top">{{ opp.title }}</a>
+  <div class="grant-meta">
+    {% if opp.close_date %}<span>Closes: {{ opp.close_date }}</span>{% endif %}
+    {% if opp.award_ceiling %}<span>Up to ${{ "{:,.0f}".format(opp.award_ceiling) }}</span>{% endif %}
+  </div>
+</div>
+{% endfor %}
+{% if not results %}
+<p style="color: #999; text-align: center;">No ADA grants available.</p>
+{% endif %}
+<div class="widget-footer">
+  <a href="/fund-your-fix" target="_top">View all grants &rarr;</a>
+</div>
+</body>
+</html>
