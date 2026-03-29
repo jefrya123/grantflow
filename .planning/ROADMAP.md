@@ -21,16 +21,18 @@ Decimal phases appear between their surrounding integers in numeric order.
 ## Phases
 
 - [x] **Phase 1: Foundation** - Migrate SQLite to PostgreSQL with Alembic and harden the API contract [WAVE 1 — serial blocker] (completed 2026-03-24)
-- [ ] **Phase 2: Pipeline Hardening** - Automate all federal ingestion with daily scheduling and monitoring [WAVE 2 — parallel]
+- [x] **Phase 2: Pipeline Hardening** - Automate all federal ingestion with daily scheduling and monitoring [WAVE 2 — parallel] (completed 2026-03-24)
 - [x] **Phase 3: API Key Infrastructure** - Self-serve API keys with tiered rate limiting and versioned stable schema [WAVE 2 — parallel] (completed 2026-03-24)
-- [ ] **Phase 4: Data Quality** - Normalize eligibility codes, agency names, dates, amounts, and deduplicate across sources [WAVE 2 — parallel]
+- [x] **Phase 4: Data Quality** - Normalize eligibility codes, agency names, dates, amounts, and deduplicate across sources [WAVE 2 — parallel] (completed 2026-03-24)
 - [x] **Phase 5: State Data** - Build and operate scrapers for 5+ state grant portals (the competitive moat) [WAVE 3 — parallel] (completed 2026-03-24)
-- [ ] **Phase 6: Advanced API + Web UI** - Full-featured search UI, opportunity detail, bulk export, and developer experience polish [WAVE 3 — parallel]
+- [x] **Phase 6: Advanced API + Web UI** - Full-featured search UI, opportunity detail, bulk export, and developer experience polish [WAVE 3 — parallel] (completed 2026-03-24)
 - [x] **Phase 7: GTM + Enrichment** - Launch landing page, pricing, API playground, usage analytics, and LLM categorization [WAVE 4] (completed 2026-03-24)
 - [x] **Phase 8: Pipeline & Data Cleanup** - Remove FTS5 remnants, wire SAM.gov normalizers, clean dead code [WAVE 5 — gap closure] (completed 2026-03-24)
 - [x] **Phase 9: API & Feature Polish** - Tier-aware rate limits, export topic filter, canonical_id exposure, enrichment scheduler [WAVE 5 — gap closure] (completed 2026-03-24)
+- [x] **Phase 10: Data Population & Validation** - Populate production database with real grant data and validate pipeline end-to-end [WAVE 5 — gap closure] (completed 2026-03-29)
 - [x] **Phase 11: ADA Compliance Grant Tagging & API** - Tag/categorize ADA-related grants and expose via dedicated API endpoint with municipality cross-link support [WAVE 6 — Fund Your Fix] (completed 2026-03-29)
 - [x] **Phase 12: Fund Your Fix Web Page & SEO** - Public /fund-your-fix page showing ADA grants with deadlines, award amounts, municipality filtering, and full SEO [WAVE 6 — Fund Your Fix] (completed 2026-03-29)
+- [x] **Phase 13: Stripe Billing Integration** - Wire Stripe checkout into API key infrastructure, success page with one-time key reveal, pricing page JS checkout buttons [WAVE 7] (completed 2026-03-29)
 
 ## Phase Details
 
@@ -297,5 +299,5 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 13-01-PLAN.md — Install stripe SDK, extend ApiKey model with stripe columns, create billing sub-package (checkout + webhook), wire API router, write tests (BILL-01 through BILL-07, BILL-11)
+- [x] 13-01-PLAN.md — Install stripe SDK, extend ApiKey model with stripe columns, create billing sub-package (checkout + webhook), wire API router, write tests (BILL-01 through BILL-07, BILL-11)
 - [x] 13-02-PLAN.md — Success page template + route (one-time key reveal), update pricing page with JS checkout buttons (BILL-08 through BILL-10)
