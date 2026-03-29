@@ -147,6 +147,9 @@ class ApiKey(Base):
     created_at = Column(Text, nullable=False)  # ISO 8601 UTC
     last_used_at = Column(Text, nullable=True)
     request_count = Column(Integer, default=0)
+    stripe_customer_id = Column(Text, nullable=True)
+    stripe_subscription_id = Column(Text, nullable=True, index=True)
+    plaintext_key_once = Column(Text, nullable=True)
 
 
 class ApiEvent(Base):

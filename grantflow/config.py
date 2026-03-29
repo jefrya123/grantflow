@@ -31,3 +31,9 @@ SAM_GOV_API_BASE = os.getenv("SAM_GOV_API_BASE", "https://api.sam.gov/opportunit
 # State scraper config
 STATE_SCRAPER_BATCH_SIZE = int(os.getenv("STATE_SCRAPER_BATCH_SIZE", "100"))
 STATE_SCRAPER_REQUEST_DELAY = float(os.getenv("STATE_SCRAPER_REQUEST_DELAY", "1.0"))
+
+# Stripe billing config
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
+STRIPE_PRICE_STARTER_ID = os.getenv("STRIPE_PRICE_STARTER_ID", "")
+STRIPE_PRICE_GROWTH_ID = os.getenv("STRIPE_PRICE_GROWTH_ID", "")

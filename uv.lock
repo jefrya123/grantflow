@@ -658,6 +658,7 @@ dependencies = [
     { name = "scrapling" },
     { name = "slowapi" },
     { name = "sqlalchemy" },
+    { name = "stripe" },
     { name = "structlog" },
     { name = "uvicorn", extra = ["standard"] },
 ]
@@ -689,6 +690,7 @@ requires-dist = [
     { name = "scrapling", specifier = ">=0.4.2" },
     { name = "slowapi", specifier = ">=0.1.9" },
     { name = "sqlalchemy", specifier = ">=2.0" },
+    { name = "stripe", specifier = ">=10.0" },
     { name = "structlog", specifier = ">=24.0" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.34.0" },
 ]
@@ -1943,6 +1945,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/81/69/17425771797c36cded50b7fe44e850315d039f28b15901ab44839e70b593/starlette-1.0.0.tar.gz", hash = "sha256:6a4beaf1f81bb472fd19ea9b918b50dc3a77a6f2e190a12954b25e6ed5eea149", size = 2655289, upload-time = "2026-03-22T18:29:46.779Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/0b/c9/584bc9651441b4ba60cc4d557d8a547b5aff901af35bda3a4ee30c819b82/starlette-1.0.0-py3-none-any.whl", hash = "sha256:d3ec55e0bb321692d275455ddfd3df75fff145d009685eb40dc91fc66b03d38b", size = 72651, upload-time = "2026-03-22T18:29:45.111Z" },
+]
+
+[[package]]
+name = "stripe"
+version = "15.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "requests" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/36/5a/0cdea4b7911b8012936c765544109da27c0728f6911ec7aefe9d59e7a4f9/stripe-15.0.0.tar.gz", hash = "sha256:0717cd9ba8e8193cef8b1c488ce27836754df496ab6fb75864096e0cdf15e52d", size = 1486873, upload-time = "2026-03-26T01:39:04.073Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/03/4a/4431c998c451cf07f8b4fed98f425b4aaf3d59cc4fb1e6f54d7713606688/stripe-15.0.0-py3-none-any.whl", hash = "sha256:434ec5267a7402a30b76786d159c18d0e138f89195969d6c56bea2e08d353be0", size = 2125454, upload-time = "2026-03-26T01:39:01.801Z" },
 ]
 
 [[package]]
