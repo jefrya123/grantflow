@@ -24,6 +24,7 @@ TOPICS = [
     "justice",
     "technology",
     "community_development",
+    "ada-compliance",
 ]
 
 _SYSTEM_PROMPT = (
