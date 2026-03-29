@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 11-ada-compliance-grant-tagging-api-01-PLAN.md
-last_updated: "2026-03-29T00:29:40.872Z"
-last_activity: 2026-03-29 — Phase 11 executing, plan 11-01 complete
+stopped_at: Completed 11-ada-compliance-grant-tagging-api-02-PLAN.md
+last_updated: "2026-03-29T00:40:10.677Z"
+last_activity: 2026-03-29 — Phase 11 executing, plan 11-02 complete
 progress:
   total_phases: 12
   completed_phases: 10
@@ -81,6 +81,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 10-data-population-validation P03 | 8 | 2 tasks | 7 files |
 | Phase 10-data-population-validation P04 | 5 | 1 tasks | 0 files |
 | Phase 11-ada-compliance-grant-tagging-api P01 | 15 | 1 tasks | 2 files |
+| Phase 11-ada-compliance-grant-tagging-api P02 | 3 | 1 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -170,6 +171,9 @@ Recent decisions affecting current work:
 - [Phase 11-ada-compliance-grant-tagging-api]: No bare 'ada' in keyword lists — all entries contextually qualified to prevent false positives on adaptation/Adams/academic/NADAC
 - [Phase 11-ada-compliance-grant-tagging-api]: ADA_AGENCY_KEYWORDS contains only 'federal transit administration' — Office of Special Education excluded per RESEARCH.md to avoid tagging IDEA/education grants
 - [Phase 11-ada-compliance-grant-tagging-api]: run_ada_backfill uses raw SQL (not ORM) — avoids search_vector column absent in SQLite; consistent with Phase 10 pattern
+- [Phase 11-ada-compliance-grant-tagging-api]: ada-compliance route registered before /{opportunity_id} — FastAPI path resolution requires static segments before path params
+- [Phase 11-ada-compliance-grant-tagging-api]: No api_key dependency on get_ada_compliance_grants — public resource per CONTEXT.md locked decision
+- [Phase 11-ada-compliance-grant-tagging-api]: Municipality filter uses ilike on description + eligible_applicants with fail-open fallback when no match found
 
 ### Pending Todos
 
@@ -195,6 +199,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-29T00:29:40.867Z
-Stopped at: Completed 11-ada-compliance-grant-tagging-api-01-PLAN.md
+Last session: 2026-03-29T00:40:10.672Z
+Stopped at: Completed 11-ada-compliance-grant-tagging-api-02-PLAN.md
 Resume file: None

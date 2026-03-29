@@ -209,7 +209,7 @@ Plans:
 
 Plans:
 - [x] 11-01-PLAN.md — ADA keyword tagger backfill script (ada_tagger.py) with curated keyword matching + unit tests
-- [ ] 11-02-PLAN.md — GET /api/v1/opportunities/ada-compliance public endpoint with municipality filtering + integration tests
+- [x] 11-02-PLAN.md — GET /api/v1/opportunities/ada-compliance public endpoint with municipality filtering + integration tests
 
 ### Phase 12: Fund Your Fix Web Page & SEO
 **Goal**: Public-facing page at /fund-your-fix displays curated ADA compliance grants with clear deadlines and award amounts, municipality filtering, and full SEO metadata following existing web/routes.py patterns
