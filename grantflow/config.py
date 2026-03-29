@@ -32,6 +32,13 @@ SAM_GOV_API_BASE = os.getenv("SAM_GOV_API_BASE", "https://api.sam.gov/opportunit
 STATE_SCRAPER_BATCH_SIZE = int(os.getenv("STATE_SCRAPER_BATCH_SIZE", "100"))
 STATE_SCRAPER_REQUEST_DELAY = float(os.getenv("STATE_SCRAPER_REQUEST_DELAY", "1.0"))
 
+# SMTP email config (for digest alerts)
+SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "465"))
+SMTP_USER = os.getenv("SMTP_USER", "")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
+SMTP_FROM = os.getenv("SMTP_FROM", "noreply@grantflow.io")
+
 # Stripe billing config
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")

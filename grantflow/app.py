@@ -20,6 +20,7 @@ from grantflow.pipeline.logging import configure_structlog, bind_source_logger
 from grantflow.ingest.run_all import run_all_ingestion
 from grantflow.ingest.run_state import run_state_ingestion
 from grantflow.enrichment.run_enrichment import run_enrichment
+from grantflow.digest import send_weekly_digests
 
 logger_app = bind_source_logger("app")
 
@@ -54,6 +55,16 @@ async def custom_rate_limit_handler(
     )
 
 
+def _run_weekly_digests():
+    from grantflow.database import SessionLocal
+
+    db = SessionLocal()
+    try:
+        send_weekly_digests(db)
+    finally:
+        db.close()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     configure_structlog(env=os.getenv("GRANTFLOW_ENV", "development"))
@@ -77,6 +88,14 @@ async def lifespan(app: FastAPI):
         lambda: asyncio.get_event_loop().run_in_executor(None, run_enrichment),
         CronTrigger(hour=4, minute=0, timezone="UTC"),
         id="daily_enrichment",
+        replace_existing=True,
+        misfire_grace_time=3600,
+    )
+
+    scheduler.add_job(
+        lambda: _run_weekly_digests(),
+        CronTrigger(day_of_week="mon", hour=6, minute=0, timezone="UTC"),
+        id="weekly_digest",
         replace_existing=True,
         misfire_grace_time=3600,
     )
