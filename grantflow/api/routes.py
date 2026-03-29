@@ -609,13 +609,13 @@ def daily_feed(
     """Return opportunities that are new or updated on the given date."""
     new_opps = (
         db.query(Opportunity)
-        .filter(Opportunity.post_date >= date)
+        .filter(Opportunity.post_date == date)
         .all()
     )
     updated_opps = (
         db.query(Opportunity)
         .filter(
-            Opportunity.last_updated >= date,
+            Opportunity.last_updated == date,
             Opportunity.post_date < date,
         )
         .all()

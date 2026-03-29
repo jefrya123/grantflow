@@ -48,6 +48,7 @@ def make_opportunity(db, **kwargs) -> Opportunity:
 
 TODAY = "2026-03-29"
 YESTERDAY = "2026-03-28"
+TOMORROW = "2026-03-30"
 
 
 def test_daily_feed_returns_new_and_updated(client, db_session):
@@ -94,6 +95,28 @@ def test_daily_feed_invalid_date_format_returns_422(client, db_session):
         headers={"X-API-Key": key},
     )
     assert resp.status_code == 422
+
+
+def test_daily_feed_excludes_future_dates(client, db_session):
+    key = make_key(db_session)
+
+    # future: post_date is after the query date — must NOT appear in new
+    make_opportunity(db_session, id="opp-future", source_id="s-future",
+                     post_date=TOMORROW, last_updated=TOMORROW)
+    # control: post_date == today — must appear
+    make_opportunity(db_session, id="opp-today", source_id="s-today",
+                     post_date=TODAY, last_updated=TODAY)
+
+    resp = client.get(
+        f"/api/v1/feed/daily?date={TODAY}",
+        headers={"X-API-Key": key},
+    )
+
+    assert resp.status_code == 200
+    data = resp.json()
+    new_ids = {o["id"] for o in data["new"]}
+    assert "opp-future" not in new_ids
+    assert "opp-today" in new_ids
 
 
 def test_daily_feed_no_api_key_returns_401(client, db_session):
