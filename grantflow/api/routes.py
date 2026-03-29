@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, or_
 from datetime import datetime, timedelta, timezone
 
-from grantflow.models import Opportunity, Award, IngestionLog, ApiKey
+from grantflow.models import Opportunity, Award, IngestionLog, ApiKey, SavedSearch
 from grantflow.database import get_db
 from grantflow.pipeline.monitor import get_freshness_report
 from grantflow.api.auth import get_api_key, _tier_limit, _tier_export_limit
@@ -19,6 +19,10 @@ from grantflow.api.schemas import (
     AwardResponse,
     SearchResponse,
     StatsResponse,
+    SavedSearchCreate,
+    SavedSearchUpdate,
+    SavedSearchResponse,
+    SavedSearchList,
 )
 from grantflow.app import limiter
 
@@ -414,3 +418,129 @@ def health_check(db: Session = Depends(get_db)):
         "source_freshness": freshness,
         "checked_at": now.isoformat(),
     }
+
+
+# ---------------------------------------------------------------------------
+# Saved searches (email alerts — Phase D)
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/saved-searches",
+    response_model=SavedSearchResponse,
+    status_code=201,
+    tags=["saved-searches"],
+)
+def create_saved_search(
+    body: SavedSearchCreate,
+    db: Session = Depends(get_db),
+    api_key: ApiKey = Depends(get_api_key),
+) -> SavedSearchResponse:
+    record = SavedSearch(
+        api_key_id=api_key.id,
+        name=body.name,
+        query=body.query,
+        agency_code=body.agency_code,
+        category=body.category,
+        eligible_applicants=body.eligible_applicants,
+        min_award=body.min_award,
+        max_award=body.max_award,
+        alert_email=body.alert_email,
+    )
+    db.add(record)
+    db.commit()
+    db.refresh(record)
+    return SavedSearchResponse.model_validate(record)
+
+
+@router.get("/saved-searches", response_model=SavedSearchList, tags=["saved-searches"])
+def list_saved_searches(
+    db: Session = Depends(get_db),
+    api_key: ApiKey = Depends(get_api_key),
+) -> SavedSearchList:
+    rows = (
+        db.query(SavedSearch)
+        .filter(SavedSearch.api_key_id == api_key.id, SavedSearch.is_active.is_(True))
+        .all()
+    )
+    return SavedSearchList(
+        items=[SavedSearchResponse.model_validate(r) for r in rows],
+        total=len(rows),
+    )
+
+
+@router.get(
+    "/saved-searches/{search_id}",
+    response_model=SavedSearchResponse,
+    tags=["saved-searches"],
+)
+def get_saved_search(
+    search_id: int,
+    db: Session = Depends(get_db),
+    api_key: ApiKey = Depends(get_api_key),
+) -> SavedSearchResponse:
+    record = (
+        db.query(SavedSearch)
+        .filter(SavedSearch.id == search_id, SavedSearch.api_key_id == api_key.id)
+        .first()
+    )
+    if not record:
+        raise HTTPException(
+            status_code=404,
+            detail={"error_code": "NOT_FOUND", "message": "Saved search not found."},
+        )
+    return SavedSearchResponse.model_validate(record)
+
+
+@router.patch(
+    "/saved-searches/{search_id}",
+    response_model=SavedSearchResponse,
+    tags=["saved-searches"],
+)
+def update_saved_search(
+    search_id: int,
+    body: SavedSearchUpdate,
+    db: Session = Depends(get_db),
+    api_key: ApiKey = Depends(get_api_key),
+) -> SavedSearchResponse:
+    record = (
+        db.query(SavedSearch)
+        .filter(SavedSearch.id == search_id, SavedSearch.api_key_id == api_key.id)
+        .first()
+    )
+    if not record:
+        raise HTTPException(
+            status_code=404,
+            detail={"error_code": "NOT_FOUND", "message": "Saved search not found."},
+        )
+    for field, value in body.model_dump(exclude_unset=True).items():
+        setattr(record, field, value)
+    db.commit()
+    db.refresh(record)
+    return SavedSearchResponse.model_validate(record)
+
+
+@router.delete(
+    "/saved-searches/{search_id}",
+    response_model=SavedSearchResponse,
+    tags=["saved-searches"],
+)
+def delete_saved_search(
+    search_id: int,
+    db: Session = Depends(get_db),
+    api_key: ApiKey = Depends(get_api_key),
+) -> SavedSearchResponse:
+    record = (
+        db.query(SavedSearch)
+        .filter(SavedSearch.id == search_id, SavedSearch.api_key_id == api_key.id)
+        .first()
+    )
+    if not record:
+        raise HTTPException(
+            status_code=404,
+            detail={"error_code": "NOT_FOUND", "message": "Saved search not found."},
+        )
+    record.is_active = False
+    db.commit()
+    db.refresh(record)
+    return SavedSearchResponse.model_validate(record)

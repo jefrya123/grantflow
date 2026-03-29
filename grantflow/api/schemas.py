@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 
 
 # ---------------------------------------------------------------------------
@@ -129,3 +129,75 @@ class StatsResponse(BaseModel):
     total_award_dollars: float
     closing_soon: int
     top_agencies: list[dict]
+
+
+# ---------------------------------------------------------------------------
+# SavedSearch (email alerts — Phase D)
+# ---------------------------------------------------------------------------
+
+
+class SavedSearchCreate(BaseModel):
+    name: str
+    query: Optional[str] = None
+    agency_code: Optional[str] = None
+    category: Optional[str] = None
+    eligible_applicants: Optional[str] = None
+    min_award: Optional[float] = None
+    max_award: Optional[float] = None
+    alert_email: str
+
+    @field_validator("alert_email")
+    @classmethod
+    def validate_email(cls, v: str) -> str:
+        import re
+
+        pattern = r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
+        if not re.match(pattern, v):
+            raise ValueError("alert_email must be a valid email address")
+        return v
+
+
+class SavedSearchUpdate(BaseModel):
+    name: Optional[str] = None
+    query: Optional[str] = None
+    agency_code: Optional[str] = None
+    category: Optional[str] = None
+    eligible_applicants: Optional[str] = None
+    min_award: Optional[float] = None
+    max_award: Optional[float] = None
+    alert_email: Optional[str] = None
+
+    @field_validator("alert_email")
+    @classmethod
+    def validate_email(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        import re
+
+        pattern = r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
+        if not re.match(pattern, v):
+            raise ValueError("alert_email must be a valid email address")
+        return v
+
+
+class SavedSearchResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    api_key_id: int
+    name: str
+    query: Optional[str] = None
+    agency_code: Optional[str] = None
+    category: Optional[str] = None
+    eligible_applicants: Optional[str] = None
+    min_award: Optional[float] = None
+    max_award: Optional[float] = None
+    alert_email: str
+    is_active: bool
+    last_alerted_at: Optional[str] = None
+    created_at: str
+
+
+class SavedSearchList(BaseModel):
+    items: list[SavedSearchResponse]
+    total: int
