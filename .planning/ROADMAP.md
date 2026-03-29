@@ -10,6 +10,7 @@ GrantFlow hardens an existing MVP (81K opportunities, working API, search UI) in
 - Wave 3 (Phases 5, 6): State scraper build-out + advanced API/Web — depend on Wave 2
 - Wave 4 (Phase 7): GTM launch + LLM enrichment — depends on Wave 3
 - Wave 5 (Phases 8, 9): Gap closure — pipeline/data cleanup + API/feature polish (parallel)
+- Wave 6 (Phases 11, 12): Fund Your Fix — ADA compliance grant tagging + web page (serial)
 
 **Phase Numbering:**
 - Integer phases (1, 2, 3): Planned milestone work
@@ -28,6 +29,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 7: GTM + Enrichment** - Launch landing page, pricing, API playground, usage analytics, and LLM categorization [WAVE 4] (completed 2026-03-24)
 - [x] **Phase 8: Pipeline & Data Cleanup** - Remove FTS5 remnants, wire SAM.gov normalizers, clean dead code [WAVE 5 — gap closure] (completed 2026-03-24)
 - [x] **Phase 9: API & Feature Polish** - Tier-aware rate limits, export topic filter, canonical_id exposure, enrichment scheduler [WAVE 5 — gap closure] (completed 2026-03-24)
+- [ ] **Phase 11: ADA Compliance Grant Tagging & API** - Tag/categorize ADA-related grants and expose via dedicated API endpoint with municipality cross-link support [WAVE 6 — Fund Your Fix]
+- [ ] **Phase 12: Fund Your Fix Web Page & SEO** - Public /fund-your-fix page showing ADA grants with deadlines, award amounts, municipality filtering, and full SEO [WAVE 6 — Fund Your Fix]
 
 ## Phase Details
 
@@ -191,6 +194,38 @@ Plans:
 - [ ] 09-01-PLAN.md — Tier-aware rate limits on all API endpoints + export topic filter
 - [ ] 09-02-PLAN.md — canonical_id in OpportunityResponse + enrichment APScheduler job
 
+### Phase 11: ADA Compliance Grant Tagging & API
+**Goal**: Identify and tag grants related to ADA remediation, transit accessibility, and disability compliance in the database; expose them via a dedicated API endpoint with optional municipality cross-link filtering
+**Depends on**: Phase 10
+**Wave**: 6 (Fund Your Fix — serial)
+**Requirements**: ADA-01, ADA-02, ADA-03
+**Success Criteria** (what must be TRUE):
+  1. An `ada_tags` JSON column (or equivalent tag mechanism) is populated for all grants matching ADA/accessibility keyword criteria across title, description, and agency fields
+  2. GET /api/v1/opportunities/ada-compliance returns paginated results with title, deadline, award_min, award_max, source, apply_url, and canonical_id
+  3. Endpoint accepts optional `?municipality=<slug>` query param and returns grants relevant to that municipality's violation type profile
+  4. Endpoint is documented in OpenAPI and returns proper 200/422 responses
+  5. At least the DOT FTA "All Stations Access" grant (deadline 2026-05-01) appears in results
+**Plans**: 2 plans
+
+Plans:
+- [ ] 11-01-PLAN.md — ADA keyword tagger backfill script (ada_tagger.py) with curated keyword matching + unit tests
+- [ ] 11-02-PLAN.md — GET /api/v1/opportunities/ada-compliance public endpoint with municipality filtering + integration tests
+
+### Phase 12: Fund Your Fix Web Page & SEO
+**Goal**: Public-facing page at /fund-your-fix displays curated ADA compliance grants with clear deadlines and award amounts, municipality filtering, and full SEO metadata following existing web/routes.py patterns
+**Depends on**: Phase 11
+**Wave**: 6 (Fund Your Fix — serial)
+**Requirements**: ADA-04, ADA-05, ADA-06
+**Success Criteria** (what must be TRUE):
+  1. /fund-your-fix renders a page listing ADA compliance grants sorted by deadline proximity
+  2. Each grant shows title, deadline (formatted), award range, agency, and apply link
+  3. Page accepts ?municipality=<slug> query param and shows relevant grants for that municipality
+  4. JSON-LD structured data (ItemList schema) is present following the existing web/routes.py pattern
+  5. OpenGraph (og:title, og:description, og:image) and Twitter Card meta tags are present
+  6. DOT FTA "All Stations Access" grant is featured with its 2026-05-01 deadline prominently highlighted
+  7. /ada-grants redirects to /fund-your-fix (or is an alias)
+**Plans**: 0 plans
+
 ## Progress
 
 **Execution Order (wave-parallel):**
@@ -218,6 +253,8 @@ Wave 5:  Phase 8 ║ Phase 9   (gap closure — parallel)
 | 7. GTM + Enrichment | 2/2 | Complete   | 2026-03-24 | Complete | 2026-03-24 |
 | 8. Pipeline & Data Cleanup | 2/2 | Complete   | 2026-03-24 | Not started | - |
 | 9. API & Feature Polish | 2/2 | Complete   | 2026-03-24 | Not started | - |
+| 11. ADA Compliance Grant Tagging & API | 0/2 | Phase 10 | Not started | Not started | - |
+| 12. Fund Your Fix Web Page & SEO | 0/0 | Phase 11 | Not started | Not started | - |
 
 ### Phase 10: Data Population & Validation
 **Goal**: Actually run all pipelines (SBIR, SAM.gov, state scrapers, LLM enrichment), fix what breaks, verify normalization produces human-readable labels, and validate the data makes the product useful
