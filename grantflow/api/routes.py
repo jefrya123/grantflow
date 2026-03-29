@@ -544,3 +544,54 @@ def delete_saved_search(
     db.commit()
     db.refresh(record)
     return SavedSearchResponse.model_validate(record)
+
+
+@router.get("/fund-your-fix", tags=["opportunities"])
+def fund_your_fix_api(
+    municipality: str | None = Query(default=None),
+    limit: int = Query(default=10, ge=1, le=50),
+    db: Session = Depends(get_db),
+):
+    """Public JSON endpoint for ADA compliance grants (no API key required).
+
+    Used by ComplianceGrade / ada-audit for cross-product integration.
+    """
+    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    query = db.query(Opportunity).filter(
+        Opportunity.topic_tags.ilike("%ada-compliance%"),
+        or_(Opportunity.close_date.is_(None), Opportunity.close_date >= today_str),
+    )
+
+    if municipality:
+        slug_term = f"%{municipality}%"
+        muni_query = query.filter(
+            or_(
+                Opportunity.eligible_applicants.ilike(slug_term),
+                Opportunity.description.ilike(slug_term),
+            )
+        )
+        if muni_query.count() > 0:
+            query = muni_query
+
+    total = query.count()
+    results = (
+        query.order_by(Opportunity.close_date.asc().nullslast()).limit(limit).all()
+    )
+
+    grants = [
+        {
+            "id": o.id,
+            "title": o.title,
+            "agency": o.agency_name,
+            "close_date": o.close_date,
+            "award_floor": o.award_floor,
+            "award_ceiling": o.award_ceiling,
+            "url": o.source_url or o.additional_info_url,
+            "source": o.source,
+        }
+        for o in results
+    ]
+
+    return JSONResponse(
+        content={"grants": grants, "total": total, "municipality": municipality}
+    )
